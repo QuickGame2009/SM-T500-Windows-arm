@@ -1,0 +1,28 @@
+diff --git a/ArmPkg/Drivers/TimerDxe/TimerDxe.c b/ArmPkg/Drivers/TimerDxe/TimerDxe.c
+index b7f5ecc..058f919 100644
+--- a/ArmPkg/Drivers/TimerDxe/TimerDxe.c
++++ b/ArmPkg/Drivers/TimerDxe/TimerDxe.c
+@@ -300,6 +300,23 @@ TimerInterruptHandler (
+   //
+   OriginalTPL = gBS->RaiseTPL (TPL_HIGH_LEVEL);
+ 
++  {
++    STATIC UINT64  HbNext = 0;
++    UINT64         HbNow  = ArmGenericTimerGetSystemCount ();
++
++    if (HbNow >= HbNext) {
++      HbNext = HbNow + (5 * (UINT64)ArmGenericTimerGetTimerFreq ());
++      DEBUG ((
++        DEBUG_ERROR,
++        "HB ELR=%lx LR=%lx SP=%lx SPSR=%lx\n",
++        SystemContext.SystemContextAArch64->ELR,
++        SystemContext.SystemContextAArch64->LR,
++        SystemContext.SystemContextAArch64->SP,
++        SystemContext.SystemContextAArch64->SPSR
++        ));
++    }
++  }
++
+   // Signal end of interrupt early to help avoid losing subsequent ticks
+   // from long duration handlers
+   gInterrupt->EndOfInterrupt (gInterrupt, Source);

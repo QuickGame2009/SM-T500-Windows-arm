@@ -76,9 +76,14 @@ jobs:
           sed -i 's|Time->Day = (ElapsedSeconds / SecondsPerDay);|Time->Day = (ElapsedSeconds / SecondsPerDay) + 1;|' "$f"
           grep -n "Time->Day" "$f"
 
-      - name: Latido del temporizador
+      - name: Latido del temporizador (parche git de Mu_Basecore)
         if: ${{ inputs.heartbeat == 'si' }}
-        run: python3 kit/variants/heartbeat/patch.py upstream/Mu_Basecore/ArmPkg/Drivers/TimerDxe/TimerDxe.c
+        run: |
+          cp kit/variants/heartbeat/Heartbeat.patch upstream/Resources/MuPatches/Heartbeat.patch
+          f=upstream/build_uefi.py
+          test "$(grep -c '"Usb-Bus.patch"\]' "$f")" = "2"
+          sed -i 's/"Usb-Bus.patch"\]/"Usb-Bus.patch", "Heartbeat.patch"]/g' "$f"
+          grep -n 'Heartbeat.patch' "$f"
 
       - name: Elegir DTB
         if: ${{ inputs.dtb == 'boardid' }}
