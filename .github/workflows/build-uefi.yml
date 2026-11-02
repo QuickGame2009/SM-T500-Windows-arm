@@ -1,0 +1,65 @@
+name: Compilar UEFI gta4lwifi (SM-T500)
+
+# Uso: sube esta carpeta a un repositorio propio de GitHub y lanza el flujo
+# desde la pestaña Actions > "Compilar UEFI gta4lwifi" > Run workflow.
+# Al terminar, descarga el artefacto Mu-gta4lwifi-DEBUG (recomendado para la
+# primera prueba) o Mu-gta4lwifi-RELEASE.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dtb:
+        description: 'DTB: default (board-id 0 0, como el port gta4l) o boardid (board-id 0x1000b, el de tu tablet)'
+        type: choice
+        default: default
+        options: [default, boardid]
+
+env:
+  CI_BUILD: "true"
+  UPSTREAM_REPO: https://github.com/Project-Silicium/Mu-Silicium.git
+  # Commit de Mu-Silicium con el que se preparó el port. Cámbialo solo si sabes por qué.
+  UPSTREAM_REF: 4bd8ae83bf37de41777f19e0777db70f59383a6d
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        release: [DEBUG, RELEASE]
+    steps:
+      - name: Descargar este repositorio
+        uses: actions/checkout@v4
+        with:
+          path: kit
+
+      - name: Descargar Mu-Silicium (commit fijado)
+        run: |
+          git clone "$UPSTREAM_REPO" upstream
+          cd upstream
+          git checkout "$UPSTREAM_REF"
+          # Silicium-ACPI debe estar descargado antes de copiar nuestros ficheros encima.
+          git submodule update --init Silicium-ACPI
+
+      - name: Aplicar el port gta4lwifi
+        run: cp -r kit/overlay/. upstream/
+
+      - name: Elegir DTB
+        if: ${{ inputs.dtb == 'boardid' }}
+        run: cp upstream/Resources/DTBs/gta4lwifi-boardid.dtb upstream/Resources/DTBs/gta4lwifi.dtb
+
+      - name: Compilar
+        working-directory: upstream
+        run: |
+          bash ./setup_env.sh -p apt
+          export CLANGPDB_AARCH64_PREFIX=aarch64-linux-gnu-
+          python3 build_uefi.py -d gta4lwifi -r ${{ matrix.release }} -c
+
+      - name: Subir resultado
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mu-gta4lwifi-${{ inputs.dtb }}-${{ matrix.release }}
+          path: |
+            upstream/Mu-gta4lwifi.img
+            upstream/Build/gta4lwifiPkg/${{ matrix.release }}_CLANGPDB/FV/SILICIUM_UEFI.fd
+          if-no-files-found: error

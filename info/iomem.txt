@@ -1,0 +1,131 @@
+003cb244-003cb247 : vls_clamp_reg
+003ed000-003fb007 : cx_ipeak@3ed000
+00400000-00ffffff : pinctrl@400000
+01400000-015effff : cc_base
+01610000-01611fff : eud_base
+01612000-01612003 : eud_enable_reg
+01613000-0161317f : qusb_phy_base
+01b40000-01b46fff : qfprom@1b40000
+01c0a000-01c2ffff : cnfg
+01c40000-01c410ff : core
+01e00000-03dfffff : chnls
+03e00000-03efffff : obsrvr
+03f00000-03f9ffff : intr
+0440b000-0440b003 : pshold-base
+04410000-04410007 : tsens_srot_physical
+04411000-044111fe : tsens_tm_physical
+04744000-04744fff : hc_mem
+04784000-04784fff : hc_mem
+04807000-04807db7 : phy_mem
+04a84000-04a87fff : i2c@4a84000
+04a88000-04a8bfff : i2c@4a88000
+04ac0000-04ac1fff : qcom,qupv3_0_geni_se@4ac0000
+04e0c100-04e0ccff : dwc3@4e00000
+05900000-0598ffff : kgsl-3d0
+05990000-05998fff : cc_base
+059a0000-059affff : base
+059c2200-059c2207 : status-reg
+059c5000-059c5fff : base
+05f00000-05f1ffff : cc_base
+08002000-08002fff : stm-base
+08004000-08004fff : tpda-base
+08005000-08005fff : funnel-base
+08010000-08010fff : cti-base
+08011000-08011fff : cti-base
+08012000-08012fff : cti-base
+08013000-08013fff : cti-base
+08014000-08014fff : cti-base
+08015000-08015fff : cti-base
+08016000-08016fff : cti-base
+08017000-08017fff : cti-base
+08018000-08018fff : cti-base
+08019000-08019fff : cti-base
+0801a000-0801afff : cti-base
+0801b000-0801bfff : cti-base
+0801c000-0801cfff : cti-base
+0801d000-0801dfff : cti-base
+0801e000-0801efff : cti-base
+0801f000-0801ffff : cti-base
+08041000-08041fff : funnel-base
+08042000-08042fff : funnel-base
+08045000-08045fff : funnel-base
+08046000-08046fff : replicator-base
+08047000-08047fff : tmc-base
+08048000-08048fff : tmc-base
+08833000-08833fff : cti-base
+08840000-08840fff : tpdm-base
+0884c000-0884cfff : tpdm-base
+08850000-08850fff : tpdm-base
+08860000-08860fff : tpdm-base
+08861000-08861fff : funnel-base
+08867000-08867fff : cti-base
+08870000-08870fff : tpdm-base
+089d0000-089d0fff : tpdm-base
+08a01000-08a01fff : tpdm-base
+08a02000-08a02fff : cti-base
+08a04000-08a04fff : tpda-base
+08a58000-08a58fff : tpdm-base
+08b30000-08b30fff : cti-base
+08b58000-08b58fff : tpdm-base
+08b59000-08b59fff : cti-base
+08b5a000-08b5afff : cti-base
+08b5b000-08b5bfff : cti-base
+08b5c000-08b5cfff : cti-base
+09040000-09040fff : etm@9040000
+09140000-09140fff : etm@9140000
+09240000-09240fff : etm@9240000
+09340000-09340fff : etm@9340000
+09440000-09440fff : etm@9440000
+09540000-09540fff : etm@9540000
+09640000-09640fff : etm@9640000
+09740000-09740fff : etm@9740000
+09800000-09800fff : funnel-base
+09810000-09810fff : funnel-base
+09830000-09830fff : tpdm-base
+09832000-09832fff : tpda-base
+09860000-09860fff : tpdm-base
+09862000-09862fff : tpda-base
+098a0000-098a0fff : tpdm-base
+098c0000-098c0fff : tpda-base
+098e0000-098e0fff : cti-base
+098f0000-098f0fff : cti-base
+09900000-09900fff : tgu-base
+0c600000-0c67ffff : base
+0c782200-0c782207 : status-reg
+0c782208-0c78220f : status-reg
+0c782210-0c782217 : status-reg
+0c782218-0c78221f : status-reg
+0c785000-0c785fff : base
+0c789000-0c789fff : base
+0c78d000-0c78dfff : base
+0c791000-0c791fff : base
+0f011000-0f011fff : cluster1@f011000
+0f017000-0f017fff : msm-watchdog
+0f111000-0f111fff : cluster0@f111000
+0f121000-0f121fff : arch_mem_timer
+0f521000-0f521fff : freq-domain0
+0f523000-0f523fff : freq-domain1
+40000000-456fffff : System RAM
+  40080000-4214ffff : Kernel code
+  42150000-4224ffff : reserved
+  42250000-4267cfff : Kernel data
+  4469d000-44764fff : reserved
+  4489e000-456fefff : reserved
+45d00000-45dfffff : System RAM
+45f40000-45ffefff : System RAM
+46200000-4aafffff : System RAM
+55617000-5fffffff : System RAM
+  5c000000-5cffffff : reserved
+63900000-710fffff : System RAM
+71300000-713fffff : System RAM
+  71300000-713fffff : reserved
+71c00000-7e57ffff : System RAM
+80000000-ffffffff : System RAM
+  efe30000-f07fffff : reserved
+  f088e000-f37fffff : reserved
+  f380b000-f388afff : reserved
+  f388b000-f388bfff : reserved
+  f388e000-f388efff : reserved
+  f388f000-f388ffff : reserved
+  f3890000-f3892fff : reserved
+  f3893000-ffffffff : reserved

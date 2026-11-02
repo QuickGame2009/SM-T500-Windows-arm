@@ -1,0 +1,6 @@
+mmc0
+mmc1
+---
+ls: /sys/class/ufs*: No such file or directory
+---
+mmcblk0

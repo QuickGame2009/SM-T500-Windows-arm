@@ -1,0 +1,2 @@
+Ficheros en la tablet: by-name.txt, cmdline.txt, dt-compatible.txt, dt-model.txt, dt-qcom-board-id.txt, dt-qcom-msm-id.txt, getprop.txt, id.txt, iomem.txt, kernel-version.txt, meminfo.txt, proc-partitions.txt, storage-type.txt, usb-gadget.txt
+Faltan en el PC: 
