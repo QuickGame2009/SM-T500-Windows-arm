@@ -14,7 +14,7 @@ on:
         default: default
         options: [default, boardid]
       verbose:
-        description: 'Log de depuracion: normal o detallado (anade solo PAGE: reservas de memoria, sin volcar la tabla GCD)'
+        description: 'Log de depuracion: normal o detallado (anade PAGE, EVENT, VARIABLE y BLKIO; sin la tabla GCD)'
         type: choice
         default: normal
         options: [normal, detallado]
@@ -23,6 +23,11 @@ on:
         type: choice
         default: original
         options: [original, lime]
+      rtc:
+        description: 'Reloj: original (dia 0 al arrancar, invalido) o dia1 (suma 1 al dia para que sea valido)'
+        type: choice
+        default: original
+        options: [original, dia1]
 
 env:
   CI_BUILD: "true"
@@ -58,6 +63,14 @@ jobs:
         if: ${{ inputs.memmap == 'lime' }}
         run: cp -r kit/variants/lime-memmap/. upstream/
 
+      - name: Reloj con dia valido
+        if: ${{ inputs.rtc == 'dia1' }}
+        run: |
+          f=upstream/Silicon/Silicium/SiliciumNullPkg/Library/RealTimeClockLibNull/RealTimeClockNull.c
+          grep -q "Time->Day = (ElapsedSeconds / SecondsPerDay);" "$f"
+          sed -i 's|Time->Day = (ElapsedSeconds / SecondsPerDay);|Time->Day = (ElapsedSeconds / SecondsPerDay) + 1;|' "$f"
+          grep -n "Time->Day" "$f"
+
       - name: Elegir DTB
         if: ${{ inputs.dtb == 'boardid' }}
         run: cp upstream/Resources/DTBs/gta4lwifi-boardid.dtb upstream/Resources/DTBs/gta4lwifi.dtb
@@ -67,7 +80,7 @@ jobs:
         run: |
           f=upstream/Silicon/Silicium/SiliciumPkg/SiliciumPkg.dsc.inc
           grep -q "PcdDebugPrintErrorLevel|0x8007EE0F" "$f"
-          sed -i 's/PcdDebugPrintErrorLevel|0x8007EE0F/PcdDebugPrintErrorLevel|0x8007EE2F/' "$f"
+          sed -i 's/PcdDebugPrintErrorLevel|0x8007EE0F/PcdDebugPrintErrorLevel|0x800FFF2F/' "$f"
           grep -n "PcdDebugPrintErrorLevel" "$f"
 
       - name: Compilar
@@ -80,7 +93,7 @@ jobs:
       - name: Subir resultado
         uses: actions/upload-artifact@v4
         with:
-          name: Mu-gta4lwifi-${{ inputs.dtb }}-${{ inputs.verbose }}-mem${{ inputs.memmap }}-${{ matrix.release }}
+          name: Mu-gta4lwifi-${{ inputs.dtb }}-${{ inputs.verbose }}-mem${{ inputs.memmap }}-rtc${{ inputs.rtc }}-${{ matrix.release }}
           path: |
             upstream/Mu-gta4lwifi.img
             upstream/Build/gta4lwifiPkg/${{ matrix.release }}_CLANGPDB/FV/SILICIUM_UEFI.fd
