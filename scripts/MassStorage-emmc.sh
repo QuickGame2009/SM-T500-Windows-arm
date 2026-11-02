@@ -12,6 +12,8 @@
 #     soltar el UDC se corta adb y mataria el script
 #   - el disco es mmcblk0 (eMMC); el original usa sda (UFS)
 #   - deja un registro en /cache/ms.log
+#   - QUITA la funcion adb de la configuracion USB: mientras dure esto adb NO funciona;
+#     reinicia la tablet (Encendido) para recuperarlo
 #
 # Uso (lo lanza 3-massstorage.cmd; a mano):
 #   adb push MassStorage-emmc.sh /cache/
@@ -29,32 +31,51 @@ fi
 
 set -x
 setenforce 0
-sleep 2
+sleep 1
 
 G=/config/usb_gadget/g1
 DISK=/dev/block/mmcblk0
 [ -b "$DISK" ] || DISK=/dev/block/sda
 UDC=$(ls /sys/class/udc 2>/dev/null | head -n 1)
 [ -n "$UDC" ] || UDC=4e00000.dwc3
+F=$G/functions/mass_storage.0
+C=$G/configs/b.1
 
-# 1. soltar el UDC (se corta adb)
-echo "" > $G/UDC
-sleep 1
+# 1. preparar TODO lo que se pueda con el gadget aun activo (asi la ventana critica es minima)
+[ -d $F ] || mkdir $F
+echo $DISK > $F/lun.0/file
+echo 0 > $F/lun.0/cdrom
+echo 0 > $F/lun.0/removable
+echo 0 > $F/lun.0/ro
 
-# 2. configurar
-echo 0xEF > $G/bDeviceClass
-echo 0x02 > $G/bDeviceSubClass
-echo 0x01 > $G/bDeviceProtocol
-
-[ -d $G/functions/mass_storage.0 ] || mkdir $G/functions/mass_storage.0
-[ -e $G/configs/b.1/mass_storage.0 ] || ln -s $G/functions/mass_storage.0 $G/configs/b.1/mass_storage.0
-
-echo $DISK > $G/functions/mass_storage.0/lun.0/file
-echo 0 > $G/functions/mass_storage.0/lun.0/cdrom
-echo 0 > $G/functions/mass_storage.0/lun.0/removable
-echo 0 > $G/functions/mass_storage.0/lun.0/ro
-
-# 3. volver a activar el UDC
-sleep 1
-echo $UDC > $G/UDC
+# 2. ventana critica, SIN pausas. El recovery reenlaza adb (f1) y pone PID d001 cuando adbd se reinicia
+#    al soltar el USB; si ganamos la carrera y activamos primero, configfs no le deja tocar nada.
+#    Se reintenta hasta 10 veces.
+n=0
+while [ $n -lt 10 ]; do
+  n=$((n+1))
+  echo "" > $G/UDC
+  for f in $C/*; do [ -L "$f" ] && [ "${f##*/}" != "mass_storage.0" ] && rm "$f"; done
+  [ -e $C/mass_storage.0 ] || ln -s $F $C/mass_storage.0
+  echo 0x00 > $G/bDeviceClass
+  echo 0x00 > $G/bDeviceSubClass
+  echo 0x00 > $G/bDeviceProtocol
+  echo 0x5a5a > $G/idProduct
+  echo $UDC > $G/UDC
+  # correcto si: activado, mass_storage enlazado, y adb (f1) no esta
+  if [ "$(cat $G/UDC)" = "$UDC" ] && [ -e $C/mass_storage.0 ] && [ ! -e $C/f1 ]; then
+    echo "OK en el intento $n"
+    break
+  fi
+  echo "intento $n fallido (UDC=$(cat $G/UDC) f1=$([ -e $C/f1 ] && echo si || echo no))"
+  sleep 1
+done
 echo "Disco $DISK expuesto por $UDC"
+
+# 3. diagnostico
+set +x
+for i in 1 2 3 4 5 6; do
+  sleep 3
+  echo "--- t=$((i*3))s  estado UDC: $(cat /sys/class/udc/$UDC/state 2>&1)  UDC=$(cat $G/UDC 2>&1)  PID=$(cat $G/idProduct 2>&1)  f1=$([ -e $C/f1 ] && echo si || echo no)"
+done
+ls -l $C 2>&1

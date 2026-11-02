@@ -30,6 +30,15 @@ if ($run.Out.Trim() -ne '') { Write-Host $run.Out.Trim() }
 if ($run.Err.Trim() -ne '') { Write-Host $run.Err.Trim() }
 
 Write-Host ''
+Write-Host 'IMPORTANTE: adb dejará de funcionar mientras el disco está expuesto (es intencionado).'
+Write-Host 'Para recuperarlo, reinicia la tablet con Encendido y vuelve a entrar en el recovery.'
+Write-Host ''
+Write-Host 'Si Windows sigue mostrando "Android ADB ... Interface" y no aparece el disco:'
+Write-Host '  1) Administrador de dispositivos > clic derecho en ese dispositivo > Desinstalar dispositivo'
+Write-Host '     (marca "Intentar quitar el controlador" si sale).'
+Write-Host '  2) Desconecta el cable, espera 10 s y vuelve a conectarlo.'
+Write-Host '  3) Administración de discos > Acción > Volver a examinar discos.'
+Write-Host ''
 Write-Host 'Espera unos segundos y abre "Administración de discos" (diskmgmt.msc).'
 Write-Host 'Debe aparecer un disco nuevo de unos 60 GB con muchas particiones.'
 Write-Host 'Si no aparece: reinicia la tablet a TWRP y ejecuta  adb shell cat /cache/ms.log  y envíame el resultado.'

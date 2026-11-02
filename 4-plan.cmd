@@ -1,5 +1,5 @@
 @echo off
 cd /d "%~dp0"
-powershell -NoProfile -ExecutionPolicy Bypass -File "scripts\04-plan-partitions.ps1" %*
+powershell -NoProfile -ExecutionPolicy Bypass -File "scripts\05-plan-diskpart.ps1" %*
 echo.
 pause

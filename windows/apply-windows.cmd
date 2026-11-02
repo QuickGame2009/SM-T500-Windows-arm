@@ -5,7 +5,8 @@ rem Requisitos: la tablet en TWRP con MassStorage-emmc.sh en marcha, CMD como
 rem administrador, y las particiones win y esp con letra de unidad asignada
 rem (diskpart: sel dis N / sel par X / assign letter=R).
 rem
-rem Uso:    apply-windows.cmd <install.wim> <letra_win> <letra_esp> [indice]
+rem Uso:    apply-windows.cmd <install.wim> <letra_win> <letra_esp> [indice] [continuar]
+rem          ("continuar" salta DISM si la imagen ya esta aplicada)
 rem Ejemplo: apply-windows.cmd D:\wim\install.wim R X 1
 rem
 rem Basado en Project-Silicium/Guides (General/OS/Full-Windows).
@@ -35,12 +36,15 @@ echo Se va a BORRAR y escribir en %WINL% y %ESPL%. Comprueba que NO son discos d
 pause
 
 echo.
+if /i "%~5"=="continuar" (echo [1/5] Omitido: la imagen ya esta aplicada. & goto :bcd)
 echo [1/5] Aplicando la imagen (tarda varios minutos)...
 dism /apply-image /ImageFile:"%WIM%" /index:%IDX% /ApplyDir:%WINL%\ || goto :fail
 
 echo.
 echo [2/5] Creando los ficheros de arranque en la ESP...
-bcdboot %WINL%\Windows /s %ESPL% /f UEFI || goto :fail
+:bcd
+rem /offline: sin el, el bcdboot del PC exige ficheros EFI_EX que esta imagen no trae (error 0xc1)
+bcdboot %WINL%\Windows /s %ESPL% /f UEFI /offline /v || goto :fail
 
 echo.
 echo [3/5] Configurando el BCD...

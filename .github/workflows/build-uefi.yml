@@ -13,6 +13,16 @@ on:
         type: choice
         default: default
         options: [default, boardid]
+      verbose:
+        description: 'Log de depuracion: normal o detallado (anade PAGE, INFO, VARIABLE, EVENT y GCD; sale mas texto por pantalla y arranca mas lento)'
+        type: choice
+        default: normal
+        options: [normal, detallado]
+      memmap:
+        description: 'Mapa de memoria: original (el del port gta4l) o lime (heap de la UEFI movido a 0x63900000 con QSEE/TZApps reservados, como el Redmi 9T que si arranca Windows)'
+        type: choice
+        default: original
+        options: [original, lime]
 
 env:
   CI_BUILD: "true"
@@ -44,9 +54,21 @@ jobs:
       - name: Aplicar el port gta4lwifi
         run: cp -r kit/overlay/. upstream/
 
+      - name: Mapa de memoria estilo lime
+        if: ${{ inputs.memmap == 'lime' }}
+        run: cp -r kit/variants/lime-memmap/. upstream/
+
       - name: Elegir DTB
         if: ${{ inputs.dtb == 'boardid' }}
         run: cp upstream/Resources/DTBs/gta4lwifi-boardid.dtb upstream/Resources/DTBs/gta4lwifi.dtb
+
+      - name: Log de depuracion detallado
+        if: ${{ inputs.verbose == 'detallado' }}
+        run: |
+          f=upstream/Silicon/Silicium/SiliciumPkg/SiliciumPkg.dsc.inc
+          grep -q "PcdDebugPrintErrorLevel|0x8007EE0F" "$f"
+          sed -i 's/PcdDebugPrintErrorLevel|0x8007EE0F/PcdDebugPrintErrorLevel|0x801FEF6F/' "$f"
+          grep -n "PcdDebugPrintErrorLevel" "$f"
 
       - name: Compilar
         working-directory: upstream
@@ -58,7 +80,7 @@ jobs:
       - name: Subir resultado
         uses: actions/upload-artifact@v4
         with:
-          name: Mu-gta4lwifi-${{ inputs.dtb }}-${{ matrix.release }}
+          name: Mu-gta4lwifi-${{ inputs.dtb }}-${{ inputs.verbose }}-mem${{ inputs.memmap }}-${{ matrix.release }}
           path: |
             upstream/Mu-gta4lwifi.img
             upstream/Build/gta4lwifiPkg/${{ matrix.release }}_CLANGPDB/FV/SILICIUM_UEFI.fd
