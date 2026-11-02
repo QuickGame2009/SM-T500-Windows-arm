@@ -28,6 +28,11 @@ on:
         type: choice
         default: original
         options: [original, dia1]
+      heartbeat:
+        description: 'Latido: no, o si (cada 5 s imprime la direccion que ejecuta la CPU; sirve para ver donde se queda parado bootmgr)'
+        type: choice
+        default: no
+        options: ['no', 'si']
 
 env:
   CI_BUILD: "true"
@@ -71,6 +76,10 @@ jobs:
           sed -i 's|Time->Day = (ElapsedSeconds / SecondsPerDay);|Time->Day = (ElapsedSeconds / SecondsPerDay) + 1;|' "$f"
           grep -n "Time->Day" "$f"
 
+      - name: Latido del temporizador
+        if: ${{ inputs.heartbeat == 'si' }}
+        run: python3 kit/variants/heartbeat/patch.py upstream/Mu_Basecore/ArmPkg/Drivers/TimerDxe/TimerDxe.c
+
       - name: Elegir DTB
         if: ${{ inputs.dtb == 'boardid' }}
         run: cp upstream/Resources/DTBs/gta4lwifi-boardid.dtb upstream/Resources/DTBs/gta4lwifi.dtb
@@ -93,7 +102,7 @@ jobs:
       - name: Subir resultado
         uses: actions/upload-artifact@v4
         with:
-          name: Mu-gta4lwifi-${{ inputs.dtb }}-${{ inputs.verbose }}-mem${{ inputs.memmap }}-rtc${{ inputs.rtc }}-${{ matrix.release }}
+          name: Mu-gta4lwifi-${{ inputs.dtb }}-${{ inputs.verbose }}-mem${{ inputs.memmap }}-rtc${{ inputs.rtc }}-hb${{ inputs.heartbeat }}-${{ matrix.release }}
           path: |
             upstream/Mu-gta4lwifi.img
             upstream/Build/gta4lwifiPkg/${{ matrix.release }}_CLANGPDB/FV/SILICIUM_UEFI.fd
