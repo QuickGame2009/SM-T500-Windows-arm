@@ -11,7 +11,10 @@ d = bytearray(open(src, "rb").read())
 BASE_TEXT_VA, TEXT_FO = 0x10001000, 0x400
 fo = lambda va: TEXT_FO + (va - BASE_TEXT_VA)
 
-HOOKS = {0x10021000: 0x14000000, 0x10021180: 0x14000000, 0x10021380: 0x14000000, 0x10021200: 0xA9077A57}
+# Tabla de vectores 1 (0x10021000, arranque temprano) y tabla 2 (0x10022800, la que usa bootmgr en su propio contexto).
+# En la tabla 2 las excepciones sincronas y los SError son un "b ." (bucle infinito silencioso).
+HOOKS = {0x10021000: 0x14000000, 0x10021180: 0x14000000, 0x10021380: 0x14000000, 0x10021200: 0xA9077A57,
+         0x10022800: 0x14000000, 0x10022980: 0x14000000, 0x10022A00: 0x14000000, 0x10022B80: 0x14000000}
 P = 0x10021400
 SWITCH = 0x101682A8          # BlpArchSwitchContext (x0=1 -> contexto del firmware)
 STACK = 0x101CAF00           # zona .data/.bss de bootmgr, usada como pila de emergencia
@@ -51,7 +54,7 @@ assert len(payload) <= 0x80
 d[fo(P):fo(P) + len(payload)] = payload
 for va in HOOKS:
     off = P - va
-    assert off % 4 == 0 and 0 < off < (1 << 27)
+    assert off % 4 == 0 and abs(off) < (1 << 27)
     struct.pack_into("<I", d, fo(va), 0x14000000 | ((off >> 2) & 0x3FFFFFF))
 open(dst, "wb").write(d)
 print("escrito", dst, "payload", len(payload), "bytes")
