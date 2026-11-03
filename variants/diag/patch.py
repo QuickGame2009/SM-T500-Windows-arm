@@ -186,41 +186,69 @@ DgDump (
   }
 
   //
-  // Prueba de la memoria donde bootmgr reserva su bloque fijo (0x45D20000 - 0x45DFFFFF):
-  // contenido previo, escritura/lectura y accesos exclusivos (ldxr/stxr), frente a una variable local.
+  // Huecos que Linux NO ve como RAM (segun /proc/iomem del recovery): que dice la UEFI de cada uno,
+  // y lectura (solo lectura) de los que la UEFI entrega como memoria libre.
   //
   {
-    STATIC CONST UINT64  DgAddr[3] = { 0x45D20000ULL, 0x45D60000ULL, 0x45DFFFF0ULL };
-    volatile UINT64      Local     = 0;
-    UINTN                Idx, Try;
-    UINT64               Old, Tmp, Rd;
-    UINT32               St;
+    STATIC CONST UINT64  DgGap[][2] = {
+      { 0x45700000ULL, 0x45D00000ULL },
+      { 0x45E00000ULL, 0x45F40000ULL },
+      { 0x45FFF000ULL, 0x46200000ULL },
+      { 0x4AB00000ULL, 0x55617000ULL },
+      { 0x60000000ULL, 0x63900000ULL },
+      { 0x71100000ULL, 0x71300000ULL },
+      { 0x71400000ULL, 0x71C00000ULL },
+      { 0x7E580000ULL, 0x80000000ULL }
+    };
+    UINTN                  MapSize, MapKey, DescSize, Gi, Di, Probes;
+    UINT32                 DescVer;
+    EFI_MEMORY_DESCRIPTOR  *Map, *D;
+    EFI_STATUS             St2;
+    UINT64                 Ds, De, Os, Oe;
 
-    for (Idx = 0; Idx < 4; Idx++) {
-      volatile UINT64  *P = (Idx < 3) ? (volatile UINT64 *)(UINTN)DgAddr[Idx] : &Local;
+    MapSize = 0;
+    Map     = NULL;
+    St2     = gBS->GetMemoryMap (&MapSize, NULL, &MapKey, &DescSize, &DescVer);
+    MapSize += 16 * DescSize;
+    St2      = gBS->AllocatePool (EfiBootServicesData, MapSize, (VOID **)&Map);
+    if (!EFI_ERROR (St2)) {
+      St2 = gBS->GetMemoryMap (&MapSize, Map, &MapKey, &DescSize, &DescVer);
+    }
 
-      DEBUG ((DEBUG_ERROR, "DG mem[%lu] %lx: leyendo\n", (UINT64)Idx, (UINT64)(UINTN)P));
-      Old = P[0];
-      DEBUG ((DEBUG_ERROR, "DG mem[%lu] previo=%lx\n", (UINT64)Idx, Old));
-      P[0] = 0x1122334455667788ULL;
-      __asm__ volatile ("dsb sy; dc civac, %0; dsb sy" : : "r" (P) : "memory");
-      Rd = P[0];
-      for (Try = 0; Try < 1000; Try++) {
-        __asm__ volatile (
-          "ldxr %0, [%2]\n"
-          "add  %0, %0, #1\n"
-          "stxr %w1, %0, [%2]\n"
-          : "=&r" (Tmp), "=&r" (St) : "r" (P) : "memory"
-          );
-        if (St == 0) {
-          break;
+    if (EFI_ERROR (St2)) {
+      DEBUG ((DEBUG_ERROR, "DG gap: no pude leer el mapa de memoria (%r)\n", St2));
+    } else {
+      Probes = 0;
+      for (Gi = 0; Gi < (sizeof (DgGap) / sizeof (DgGap[0])); Gi++) {
+        for (Di = 0; Di < MapSize / DescSize; Di++) {
+          D  = (EFI_MEMORY_DESCRIPTOR *)((UINT8 *)Map + Di * DescSize);
+          Ds = D->PhysicalStart;
+          De = Ds + (UINT64)D->NumberOfPages * 4096;
+          Os = (Ds > DgGap[Gi][0]) ? Ds : DgGap[Gi][0];
+          Oe = (De < DgGap[Gi][1]) ? De : DgGap[Gi][1];
+          if (Os >= Oe) {
+            continue;
+          }
+
+          DEBUG ((DEBUG_ERROR, "DG gap%lu %lx-%lx t=%u\n", (UINT64)Gi, Os, Oe, (UINT32)D->Type));
+          if ((D->Type == EfiConventionalMemory) && (Probes < 12)) {
+            volatile UINT64  *Pr;
+            UINT64           V;
+
+            Probes++;
+            Pr = (volatile UINT64 *)(UINTN)Os;
+            DEBUG ((DEBUG_ERROR, "DG leo %lx\n", Os));
+            V = *Pr;
+            DEBUG ((DEBUG_ERROR, "DG leido %lx\n", V));
+            Pr = (volatile UINT64 *)(UINTN)(Oe - 16);
+            DEBUG ((DEBUG_ERROR, "DG leo %lx\n", (UINT64)(UINTN)Pr));
+            V = *Pr;
+            DEBUG ((DEBUG_ERROR, "DG leido %lx\n", V));
+          }
         }
       }
 
-      __asm__ volatile ("dsb sy; dc civac, %0; dsb sy" : : "r" (P) : "memory");
-      DEBUG ((DEBUG_ERROR, "DG mem[%lu] rw=%lx excl: intentos=%lu st=%u final=%lx\n", (UINT64)Idx, Rd, (UINT64)Try, St, P[0]));
-      P[0] = Old;
-      __asm__ volatile ("dsb sy; dc civac, %0; dsb sy" : : "r" (P) : "memory");
+      DEBUG ((DEBUG_ERROR, "DG gap fin\n"));
     }
   }
 
