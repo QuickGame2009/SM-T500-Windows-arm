@@ -75,8 +75,22 @@ Set-Content -Path $f -Value @("select disk $Disk", 'offline disk') -Encoding ASC
 & diskpart /s $f | Out-Null; Remove-Item $f -ErrorAction SilentlyContinue
 $h = [RawIO]::Open($path, $true)
 $fs = New-Object System.IO.FileStream($h, 'ReadWrite', 1, $false)
-$fs.Seek($BlobLba * 512, 'Begin') | Out-Null
-$fs.Write($blob, 0, $blob.Length); $fs.Flush()
+# Se escribe en trozos de 8 sectores (4 KiB) con reintentos: una sola escritura grande puede dar 'error de datos (CRC)' por USB.
+$trozo = 4096
+for ($o = 0; $o -lt $blob.Length; $o += $trozo) {
+    $n = [Math]::Min($trozo, $blob.Length - $o)
+    $ok = $false
+    for ($t = 1; $t -le 5 -and -not $ok; $t++) {
+        try {
+            $fs.Seek($BlobLba * 512 + $o, 'Begin') | Out-Null
+            $fs.Write($blob, $o, $n); $fs.Flush(); $ok = $true
+        } catch {
+            Write-Host ("  fallo en LBA {0} (intento {1}/5): {2}" -f ($BlobLba + [int]($o / 512)), $t, $_.Exception.InnerException.Message)
+            Start-Sleep -Milliseconds 500
+        }
+    }
+    if (-not $ok) { $fs.Dispose(); throw ("No se puede escribir en LBA {0}. Esa zona del disco no deja escribir por USB." -f ($BlobLba + [int]($o / 512))) }
+}
 $chk = LeerSec $fs $BlobLba (1 + $NP + $NB)
 $fs.Dispose()
 if (Compare-Object $blob $chk) { throw 'La verificacion de lo escrito ha fallado.' }
