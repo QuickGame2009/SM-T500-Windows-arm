@@ -186,69 +186,58 @@ DgDump (
   }
 
   //
-  // Huecos que Linux NO ve como RAM (segun /proc/iomem del recovery): que dice la UEFI de cada uno,
-  // y lectura (solo lectura) de los que la UEFI entrega como memoria libre.
+  // Barrido de TODA la memoria que la UEFI entrega como libre (solo lectura, una vez):
+  // si algun rango esta protegido, la CPU se cuelga y la ultima linea "DG scan" lo delata.
   //
   {
-    STATIC CONST UINT64  DgGap[][2] = {
-      { 0x45700000ULL, 0x45D00000ULL },
-      { 0x45E00000ULL, 0x45F40000ULL },
-      { 0x45FFF000ULL, 0x46200000ULL },
-      { 0x4AB00000ULL, 0x55617000ULL },
-      { 0x60000000ULL, 0x63900000ULL },
-      { 0x71100000ULL, 0x71300000ULL },
-      { 0x71400000ULL, 0x71C00000ULL },
-      { 0x7E580000ULL, 0x80000000ULL }
-    };
-    UINTN                  MapSize, MapKey, DescSize, Gi, Di, Probes;
+    STATIC BOOLEAN         DgScanned = FALSE;
+    UINTN                  MapSize, MapKey, DescSize, Di;
     UINT32                 DescVer;
     EFI_MEMORY_DESCRIPTOR  *Map, *D;
     EFI_STATUS             St2;
-    UINT64                 Ds, De, Os, Oe;
+    UINT64                 Ds, De, A;
+    volatile UINT64        *Pr;
+    UINT64                 V;
 
-    MapSize = 0;
-    Map     = NULL;
-    St2     = gBS->GetMemoryMap (&MapSize, NULL, &MapKey, &DescSize, &DescVer);
-    MapSize += 16 * DescSize;
-    St2      = gBS->AllocatePool (EfiBootServicesData, MapSize, (VOID **)&Map);
-    if (!EFI_ERROR (St2)) {
-      St2 = gBS->GetMemoryMap (&MapSize, Map, &MapKey, &DescSize, &DescVer);
-    }
+    if (!DgScanned) {
+      DgScanned = TRUE;
+      MapSize   = 0;
+      Map       = NULL;
+      St2       = gBS->GetMemoryMap (&MapSize, NULL, &MapKey, &DescSize, &DescVer);
+      MapSize  += 16 * DescSize;
+      St2       = gBS->AllocatePool (EfiBootServicesData, MapSize, (VOID **)&Map);
+      if (!EFI_ERROR (St2)) {
+        St2 = gBS->GetMemoryMap (&MapSize, Map, &MapKey, &DescSize, &DescVer);
+      }
 
-    if (EFI_ERROR (St2)) {
-      DEBUG ((DEBUG_ERROR, "DG gap: no pude leer el mapa de memoria (%r)\n", St2));
-    } else {
-      Probes = 0;
-      for (Gi = 0; Gi < (sizeof (DgGap) / sizeof (DgGap[0])); Gi++) {
+      if (EFI_ERROR (St2)) {
+        DEBUG ((DEBUG_ERROR, "DG scan: no pude leer el mapa (%r)\n", St2));
+      } else {
+        V = 0;
         for (Di = 0; Di < MapSize / DescSize; Di++) {
-          D  = (EFI_MEMORY_DESCRIPTOR *)((UINT8 *)Map + Di * DescSize);
-          Ds = D->PhysicalStart;
-          De = Ds + (UINT64)D->NumberOfPages * 4096;
-          Os = (Ds > DgGap[Gi][0]) ? Ds : DgGap[Gi][0];
-          Oe = (De < DgGap[Gi][1]) ? De : DgGap[Gi][1];
-          if (Os >= Oe) {
+          D = (EFI_MEMORY_DESCRIPTOR *)((UINT8 *)Map + Di * DescSize);
+          if (D->Type != EfiConventionalMemory) {
             continue;
           }
 
-          DEBUG ((DEBUG_ERROR, "DG gap%lu %lx-%lx t=%u\n", (UINT64)Gi, Os, Oe, (UINT32)D->Type));
-          if ((D->Type == EfiConventionalMemory) && (Probes < 12)) {
-            volatile UINT64  *Pr;
-            UINT64           V;
+          Ds = D->PhysicalStart;
+          De = Ds + (UINT64)D->NumberOfPages * 4096;
+          DEBUG ((DEBUG_ERROR, "DG scan rango %lx-%lx\n", Ds, De));
+          for (A = Ds; A < De; A += 0x10000) {
+            if ((A & 0x3FFFFF) == 0 || A == Ds) {
+              DEBUG ((DEBUG_ERROR, "DG scan %lx\n", A));
+            }
 
-            Probes++;
-            Pr = (volatile UINT64 *)(UINTN)Os;
-            DEBUG ((DEBUG_ERROR, "DG leo %lx\n", Os));
-            V = *Pr;
-            DEBUG ((DEBUG_ERROR, "DG leido %lx\n", V));
-            Pr = (volatile UINT64 *)(UINTN)(Oe - 16);
-            DEBUG ((DEBUG_ERROR, "DG leo %lx\n", (UINT64)(UINTN)Pr));
-            V = *Pr;
-            DEBUG ((DEBUG_ERROR, "DG leido %lx\n", V));
+            Pr = (volatile UINT64 *)(UINTN)A;
+            V ^= *Pr;
           }
-        }
-      }
 
-      DEBUG ((DEBUG_ERROR, "DG gap fin\n"));
+          Pr = (volatile UINT64 *)(UINTN)(De - 8);
+          V ^= *Pr;
+        }
+
+        DEBUG ((DEBUG_ERROR, "DG scan fin (%lx)\n", V));
+      }
     }
   }
 
