@@ -1,5 +1,5 @@
 diff --git a/MdeModulePkg/Core/Dxe/Image/Image.c b/MdeModulePkg/Core/Dxe/Image/Image.c
-index eb2ce42..c155613 100644
+index eb2ce42..92cddb2 100644
 --- a/MdeModulePkg/Core/Dxe/Image/Image.c
 +++ b/MdeModulePkg/Core/Dxe/Image/Image.c
 @@ -1619,6 +1619,511 @@ CoreLoadImage (
@@ -101,7 +101,7 @@ index eb2ce42..c155613 100644
 +  return mDgMono (Count);
 +}
 +
-+STATIC EFI_BLOCK_IO_READ  mDgRealRead;
++STATIC EFI_BLOCK_READ     mDgRealRead;
 +STATIC UINT8              *mDgHkPrim;
 +STATIC UINT8              *mDgHkBack;
 +STATIC UINT64             mDgHkLast;

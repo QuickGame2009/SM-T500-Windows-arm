@@ -104,7 +104,7 @@ DgMono (
   return mDgMono (Count);
 }
 
-STATIC EFI_BLOCK_IO_READ  mDgRealRead;
+STATIC EFI_BLOCK_READ     mDgRealRead;
 STATIC UINT8              *mDgHkPrim;
 STATIC UINT8              *mDgHkBack;
 STATIC UINT64             mDgHkLast;
