@@ -10,6 +10,7 @@ assert "DG state" not in raw, "ya parcheado"
 
 helper = r'''
 #if defined (MDE_CPU_AARCH64)
+#include <Protocol/BlockIo.h>
 STATIC EFI_STALL                    mDgStall;
 STATIC EFI_GET_TIME                 mDgGetTime;
 STATIC EFI_SET_WATCHDOG_TIMER       mDgWatchdog;
@@ -104,6 +105,203 @@ DgMono (
 }
 
 STATIC
+BOOLEAN
+DgGptHdrOk (
+  IN CONST UINT8  *Sec,
+  IN UINT64       MyLba,
+  IN CONST UINT8  *Entries,
+  IN UINTN        EntriesAvail
+  )
+{
+  UINT8   Tmp[92];
+  UINT32  Crc, Want, HSize, NEnt, ESize;
+  UINT64  My;
+
+  if (CompareMem (Sec, "EFI PART", 8) != 0) {
+    return FALSE;
+  }
+
+  CopyMem (&HSize, Sec + 12, 4);
+  if (HSize != 92) {
+    return FALSE;
+  }
+
+  CopyMem (&Want, Sec + 16, 4);
+  CopyMem (Tmp, Sec, 92);
+  ZeroMem (Tmp + 16, 4);
+  Crc = 0;
+  if (EFI_ERROR (gBS->CalculateCrc32 (Tmp, 92, &Crc)) || (Crc != Want)) {
+    return FALSE;
+  }
+
+  CopyMem (&My, Sec + 24, 8);
+  if (My != MyLba) {
+    return FALSE;
+  }
+
+  CopyMem (&NEnt, Sec + 80, 4);
+  CopyMem (&ESize, Sec + 84, 4);
+  if ((ESize != 128) || (NEnt == 0) || (((UINTN)NEnt * ESize) > EntriesAvail)) {
+    return FALSE;
+  }
+
+  CopyMem (&Want, Sec + 88, 4);
+  Crc = 0;
+  if (EFI_ERROR (gBS->CalculateCrc32 ((VOID *)Entries, (UINTN)NEnt * ESize, &Crc)) || (Crc != Want)) {
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+//
+// Si la GPT del disco no es la que guardo el PC en 67 sectores libres del final del disco, la restaura y reinicia.
+// (El recovery revierte la GPT al reiniciar; asi Windows siempre ve sus particiones.)
+// Copia guardada: sector 0 = cabecera "T500GPT1", luego LBA 1..33 (primaria) y los ultimos 33 sectores (respaldo).
+//
+STATIC
+VOID
+DgGptRestore (
+  VOID
+  )
+{
+  STATIC BOOLEAN   Done    = FALSE;
+  STATIC EFI_GUID  BioGuid = { 0x964E5B21, 0x6459, 0x11D2, { 0x8E, 0x39, 0x00, 0xA0, 0xC9, 0x69, 0x72, 0x3B } };
+  CONST UINT64     BlobLba = 122140680ULL;
+  CONST UINTN      NP      = 33;
+  CONST UINTN      NB      = 33;
+  EFI_HANDLE       *Hb;
+  UINTN            Hn, Hi, Off;
+  EFI_BLOCK_IO_PROTOCOL  *Bio, *Dk;
+  UINT8            *Blob, *Cur, *Prim, *Back;
+  UINT64           Last, EL, EntLba, CurAlt;
+  UINT32           Mid, Ver, Np, Nb, Tries;
+  EFI_STATUS       St;
+
+  if (Done) {
+    return;
+  }
+
+  Done = TRUE;
+  Hb   = NULL;
+  Hn   = 0;
+  Dk   = NULL;
+  if (EFI_ERROR (gBS->LocateHandleBuffer (ByProtocol, &BioGuid, NULL, &Hn, &Hb))) {
+    return;
+  }
+
+  for (Hi = 0; Hi < Hn; Hi++) {
+    if (!EFI_ERROR (gBS->HandleProtocol (Hb[Hi], &BioGuid, (VOID **)&Bio)) && (Bio->Media != NULL) &&
+        Bio->Media->MediaPresent && !Bio->Media->LogicalPartition && (Bio->Media->BlockSize == 512) &&
+        (Bio->Media->LastBlock >= 100000000ULL))
+    {
+      Dk = Bio;
+      break;
+    }
+  }
+
+  if (Dk == NULL) {
+    DEBUG ((DEBUG_ERROR, "DG gpt: no encuentro el disco\n"));
+    return;
+  }
+
+  Last = Dk->Media->LastBlock;
+  Mid  = Dk->Media->MediaId;
+  if (Last < (BlobLba + 1 + NP + NB)) {
+    return;
+  }
+
+  Blob = NULL;
+  Cur  = NULL;
+  if (EFI_ERROR (gBS->AllocatePool (EfiBootServicesData, 512 * (1 + NP + NB), (VOID **)&Blob)) ||
+      EFI_ERROR (gBS->AllocatePool (EfiBootServicesData, 512 * NP, (VOID **)&Cur)))
+  {
+    return;
+  }
+
+  St = Dk->ReadBlocks (Dk, Mid, BlobLba, 512 * (1 + NP + NB), Blob);
+  if (EFI_ERROR (St)) {
+    DEBUG ((DEBUG_ERROR, "DG gpt: no pude leer la copia guardada (%r)\n", St));
+    return;
+  }
+
+  if (CompareMem (Blob, "T500GPT1", 8) != 0) {
+    DEBUG ((DEBUG_ERROR, "DG gpt: no hay copia guardada\n"));
+    return;
+  }
+
+  CopyMem (&Ver, Blob + 8, 4);
+  CopyMem (&Np, Blob + 12, 4);
+  CopyMem (&Nb, Blob + 16, 4);
+  CopyMem (&Tries, Blob + 20, 4);
+  CopyMem (&EL, Blob + 24, 8);
+  if ((Ver != 1) || (Np != NP) || (Nb != NB) || (EL != Last)) {
+    DEBUG ((DEBUG_ERROR, "DG gpt: copia guardada no valida (ver=%u np=%u nb=%u)\n", Ver, Np, Nb));
+    return;
+  }
+
+  Prim = Blob + 512;
+  Back = Prim + 512 * NP;
+  St   = Dk->ReadBlocks (Dk, Mid, 1, 512 * NP, Cur);
+  if (EFI_ERROR (St)) {
+    DEBUG ((DEBUG_ERROR, "DG gpt: no pude leer la GPT actual (%r)\n", St));
+    return;
+  }
+
+  if (CompareMem (Cur, Prim, 512 * NP) == 0) {
+    DEBUG ((DEBUG_ERROR, "DG gpt: la GPT del disco es la guardada; nada que restaurar\n"));
+    return;
+  }
+
+  CopyMem (&CurAlt, Cur + 32, 8);
+  if ((CompareMem (Cur, "EFI PART", 8) != 0) || (CurAlt != Last)) {
+    DEBUG ((DEBUG_ERROR, "DG gpt: la GPT actual no se parece a la de este disco; no toco nada\n"));
+    return;
+  }
+
+  if (!DgGptHdrOk (Prim, 1, Prim + 512, 512 * (NP - 1))) {
+    DEBUG ((DEBUG_ERROR, "DG gpt: la copia primaria guardada no es valida\n"));
+    return;
+  }
+
+  CopyMem (&EntLba, Back + 512 * (NB - 1) + 72, 8);
+  if ((EntLba < (Last - (NB - 1))) || (EntLba >= Last)) {
+    DEBUG ((DEBUG_ERROR, "DG gpt: la copia de respaldo guardada no es valida (entradas en %lx)\n", EntLba));
+    return;
+  }
+
+  Off = (UINTN)(EntLba - (Last - (NB - 1))) * 512;
+  if (!DgGptHdrOk (Back + 512 * (NB - 1), Last, Back + Off, 512 * (NB - 1) - Off)) {
+    DEBUG ((DEBUG_ERROR, "DG gpt: la copia de respaldo guardada no es valida\n"));
+    return;
+  }
+
+  if (Tries >= 2) {
+    DEBUG ((DEBUG_ERROR, "DG gpt: ya se intento restaurar %u veces; no insisto\n", Tries));
+    return;
+  }
+
+  Tries++;
+  CopyMem (Blob + 20, &Tries, 4);
+  DEBUG ((DEBUG_ERROR, "DG gpt: la GPT del disco NO es la guardada. Restauro (intento %u)...\n", Tries));
+  St = Dk->WriteBlocks (Dk, Mid, BlobLba, 512, Blob);
+  DEBUG ((DEBUG_ERROR, "DG gpt: contador -> %r\n", St));
+  St = Dk->WriteBlocks (Dk, Mid, 1, 512 * NP, Prim);
+  DEBUG ((DEBUG_ERROR, "DG gpt: primaria -> %r\n", St));
+  if (!EFI_ERROR (St)) {
+    St = Dk->WriteBlocks (Dk, Mid, Last - (NB - 1), 512 * NB, Back);
+    DEBUG ((DEBUG_ERROR, "DG gpt: respaldo -> %r\n", St));
+  }
+
+  Dk->FlushBlocks (Dk);
+  if (!EFI_ERROR (St)) {
+    DEBUG ((DEBUG_ERROR, "DG gpt: reiniciando para que la UEFI relea la tabla\n"));
+    gBS->Stall (3000000);
+    gDxeCoreRT->ResetSystem (EfiResetCold, EFI_SUCCESS, 0, NULL);
+  }
+}
+
+STATIC
 VOID
 DgDump (
   VOID
@@ -111,6 +309,8 @@ DgDump (
 {
   UINT64  El, Daif, Sctlr, Vbar, Frq, Kctl, PCtl, PCval, PCt, Pmr, Grp1, Sre, Tcr, Mair;
   UINT32  Dctl, Rwake, Ren, Rpend, Ract, Rprio7;
+
+  DgGptRestore ();
 
   __asm__ volatile ("mrs %0, CurrentEL" : "=r" (El));
   El >>= 2;

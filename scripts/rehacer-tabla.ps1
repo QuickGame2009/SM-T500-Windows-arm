@@ -58,4 +58,6 @@ if (Test-Path $bcd) {
   & bcdedit /store $bcd /set '{default}' osdevice "partition=${LetraWin}:"
   & bcdedit /store $bcd /enum '{default}' | Select-String 'device'
 } else { Write-Host "7) No encuentro $bcd; salto el reapuntado del BCD." }
+Write-Host "8) Guardando una copia de la GPT al final del disco (la UEFI la restaura si el recovery la revierte)..."
+& powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'guardar-gpt.ps1') -Disk $Disk
 Write-Host "Listo. Comprueba con: powershell -ExecutionPolicy Bypass -File scripts\diag-gpt.ps1 -Disk $Disk"
