@@ -1,8 +1,8 @@
 diff --git a/MdeModulePkg/Core/Dxe/Image/Image.c b/MdeModulePkg/Core/Dxe/Image/Image.c
-index eb2ce42..035b6d9 100644
+index eb2ce42..d1f480a 100644
 --- a/MdeModulePkg/Core/Dxe/Image/Image.c
 +++ b/MdeModulePkg/Core/Dxe/Image/Image.c
-@@ -1619,6 +1619,201 @@ CoreLoadImage (
+@@ -1619,6 +1619,240 @@ CoreLoadImage (
    return Status;
  }
  
@@ -182,6 +182,45 @@ index eb2ce42..035b6d9 100644
 +    DEBUG ((DEBUG_ERROR, "DG pmu: PMCCNTR antes=%lx despues(10ms)=%lx delta=%lu PMCR=%lx\n", A, B, B - A, Pmcr));
 +  }
 +
++  //
++  // Prueba de la memoria donde bootmgr reserva su bloque fijo (0x45D20000 - 0x45DFFFFF):
++  // contenido previo, escritura/lectura y accesos exclusivos (ldxr/stxr), frente a una variable local.
++  //
++  {
++    STATIC CONST UINT64  DgAddr[3] = { 0x45D20000ULL, 0x45D60000ULL, 0x45DFFFF0ULL };
++    volatile UINT64      Local     = 0;
++    UINTN                Idx, Try;
++    UINT64               Old, Tmp, Rd;
++    UINT32               St;
++
++    for (Idx = 0; Idx < 4; Idx++) {
++      volatile UINT64  *P = (Idx < 3) ? (volatile UINT64 *)(UINTN)DgAddr[Idx] : &Local;
++
++      DEBUG ((DEBUG_ERROR, "DG mem[%lu] %lx: leyendo\n", (UINT64)Idx, (UINT64)(UINTN)P));
++      Old = P[0];
++      DEBUG ((DEBUG_ERROR, "DG mem[%lu] previo=%lx\n", (UINT64)Idx, Old));
++      P[0] = 0x1122334455667788ULL;
++      __asm__ volatile ("dsb sy; dc civac, %0; dsb sy" : : "r" (P) : "memory");
++      Rd = P[0];
++      for (Try = 0; Try < 1000; Try++) {
++        __asm__ volatile (
++          "ldxr %0, [%2]\n"
++          "add  %0, %0, #1\n"
++          "stxr %w1, %0, [%2]\n"
++          : "=&r" (Tmp), "=&r" (St) : "r" (P) : "memory"
++          );
++        if (St == 0) {
++          break;
++        }
++      }
++
++      __asm__ volatile ("dsb sy; dc civac, %0; dsb sy" : : "r" (P) : "memory");
++      DEBUG ((DEBUG_ERROR, "DG mem[%lu] rw=%lx excl: intentos=%lu st=%u final=%lx\n", (UINT64)Idx, Rd, (UINT64)Try, St, P[0]));
++      P[0] = Old;
++      __asm__ volatile ("dsb sy; dc civac, %0; dsb sy" : : "r" (P) : "memory");
++    }
++  }
++
 +  if (!mDgInstalled) {
 +    mDgInstalled         = TRUE;
 +    mDgStall             = gBS->Stall;
@@ -204,7 +243,7 @@ index eb2ce42..035b6d9 100644
  /**
    Transfer control to a loaded image's entry point.
  
-@@ -1742,6 +1937,12 @@ CoreStartImage (
+@@ -1742,6 +1976,12 @@ CoreStartImage (
      // Call the image's entry point
      //
      Image->Started = TRUE;
