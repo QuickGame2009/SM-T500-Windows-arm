@@ -186,65 +186,51 @@ DgDump (
   }
 
   //
-  // Tablas ACPI que la UEFI entrega a Windows: RSDP, XSDT y RSDT con sus entradas (una sola vez).
+  // Particiones GPT tal como las ve la UEFI en este arranque (solo las que empiezan pasado 7 GiB), una vez.
+  // Despues espera 25 s para dar tiempo a fotografiar la pantalla antes de que bootmgr la borre.
   //
   {
-    STATIC BOOLEAN  DgAcpi = FALSE;
-    UINTN           Ci, Ei, En, Pass;
-    UINT8           *Rsdp, *Tb;
-    UINT32          *Gd, Sig, Len, Ent32;
-    UINT64          Ent64, Addr;
+    STATIC BOOLEAN  DgPart = FALSE;
+    STATIC EFI_GUID DgPiGuid = { 0x8cf2f62c, 0xbc9b, 0x4821, { 0x80, 0x8d, 0xec, 0x9e, 0xc4, 0x21, 0xa1, 0xa0 } };
+    EFI_HANDLE      *Hb;
+    UINTN           Hn, Hi, Gpt;
+    UINT8           *Pi, *E;
+    UINT32          Ty, U[4], T[4];
+    UINT64          S, En;
+    EFI_STATUS      St2;
 
-    if (!DgAcpi) {
-      DgAcpi = TRUE;
-      DEBUG ((DEBUG_ERROR, "DG cfg: %lu tablas de configuracion\n", (UINT64)gDxeCoreST->NumberOfTableEntries));
-      for (Ci = 0; Ci < gDxeCoreST->NumberOfTableEntries; Ci++) {
-        Gd = (UINT32 *)&gDxeCoreST->ConfigurationTable[Ci].VendorGuid;
-        DEBUG ((DEBUG_ERROR, "DG cfg%lu guid=%08x-%08x ptr=%lx\n", (UINT64)Ci, Gd[0], Gd[1], (UINT64)(UINTN)gDxeCoreST->ConfigurationTable[Ci].VendorTable));
-        if ((Gd[0] != 0xEB9D2D30) && (Gd[0] != 0x8868E871)) {
-          continue;
-        }
-
-        Rsdp = (UINT8 *)gDxeCoreST->ConfigurationTable[Ci].VendorTable;
-        CopyMem (&Ent32, Rsdp + 16, 4);
-        CopyMem (&Ent64, Rsdp + 24, 8);
-        DEBUG ((DEBUG_ERROR, "DG rsdp %lx rev=%u rsdt=%x xsdt=%lx len=%u\n", (UINT64)(UINTN)Rsdp, (UINT32)Rsdp[15], Ent32, Ent64, (UINT32)(*(UINT32 *)(Rsdp + 20))));
-        for (Pass = 0; Pass < 2; Pass++) {
-          Addr = (Pass == 0) ? Ent64 : (UINT64)Ent32;
-          if ((Addr == 0) || ((Pass == 0) && (Rsdp[15] < 2))) {
-            DEBUG ((DEBUG_ERROR, "DG %a: sin direccion\n", (Pass == 0) ? "XSDT" : "RSDT"));
+    if (!DgPart) {
+      DgPart = TRUE;
+      Hb     = NULL;
+      Hn     = 0;
+      Gpt    = 0;
+      St2    = gBS->LocateHandleBuffer (ByProtocol, &DgPiGuid, NULL, &Hn, &Hb);
+      DEBUG ((DEBUG_ERROR, "DG part: %lu handles con PartitionInfo (%r)\n", (UINT64)Hn, St2));
+      if (!EFI_ERROR (St2)) {
+        for (Hi = 0; Hi < Hn; Hi++) {
+          if (EFI_ERROR (gBS->HandleProtocol (Hb[Hi], &DgPiGuid, (VOID **)&Pi))) {
             continue;
           }
 
-          Tb = (UINT8 *)(UINTN)Addr;
-          CopyMem (&Sig, Tb, 4);
-          CopyMem (&Len, Tb + 4, 4);
-          En = (Len > 36) ? ((Len - 36) / ((Pass == 0) ? 8 : 4)) : 0;
-          DEBUG ((DEBUG_ERROR, "DG %a en %lx sig=%08x len=%u entradas=%lu\n", (Pass == 0) ? "XSDT" : "RSDT", Addr, Sig, Len, (UINT64)En));
-          for (Ei = 0; (Ei < En) && (Ei < 12); Ei++) {
-            UINT64  Ea;
-            UINT32  Es, El;
+          CopyMem (&Ty, Pi + 4, 4);
+          if (Ty != 2) {
+            continue;
+          }
 
-            if (Pass == 0) {
-              CopyMem (&Ea, Tb + 36 + Ei * 8, 8);
-            } else {
-              CopyMem (&Ent32, Tb + 36 + Ei * 4, 4);
-              Ea = Ent32;
-            }
-
-            Es = 0;
-            El = 0;
-            if (Ea != 0) {
-              CopyMem (&Es, (VOID *)(UINTN)Ea, 4);
-              CopyMem (&El, (VOID *)(UINTN)(Ea + 4), 4);
-            }
-
-            DEBUG ((DEBUG_ERROR, "DG   [%lu] %lx sig=%08x len=%u\n", (UINT64)Ei, Ea, Es, El));
+          Gpt++;
+          E = Pi + 16;
+          CopyMem (&S, E + 32, 8);
+          CopyMem (&En, E + 40, 8);
+          if (S >= 0xE00000ULL) {
+            CopyMem (T, E, 16);
+            CopyMem (U, E + 16, 16);
+            DEBUG ((DEBUG_ERROR, "DG part %lx-%lx tipo=%08x-%08x uid=%08x-%08x-%08x-%08x\n", S, En, T[0], T[1], U[0], U[1], U[2], U[3]));
           }
         }
       }
 
-      DEBUG ((DEBUG_ERROR, "DG acpi fin\n"));
+      DEBUG ((DEBUG_ERROR, "DG part: %lu particiones GPT. Espero 25 s...\n", (UINT64)Gpt));
+      gBS->Stall (25000000);
     }
   }
 
