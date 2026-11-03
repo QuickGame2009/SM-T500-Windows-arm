@@ -22,7 +22,7 @@ on:
         description: 'Mapa de memoria: original (el del port gta4l) o lime (heap de la UEFI movido a 0x63900000 con QSEE/TZApps reservados, como el Redmi 9T que si arranca Windows)'
         type: choice
         default: original
-        options: [original, lime, dtb]
+        options: [original, lime, dtb, iomem]
       rtc:
         description: 'Reloj: original (dia 0 al arrancar, invalido) o dia1 (suma 1 al dia para que sea valido)'
         type: choice
@@ -89,6 +89,10 @@ jobs:
           grep -c "XhciDxe\|XhciPciEmulationDxe" $d/APRIORI.inc $d/DXE.inc
           sed -i '/XhciPciEmulationDxe\|XhciDxe/d' $d/APRIORI.inc $d/DXE.inc
           ! grep -n "Xhci" $d/*.inc
+
+      - name: Mapa de memoria segun /proc/iomem (dtb + hueco que reserva el bootloader en 0x7E580000)
+        if: ${{ inputs.memmap == 'iomem' }}
+        run: cp -r kit/variants/iomem-memmap/. upstream/
 
       - name: Reloj con dia valido
         if: ${{ inputs.rtc == 'dia1' }}
