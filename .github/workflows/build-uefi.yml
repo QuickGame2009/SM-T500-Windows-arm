@@ -71,6 +71,12 @@ jobs:
           # Silicium-ACPI debe estar descargado antes de copiar nuestros ficheros encima.
           git submodule update --init Silicium-ACPI
 
+      - name: Cache de submodulos de Mu-Silicium (evita re-descargar Mu_Basecore)
+        uses: actions/cache@v4
+        with:
+          path: upstream/.git/modules
+          key: mu-modules-${{ env.UPSTREAM_REF }}-${{ matrix.release }}
+
       - name: Aplicar el port gta4lwifi
         run: cp -r kit/overlay/. upstream/
 
