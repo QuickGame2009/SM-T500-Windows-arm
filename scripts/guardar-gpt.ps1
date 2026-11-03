@@ -22,7 +22,7 @@ public static class RawIO {
 $path = "\\.\PhysicalDrive$Disk"
 $total = [int64](Get-Disk -Number $Disk).Size / 512
 $last = $total - 1
-function Rd($fs, [int64]$lba, [int]$n) {
+function LeerSec($fs, [int64]$lba, [int]$n) {
   $fs.Seek($lba * 512, 'Begin') | Out-Null
   $buf = New-Object byte[] ($n * 512); $got = 0
   while ($got -lt $buf.Length) { $r = $fs.Read($buf, $got, $buf.Length - $got); if ($r -le 0) { break }; $got += $r }
@@ -31,9 +31,9 @@ function Rd($fs, [int64]$lba, [int]$n) {
 }
 $h = [RawIO]::Open($path, $false)
 $fs = New-Object System.IO.FileStream($h, 'Read', 1, $false)
-$prim = Rd $fs 1 $NP
-$back = Rd $fs ($last - ($NB - 1)) $NB
-$old = Rd $fs $BlobLba (1 + $NP + $NB)
+$prim = LeerSec $fs 1 $NP
+$back = LeerSec $fs ($last - ($NB - 1)) $NB
+$old = LeerSec $fs $BlobLba (1 + $NP + $NB)
 $fs.Dispose()
 
 if ([System.Text.Encoding]::ASCII.GetString($prim, 0, 8) -ne 'EFI PART') { throw 'No hay cabecera GPT primaria valida.' }
@@ -77,7 +77,7 @@ $h = [RawIO]::Open($path, $true)
 $fs = New-Object System.IO.FileStream($h, 'ReadWrite', 1, $false)
 $fs.Seek($BlobLba * 512, 'Begin') | Out-Null
 $fs.Write($blob, 0, $blob.Length); $fs.Flush()
-$chk = Rd $fs $BlobLba (1 + $NP + $NB)
+$chk = LeerSec $fs $BlobLba (1 + $NP + $NB)
 $fs.Dispose()
 if (Compare-Object $blob $chk) { throw 'La verificacion de lo escrito ha fallado.' }
 Write-Host 'Copia de la GPT guardada y verificada (disco queda OFFLINE). Ahora reinicia la tablet.'
