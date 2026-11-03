@@ -15,6 +15,10 @@ fo = lambda va: TEXT_FO + (va - BASE_TEXT_VA)
 # En la tabla 2 las excepciones sincronas y los SError son un "b ." (bucle infinito silencioso).
 HOOKS = {0x10021000: 0x14000000, 0x10021180: 0x14000000, 0x10021380: 0x14000000, 0x10021200: 0xA9077A57,
          0x10022800: 0x14000000, 0x10022980: 0x14000000, 0x10022A00: 0x14000000, 0x10022B80: 0x14000000}
+# v3: tambien las IRQ/FIQ (ranuras 0x080/0x100/0x280/0x300 de la tabla 1 y 0x880/0x900/0xA80/0xB00 de la 2).
+# Si bootmgr esta metido en un bucle, la siguiente interrupcion de timer nos da en ELR la direccion exacta donde esta.
+for _va in (0x10021080, 0x10021100, 0x10021280, 0x10021300, 0x10022880, 0x10022900, 0x10022A80, 0x10022B00):
+    HOOKS[_va] = 0xA9B67BFD
 P = 0x10021400
 SWITCH = 0x101682A8          # BlpArchSwitchContext (x0=1 -> contexto del firmware)
 STACK = 0x101CAF00           # zona .data/.bss de bootmgr, usada como pila de emergencia
