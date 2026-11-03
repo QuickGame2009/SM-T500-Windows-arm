@@ -104,6 +104,54 @@ DgMono (
   return mDgMono (Count);
 }
 
+STATIC EFI_BLOCK_IO_READ  mDgRealRead;
+STATIC UINT8              *mDgHkPrim;
+STATIC UINT8              *mDgHkBack;
+STATIC UINT64             mDgHkLast;
+STATIC UINTN              mDgHkNP;
+STATIC UINTN              mDgHkNB;
+
+//
+// Envoltorio de ReadBlocks del disco: los sectores de la GPT (LBA 1..NP y los ultimos NB) se sirven desde la copia buena.
+//
+STATIC
+EFI_STATUS
+EFIAPI
+DgBioRead (
+  IN  EFI_BLOCK_IO_PROTOCOL  *This,
+  IN  UINT32                 MediaId,
+  IN  EFI_LBA                Lba,
+  IN  UINTN                  BufferSize,
+  OUT VOID                   *Buffer
+  )
+{
+  EFI_STATUS  St;
+  UINT64      N, S0, S1, A, B, BackStart;
+
+  St = mDgRealRead (This, MediaId, Lba, BufferSize, Buffer);
+  if (EFI_ERROR (St) || ((BufferSize % 512) != 0)) {
+    return St;
+  }
+
+  N = BufferSize / 512;
+  S0 = Lba;
+  S1 = Lba + N;
+  A  = (S0 > 1) ? S0 : 1;
+  B  = (S1 < (1 + mDgHkNP)) ? S1 : (1 + mDgHkNP);
+  if (A < B) {
+    CopyMem ((UINT8 *)Buffer + (A - S0) * 512, mDgHkPrim + (A - 1) * 512, (UINTN)(B - A) * 512);
+  }
+
+  BackStart = mDgHkLast - (mDgHkNB - 1);
+  A         = (S0 > BackStart) ? S0 : BackStart;
+  B         = (S1 < (mDgHkLast + 1)) ? S1 : (mDgHkLast + 1);
+  if (A < B) {
+    CopyMem ((UINT8 *)Buffer + (A - S0) * 512, mDgHkBack + (A - BackStart) * 512, (UINTN)(B - A) * 512);
+  }
+
+  return St;
+}
+
 STATIC
 BOOLEAN
 DgGptHdrOk (
@@ -177,6 +225,7 @@ DgGptRestore (
   UINT64           Last, EL, EntLba, CurAlt;
   UINT32           Mid, Ver, Np, Nb, Tries;
   EFI_STATUS       St;
+  BOOLEAN          Same;
 
   if (Done) {
     return;
@@ -279,6 +328,7 @@ DgGptRestore (
   }
 
   DEBUG ((DEBUG_ERROR, "DG gpt: la GPT del disco NO es la guardada. La restauro (sin reiniciar)...\n"));
+  DEBUG ((DEBUG_ERROR, "DG gpt: medio ReadOnly=%u WriteCaching=%u MediaId=%u ultimo=%lx\n", (UINT32)Dk->Media->ReadOnly, (UINT32)Dk->Media->WriteCaching, Mid, Last));
   St = Dk->WriteBlocks (Dk, Mid, 1, 512 * NP, Prim);
   DEBUG ((DEBUG_ERROR, "DG gpt: primaria -> %r\n", St));
   if (!EFI_ERROR (St)) {
@@ -287,16 +337,29 @@ DgGptRestore (
   }
 
   Dk->FlushBlocks (Dk);
-  if (!EFI_ERROR (St)) {
-    //
-    // Releer las particiones: se sueltan todos los controladores del disco (borra los hijos = particiones viejas)
-    // y se vuelven a conectar (el controlador de particiones lee la GPT nueva).
-    //
-    St = gBS->DisconnectController (DiskH, NULL, NULL);
-    DEBUG ((DEBUG_ERROR, "DG gpt: desconectar disco -> %r\n", St));
-    St = gBS->ConnectController (DiskH, NULL, NULL, TRUE);
-    DEBUG ((DEBUG_ERROR, "DG gpt: reconectar disco -> %r\n", St));
+  ZeroMem (Cur, 512 * NP);
+  St = Dk->ReadBlocks (Dk, Mid, 1, 512 * NP, Cur);
+  Same = (BOOLEAN)(!EFI_ERROR (St) && (CompareMem (Cur, Prim, 512 * NP) == 0));
+  DEBUG ((DEBUG_ERROR, "DG gpt: releida tras escribir: %a\n", Same ? "IGUAL a lo escrito (la escritura funciona)" : "DISTINTA (la escritura NO tiene efecto)"));
+  if (!Same) {
+    mDgRealRead = Dk->ReadBlocks;
+    mDgHkPrim   = Prim;
+    mDgHkBack   = Back;
+    mDgHkLast   = Last;
+    mDgHkNP     = NP;
+    mDgHkNB     = NB;
+    Dk->ReadBlocks = DgBioRead;
+    DEBUG ((DEBUG_ERROR, "DG gpt: instalo lectura virtual de la GPT buena (solo en RAM, solo este arranque)\n"));
   }
+
+  //
+  // Releer las particiones: se sueltan todos los controladores del disco (borra los hijos = particiones viejas)
+  // y se vuelven a conectar (el controlador de particiones lee la GPT).
+  //
+  St = gBS->DisconnectController (DiskH, NULL, NULL);
+  DEBUG ((DEBUG_ERROR, "DG gpt: desconectar disco -> %r\n", St));
+  St = gBS->ConnectController (DiskH, NULL, NULL, TRUE);
+  DEBUG ((DEBUG_ERROR, "DG gpt: reconectar disco -> %r\n", St));
 }
 
 STATIC
