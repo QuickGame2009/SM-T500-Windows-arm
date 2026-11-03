@@ -1,8 +1,8 @@
 diff --git a/MdeModulePkg/Core/Dxe/Image/Image.c b/MdeModulePkg/Core/Dxe/Image/Image.c
-index eb2ce42..20a55d9 100644
+index eb2ce42..035b6d9 100644
 --- a/MdeModulePkg/Core/Dxe/Image/Image.c
 +++ b/MdeModulePkg/Core/Dxe/Image/Image.c
-@@ -1619,6 +1619,167 @@ CoreLoadImage (
+@@ -1619,6 +1619,201 @@ CoreLoadImage (
    return Status;
  }
  
@@ -148,6 +148,40 @@ index eb2ce42..20a55d9 100644
 +  DEBUG ((DEBUG_ERROR, "DG timer CNTFRQ=%lu CNTKCTL=%lx CNTP_CTL=%lx CNTP_CVAL=%lx CNTPCT=%lx\n", Frq, Kctl, PCtl, PCval, PCt));
 +  DEBUG ((DEBUG_ERROR, "DG gic ICC_PMR=%lx IGRPEN1=%lx SRE=%lx GICD_CTLR=%x GICR_WAKER=%x ISEN0=%x ISPEND0=%x ISACT0=%x PRIO30=%x\n", Pmr, Grp1, Sre, Dctl, Rwake, Ren, Rpend, Ract, Rprio7));
 +
++  //
++  // Prueba del contador de ciclos del PMU, igual que lo configura bootmgr (PMCCNTR_EL0).
++  //
++  {
++    UINT64  Pmcr, T0, A, B, Tn;
++
++    DEBUG ((DEBUG_ERROR, "DG pmu: leyendo PMCR_EL0\n"));
++    __asm__ volatile ("mrs %0, PMCR_EL0" : "=r" (Pmcr));
++    DEBUG ((DEBUG_ERROR, "DG pmu: PMCR_EL0=%lx (N=%lu E=%lu)\n", Pmcr, (Pmcr >> 11) & 0x1F, Pmcr & 1));
++    Tn = Pmcr | 0x10;
++    if ((Tn & 1) == 0) {
++      Tn |= 5;
++      __asm__ volatile ("msr PMCNTENCLR_EL0, %0; isb" : : "r" (0xFFFFFFFFULL));
++      __asm__ volatile ("msr PMOVSCLR_EL0, %0; isb" : : "r" (0xFFFFFFFFULL));
++      __asm__ volatile ("msr PMINTENCLR_EL1, %0; isb" : : "r" (0xFFFFFFFFULL));
++    }
++
++    Tn &= ~0x20ULL;
++    DEBUG ((DEBUG_ERROR, "DG pmu: escribiendo PMCR_EL0=%lx\n", Tn));
++    __asm__ volatile ("msr PMCR_EL0, %0; isb" : : "r" (Tn));
++    __asm__ volatile ("msr PMCCFILTR_EL0, %0; isb" : : "r" (0x08000000ULL));
++    __asm__ volatile ("msr PMCNTENSET_EL0, %0; isb" : : "r" (0x80000000ULL));
++    __asm__ volatile ("msr PMUSERENR_EL0, %0; isb" : : "r" (0ULL));
++    __asm__ volatile ("mrs %0, PMCCNTR_EL0" : "=r" (A));
++    __asm__ volatile ("mrs %0, CNTPCT_EL0" : "=r" (T0));
++    do {
++      __asm__ volatile ("mrs %0, CNTPCT_EL0" : "=r" (Tn));
++    } while ((Tn - T0) < (Frq / 100));
++
++    __asm__ volatile ("mrs %0, PMCCNTR_EL0" : "=r" (B));
++    __asm__ volatile ("mrs %0, PMCR_EL0" : "=r" (Pmcr));
++    DEBUG ((DEBUG_ERROR, "DG pmu: PMCCNTR antes=%lx despues(10ms)=%lx delta=%lu PMCR=%lx\n", A, B, B - A, Pmcr));
++  }
++
 +  if (!mDgInstalled) {
 +    mDgInstalled         = TRUE;
 +    mDgStall             = gBS->Stall;
@@ -170,7 +204,7 @@ index eb2ce42..20a55d9 100644
  /**
    Transfer control to a loaded image's entry point.
  
-@@ -1742,6 +1903,12 @@ CoreStartImage (
+@@ -1742,6 +1937,12 @@ CoreStartImage (
      // Call the image's entry point
      //
      Image->Started = TRUE;
