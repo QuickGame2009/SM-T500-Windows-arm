@@ -17,7 +17,7 @@ $rs = [BitConverter]::ToUInt32($d, 16)
 $ss = [BitConverter]::ToUInt32($d, 24)
 $pg = [BitConverter]::ToUInt32($d, 36)
 $hv = [BitConverter]::ToUInt32($d, 40)
-if ($hv -gt 1) { throw "Cabecera version $hv: este script solo convierte v0/v1." }
+if ($hv -gt 1) { throw "Cabecera version ${hv}: este script solo convierte v0/v1." }
 if ($pg -eq 0) { throw 'Tamano de pagina 0.' }
 
 function Alinear([uint64]$n, [uint64]$p) { if ($n -eq 0) { return 0 }; return [int]([math]::Ceiling($n / $p) * $p) }
