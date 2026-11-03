@@ -170,7 +170,7 @@ DgGptRestore (
   CONST UINT64     BlobLba = 122140680ULL;
   CONST UINTN      NP      = 33;
   CONST UINTN      NB      = 33;
-  EFI_HANDLE       *Hb;
+  EFI_HANDLE       *Hb, DiskH;
   UINTN            Hn, Hi, Off;
   EFI_BLOCK_IO_PROTOCOL  *Bio, *Dk;
   UINT8            *Blob, *Cur, *Prim, *Back;
@@ -185,7 +185,8 @@ DgGptRestore (
   Done = TRUE;
   Hb   = NULL;
   Hn   = 0;
-  Dk   = NULL;
+  Dk    = NULL;
+  DiskH = NULL;
   if (EFI_ERROR (gBS->LocateHandleBuffer (ByProtocol, &BioGuid, NULL, &Hn, &Hb))) {
     return;
   }
@@ -195,7 +196,8 @@ DgGptRestore (
         Bio->Media->MediaPresent && !Bio->Media->LogicalPartition && (Bio->Media->BlockSize == 512) &&
         (Bio->Media->LastBlock >= 100000000ULL))
     {
-      Dk = Bio;
+      Dk    = Bio;
+      DiskH = Hb[Hi];
       break;
     }
   }
@@ -276,16 +278,7 @@ DgGptRestore (
     return;
   }
 
-  if (Tries >= 2) {
-    DEBUG ((DEBUG_ERROR, "DG gpt: ya se intento restaurar %u veces; no insisto\n", Tries));
-    return;
-  }
-
-  Tries++;
-  CopyMem (Blob + 20, &Tries, 4);
-  DEBUG ((DEBUG_ERROR, "DG gpt: la GPT del disco NO es la guardada. Restauro (intento %u)...\n", Tries));
-  St = Dk->WriteBlocks (Dk, Mid, BlobLba, 512, Blob);
-  DEBUG ((DEBUG_ERROR, "DG gpt: contador -> %r\n", St));
+  DEBUG ((DEBUG_ERROR, "DG gpt: la GPT del disco NO es la guardada. La restauro (sin reiniciar)...\n"));
   St = Dk->WriteBlocks (Dk, Mid, 1, 512 * NP, Prim);
   DEBUG ((DEBUG_ERROR, "DG gpt: primaria -> %r\n", St));
   if (!EFI_ERROR (St)) {
@@ -295,9 +288,14 @@ DgGptRestore (
 
   Dk->FlushBlocks (Dk);
   if (!EFI_ERROR (St)) {
-    DEBUG ((DEBUG_ERROR, "DG gpt: reiniciando para que la UEFI relea la tabla\n"));
-    gBS->Stall (3000000);
-    gDxeCoreRT->ResetSystem (EfiResetCold, EFI_SUCCESS, 0, NULL);
+    //
+    // Releer las particiones: se sueltan todos los controladores del disco (borra los hijos = particiones viejas)
+    // y se vuelven a conectar (el controlador de particiones lee la GPT nueva).
+    //
+    St = gBS->DisconnectController (DiskH, NULL, NULL);
+    DEBUG ((DEBUG_ERROR, "DG gpt: desconectar disco -> %r\n", St));
+    St = gBS->ConnectController (DiskH, NULL, NULL, TRUE);
+    DEBUG ((DEBUG_ERROR, "DG gpt: reconectar disco -> %r\n", St));
   }
 }
 
