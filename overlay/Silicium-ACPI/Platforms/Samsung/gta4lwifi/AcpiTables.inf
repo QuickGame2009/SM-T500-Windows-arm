@@ -1,7 +1,7 @@
 [Defines]
   INF_VERSION                    = 0x00010005
   BASE_NAME                      = AcpiTables
-  FILE_GUID                      = 579861CB-15A1-401E-B17C-DE0E22DF28D5
+  FILE_GUID                      = 7E374E25-8E01-4FEE-87F2-390C23C606CD
   MODULE_TYPE                    = USER_DEFINED
   VERSION_STRING                 = 1.0
 
