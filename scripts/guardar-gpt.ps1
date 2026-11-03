@@ -42,16 +42,19 @@ if ([BitConverter]::ToInt64($prim, 32) -ne $last) { throw "La cabecera primaria 
 $firstUsable = [BitConverter]::ToInt64($prim, 40); $lastUsable = [BitConverter]::ToInt64($prim, 48)
 $nEnt = [BitConverter]::ToInt32($prim, 80); $eSz = [BitConverter]::ToInt32($prim, 84)
 if ($eSz -ne 128 -or $nEnt * $eSz -gt 512 * ($NP - 1)) { throw 'Tamano de la tabla de entradas inesperado.' }
-$maxEnd = 0; $hasEsp = $false; $espGuid = ([guid]$espType).ToByteArray()
+$maxEnd = 0; $minStart = [int64]::MaxValue; $hasEsp = $false; $espGuid = ([guid]$espType).ToByteArray()
 for ($i = 0; $i -lt $nEnt; $i++) {
   $o = 512 + $i * 128
   $t = [byte[]]$prim[$o..($o + 15)]
   if (-not ($t | Where-Object { $_ -ne 0 })) { continue }
   $end = [BitConverter]::ToInt64($prim, $o + 40)
   if ($end -gt $maxEnd) { $maxEnd = $end }
+  $st = [BitConverter]::ToInt64($prim, $o + 32); if ($st -lt $minStart) { $minStart = $st }
   if (-not (Compare-Object $t $espGuid)) { $hasEsp = $true }
 }
 Write-Host ("Disco {0}: {1} sectores. Ultima particion termina en {2}. Ultimo usable {3}. Copia en LBA {4}..{5}." -f $Disk, $total, $maxEnd, $lastUsable, $BlobLba, ($BlobLba + $NP + $NB))
+if ($minStart -lt 34) { throw "Hay una particion que empieza antes del sector 34 ($minStart): la copia de la GPT pisaria datos. No guardo nada." }
+if ($maxEnd -ge ($last - ($NB - 1))) { throw 'Hay una particion que llega a la zona de la GPT de respaldo. No guardo nada.' }
 if (-not $hasEsp) { throw 'La tabla actual no tiene la ESP: no es la tabla de Windows. No guardo nada.' }
 if ($BlobLba -le $maxEnd -or ($BlobLba + $NP + $NB) -gt $lastUsable) { throw "Los sectores de la copia ($BlobLba..) no estan libres (fuera de las particiones). No escribo." }
 
