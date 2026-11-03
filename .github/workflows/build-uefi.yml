@@ -33,6 +33,11 @@ on:
         type: choice
         default: no
         options: ['no', 'si']
+      xhci:
+        description: 'Drivers XHCI (USB host): si (como el port gta4l) o no (como lime, que no los carga)'
+        type: choice
+        default: 'si'
+        options: ['si', 'no']
 
 env:
   CI_BUILD: "true"
@@ -71,6 +76,14 @@ jobs:
       - name: Mapa de memoria fiel al DTB (lime + regiones reservadas del DTB)
         if: ${{ inputs.memmap == 'dtb' }}
         run: cp -r kit/variants/dtb-memmap/. upstream/
+
+      - name: Sin drivers XHCI (como lime)
+        if: ${{ inputs.xhci == 'no' }}
+        run: |
+          d=upstream/Platforms/Samsung/gta4lwifiPkg/Include
+          grep -c "XhciDxe\|XhciPciEmulationDxe" $d/APRIORI.inc $d/DXE.inc
+          sed -i '/XhciPciEmulationDxe\|XhciDxe/d' $d/APRIORI.inc $d/DXE.inc
+          ! grep -n "Xhci" $d/*.inc
 
       - name: Reloj con dia valido
         if: ${{ inputs.rtc == 'dia1' }}
@@ -111,7 +124,7 @@ jobs:
       - name: Subir resultado
         uses: actions/upload-artifact@v4
         with:
-          name: Mu-gta4lwifi-${{ inputs.dtb }}-${{ inputs.verbose }}-mem${{ inputs.memmap }}-rtc${{ inputs.rtc }}-hb${{ inputs.heartbeat }}-${{ matrix.release }}
+          name: Mu-gta4lwifi-${{ inputs.dtb }}-${{ inputs.verbose }}-mem${{ inputs.memmap }}-rtc${{ inputs.rtc }}-hb${{ inputs.heartbeat }}-xhci${{ inputs.xhci }}-${{ matrix.release }}
           path: |
             upstream/Mu-gta4lwifi.img
             upstream/Build/gta4lwifiPkg/${{ matrix.release }}_CLANGPDB/FV/SILICIUM_UEFI.fd
