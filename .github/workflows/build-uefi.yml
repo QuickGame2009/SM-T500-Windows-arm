@@ -38,6 +38,11 @@ on:
         type: choice
         default: 'si'
         options: ['si', 'no']
+      diag:
+        description: 'Diagnostico: no, o si (antes de arrancar bootmgr imprime EL, mascaras, temporizador y GIC, y registra sus llamadas a Stall/GetTime/Watchdog)'
+        type: choice
+        default: 'no'
+        options: ['no', 'si']
 
 env:
   CI_BUILD: "true"
@@ -102,6 +107,15 @@ jobs:
           sed -i 's/"Usb-Bus.patch"\]/"Usb-Bus.patch", "Heartbeat.patch"]/g' "$f"
           grep -n 'Heartbeat.patch' "$f"
 
+      - name: Diagnostico de arranque (parche git de Mu_Basecore)
+        if: ${{ inputs.diag == 'si' }}
+        run: |
+          cp kit/variants/diag/Diag.patch upstream/Resources/MuPatches/Diag.patch
+          f=upstream/build_uefi.py
+          sed -i -E 's/("[A-Za-z-]+\.patch")\]/\1, "Diag.patch"]/g' "$f"
+          test "$(grep -c 'Diag.patch' "$f")" -ge "1"
+          grep -n 'Diag.patch' "$f"
+
       - name: Elegir DTB
         if: ${{ inputs.dtb == 'boardid' }}
         run: cp upstream/Resources/DTBs/gta4lwifi-boardid.dtb upstream/Resources/DTBs/gta4lwifi.dtb
@@ -124,7 +138,7 @@ jobs:
       - name: Subir resultado
         uses: actions/upload-artifact@v4
         with:
-          name: Mu-gta4lwifi-${{ inputs.dtb }}-${{ inputs.verbose }}-mem${{ inputs.memmap }}-rtc${{ inputs.rtc }}-hb${{ inputs.heartbeat }}-xhci${{ inputs.xhci }}-${{ matrix.release }}
+          name: Mu-gta4lwifi-${{ inputs.dtb }}-${{ inputs.verbose }}-mem${{ inputs.memmap }}-rtc${{ inputs.rtc }}-hb${{ inputs.heartbeat }}-xhci${{ inputs.xhci }}-diag${{ inputs.diag }}-${{ matrix.release }}
           path: |
             upstream/Mu-gta4lwifi.img
             upstream/Build/gta4lwifiPkg/${{ matrix.release }}_CLANGPDB/FV/SILICIUM_UEFI.fd
