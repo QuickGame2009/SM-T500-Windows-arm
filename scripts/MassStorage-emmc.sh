@@ -50,10 +50,12 @@ echo 0 > $F/lun.0/ro
 
 # 2. ventana critica, SIN pausas. El recovery reenlaza adb (f1) y pone PID d001 cuando adbd se reinicia
 #    al soltar el USB; si ganamos la carrera y activamos primero, configfs no le deja tocar nada.
-#    Se reintenta hasta 10 veces.
-n=0
-while [ $n -lt 10 ]; do
-  n=$((n+1))
+#    En TWRP (init con MTP) el recovery vuelve a poner mtp/acm/adb DESPUES (PID 6860) y suelta el UDC:
+#    por eso se pide a init que deje el USB en 'none' y luego se vigila y se repone durante 60 s.
+setprop sys.usb.config none 2>/dev/null
+setprop persist.sys.usb.config none 2>/dev/null
+
+expose() {
   echo "" > $G/UDC
   for f in $C/*; do [ -L "$f" ] && [ "${f##*/}" != "mass_storage.0" ] && rm "$f"; done
   [ -e $C/mass_storage.0 ] || ln -s $F $C/mass_storage.0
@@ -62,8 +64,13 @@ while [ $n -lt 10 ]; do
   echo 0x00 > $G/bDeviceProtocol
   echo 0x5a5a > $G/idProduct
   echo $UDC > $G/UDC
-  # correcto si: activado, mass_storage enlazado, y adb (f1) no esta
-  if [ "$(cat $G/UDC)" = "$UDC" ] && [ -e $C/mass_storage.0 ] && [ ! -e $C/f1 ]; then
+  [ "$(cat $G/UDC)" = "$UDC" ] && [ -e $C/mass_storage.0 ] && [ ! -e $C/f1 ]
+}
+
+n=0
+while [ $n -lt 10 ]; do
+  n=$((n+1))
+  if expose; then
     echo "OK en el intento $n"
     break
   fi
@@ -72,10 +79,14 @@ while [ $n -lt 10 ]; do
 done
 echo "Disco $DISK expuesto por $UDC"
 
-# 3. diagnostico
+# 3. vigilancia: si el recovery vuelve a tocar el USB, se repone (60 s) y se deja registro
 set +x
-for i in 1 2 3 4 5 6; do
-  sleep 3
-  echo "--- t=$((i*3))s  estado UDC: $(cat /sys/class/udc/$UDC/state 2>&1)  UDC=$(cat $G/UDC 2>&1)  PID=$(cat $G/idProduct 2>&1)  f1=$([ -e $C/f1 ] && echo si || echo no)"
+for i in $(seq 1 60); do
+  sleep 1
+  if [ "$(cat $G/UDC 2>/dev/null)" != "$UDC" ] || [ -e $C/f1 ] || [ "$(cat $G/idProduct 2>/dev/null)" != "0x5a5a" ]; then
+    echo "--- t=${i}s el recovery ha cambiado el USB (UDC=$(cat $G/UDC 2>&1) PID=$(cat $G/idProduct 2>&1) f1=$([ -e $C/f1 ] && echo si || echo no)): lo repongo"
+    expose && echo "    repuesto" || echo "    no se ha podido reponer"
+  fi
+  [ $((i % 10)) -eq 0 ] && echo "--- t=${i}s  estado UDC: $(cat /sys/class/udc/$UDC/state 2>&1)  UDC=$(cat $G/UDC 2>&1)  PID=$(cat $G/idProduct 2>&1)"
 done
 ls -l $C 2>&1
