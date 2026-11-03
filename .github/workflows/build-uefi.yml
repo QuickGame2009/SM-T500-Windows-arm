@@ -22,7 +22,7 @@ on:
         description: 'Mapa de memoria: original (el del port gta4l) o lime (heap de la UEFI movido a 0x63900000 con QSEE/TZApps reservados, como el Redmi 9T que si arranca Windows)'
         type: choice
         default: original
-        options: [original, lime]
+        options: [original, lime, dtb]
       rtc:
         description: 'Reloj: original (dia 0 al arrancar, invalido) o dia1 (suma 1 al dia para que sea valido)'
         type: choice
@@ -67,6 +67,10 @@ jobs:
       - name: Mapa de memoria estilo lime
         if: ${{ inputs.memmap == 'lime' }}
         run: cp -r kit/variants/lime-memmap/. upstream/
+
+      - name: Mapa de memoria fiel al DTB (lime + regiones reservadas del DTB)
+        if: ${{ inputs.memmap == 'dtb' }}
+        run: cp -r kit/variants/dtb-memmap/. upstream/
 
       - name: Reloj con dia valido
         if: ${{ inputs.rtc == 'dia1' }}
