@@ -203,12 +203,16 @@ NTSTATUS DriverEntry(PVOID DriverObject, PUNICODE_STRING RegistryPath)
        InterruptTime, ticks del DPC, 1a palabra ISPENDR no nula (indice, valor, bits).
        Fila 4 (naranja): idem ISACTIVER, ICC_RPR, ICC_HPPIR1, mayor hueco entre vueltas (ms). */
     {
-        volatile ULONG *gd;
+        volatile ULONG *gd, *pm[3], *m;
+        ULONG pr = 0, off, v;
         ULONGLONG tl = rd_cntvct(), per = freq / 1000;
         ULONG ms, lastms = 0, lastdraw = 0, maxgap = 0, w, b, p, a;
         ULONG pi, pv, pc, ai, av, ac;
         pa.QuadPart = (LONGLONG)GICD_PHYS;
         gd = (volatile ULONG *)MmMapIoSpace(pa, 0x1000, MmNonCached);
+        pa.QuadPart = 0x04804000LL; pm[0] = (volatile ULONG *)MmMapIoSpace(pa, 0x1000, MmNonCached); /* UFS HCI */
+        pa.QuadPart = 0x04744000LL; pm[1] = (volatile ULONG *)MmMapIoSpace(pa, 0x1000, MmNonCached); /* SDCC1 HC */
+        pa.QuadPart = 0x04E0C000LL; pm[2] = (volatile ULONG *)MmMapIoSpace(pa, 0x1000, MmNonCached); /* DWC3 */
         for (;;) {
             ms = (ULONG)((rd_cntvct() - tl) / per);
             if (ms > 60000) break;
@@ -216,6 +220,18 @@ NTSTATUS DriverEntry(PVOID DriverObject, PUNICODE_STRING RegistryPath)
             lastms = ms;
             if (ms - lastdraw < 50) continue;
             lastdraw = ms;
+            /* Sondas MMIO (fila 5): col0 = numero de sonda a punto de leerse; col k = valor leido.
+               1: UFS HCI VER (+0x08)  2: SDCC1 HC version (+0xFC)  3: DWC3 GSNPSID (+0xC120).
+               Si la CPU se queda colgada en una sonda, la pantalla se congela con ese numero en col0. */
+            if (pr < 3 && ms >= 2000u * (pr + 1)) {
+                m = pm[pr]; off = (pr == 0) ? 0x08 / 4 : (pr == 1) ? 0xFC / 4 : 0x120 / 4;
+                pr++;
+                DrawHex(0, 5, pr, 0x00FF00FF);
+                __asm__ volatile("dsb sy" ::: "memory");
+                v = m ? m[off] : 0xDEADDEAD;
+                DrawHex(pr, 5, v, 0x00FFFFFF);
+                __asm__ volatile("dsb sy" ::: "memory");
+            }
             pi = 0xFF; pv = 0; pc = 0; ai = 0xFF; av = 0; ac = 0;
             if (gd) for (w = 1; w < 16; w++) {
                 p = gd[(0x200 + 4 * w) / 4]; a = gd[(0x300 + 4 * w) / 4];
