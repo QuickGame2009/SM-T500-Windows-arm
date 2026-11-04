@@ -11,5 +11,6 @@ for s in 1 2 3; do
   lld-link /machine:arm64 /subsystem:native /driver /entry:DriverEntry /nodefaultlib \
         /dynamicbase /nxcompat /highentropyva:no /align:4096 /filealign:512 \
         /out:out/canary$s.sys out/canary$s.obj out/ntoskrnl.lib
+  python3 pechecksum.py out/canary$s.sys
 done
 ls -l out/*.sys
