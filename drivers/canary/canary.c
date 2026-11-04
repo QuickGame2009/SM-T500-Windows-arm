@@ -215,7 +215,7 @@ NTSTATUS DriverEntry(PVOID DriverObject, PUNICODE_STRING RegistryPath)
         pa.QuadPart = 0x04E0C000LL; pm[2] = (volatile ULONG *)MmMapIoSpace(pa, 0x1000, MmNonCached); /* DWC3 */
         for (;;) {
             ms = (ULONG)((rd_cntvct() - tl) / per);
-            if (ms > 60000) break;
+            if (ms > 8000) break;
             if (ms - lastms > maxgap) maxgap = ms - lastms;
             lastms = ms;
             if (ms - lastdraw < 50) continue;
@@ -223,7 +223,7 @@ NTSTATUS DriverEntry(PVOID DriverObject, PUNICODE_STRING RegistryPath)
             /* Sondas MMIO (fila 5): col0 = numero de sonda a punto de leerse; col k = valor leido.
                1: UFS HCI VER (+0x08)  2: SDCC1 HC version (+0xFC)  3: DWC3 GSNPSID (+0xC120).
                Si la CPU se queda colgada en una sonda, la pantalla se congela con ese numero en col0. */
-            if (pr < 3 && ms >= 2000u * (pr + 1)) {
+            if (pr < 2 && ms >= 2000u * (pr + 1)) {
                 m = pm[pr]; off = (pr == 0) ? 0x08 / 4 : (pr == 1) ? 0xFC / 4 : 0x120 / 4;
                 pr++;
                 DrawHex(0, 5, pr, 0x00FF00FF);
