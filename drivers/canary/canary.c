@@ -54,6 +54,10 @@ __declspec(dllimport) UCHAR KeSetTimerEx(PVOID Timer, LARGE_INTEGER DueTime, LON
 typedef struct _LIST_ENTRY { struct _LIST_ENTRY *Flink, *Blink; } LIST_ENTRY;
 __declspec(dllimport) UCHAR KeRegisterBugCheckCallback(PVOID Record, PVOID Routine, PVOID Buffer, ULONG Length, UCHAR *Component);
 __declspec(dllimport) extern LIST_ENTRY PsLoadedModuleList;
+__declspec(dllimport) LONG  PsCreateSystemThread(PVOID *Handle, ULONG Access, PVOID Oa, PVOID Proc, PVOID Cid, PVOID Start, PVOID Ctx);
+__declspec(dllimport) LONG  ZwClose(PVOID Handle);
+__declspec(dllimport) LONG  KeSetPriorityThread(PVOID Thread, LONG Prio);
+__declspec(dllimport) PVOID KeGetCurrentThread(void);
 
 __declspec(align(64)) static UCHAR g_timer[256];
 __declspec(align(64)) static UCHAR g_bcrec[128];
@@ -230,6 +234,51 @@ static inline ULONGLONG rd_icc_hppir1(void) { ULONGLONG v; __asm__ volatile("mrs
 
 #define KUSER_INTERRUPT_TIME_LOW (*(volatile ULONG *)0xFFFFF78000000008ULL)
 
+static volatile ULONG *g_gicd, *g_gicr;
+#define KUSER_SYSTEM_TIME_LOW    (*(volatile ULONG *)0xFFFFF78000000014ULL)
+static inline ULONGLONG rd_cntp_ctl(void) { ULONGLONG v; __asm__ volatile("mrs %0, cntp_ctl_el0" : "=r"(v)); return v; }
+
+/* Hilo monitor.  Fila 3 (blanco): ms (dec), InterruptTime, ticks DPC (dec), CNTV_CTL, CNTV_CVAL-CNTVCT, CNTP_CTL.
+   Fila 4 (naranja): ICC_RPR, ICC_HPPIR1, ICC_PMR, DAIF, ISENABLER0, ISPENDR0.
+   Fila 5 (cian): SystemTime, 1a palabra SPI pendiente (indice, valor), numero de SPI pendientes, ISACTIVER0, CurrentEL. */
+static void MonThread(PVOID ctx)
+{
+    ULONGLONG t0 = rd_cntvct(), per, freq = rd_cntfrq();
+    ULONG ms, lastdraw = 0, w, b, p, pi, pv, pc;
+    (void)ctx;
+    KeSetPriorityThread(KeGetCurrentThread(), 1);
+    if (freq == 0) freq = 19200000;
+    per = freq / 1000;
+    for (;;) {
+        ms = (ULONG)((rd_cntvct() - t0) / per);
+        if (ms - lastdraw < 100) continue;
+        lastdraw = ms;
+        pi = 0xFF; pv = 0; pc = 0;
+        if (g_gicd) for (w = 1; w < 16; w++) {
+            p = g_gicd[(0x200 + 4 * w) / 4];
+            if (p) { if (pi == 0xFF) { pi = w; pv = p; } for (b = 0; b < 32; b++) pc += (p >> b) & 1; }
+        }
+        DrawDec(0, 3, ms,                                   0x00FFFFFF);
+        DrawHex(1, 3, KUSER_INTERRUPT_TIME_LOW,             0x00FFFFFF);
+        DrawDec(2, 3, g_tick,                               0x00FFFFFF);
+        DrawHex(3, 3, (ULONG)rd_cntv_ctl(),                 0x00FFFFFF);
+        DrawHex(4, 3, (ULONG)(rd_cntv_cval() - rd_cntvct()),0x00FFFFFF);
+        DrawHex(5, 3, (ULONG)rd_cntp_ctl(),                 0x00FFFFFF);
+        DrawHex(0, 4, (ULONG)rd_icc_rpr(),                  0x00FF8000);
+        DrawHex(1, 4, (ULONG)rd_icc_hppir1(),               0x00FF8000);
+        DrawHex(2, 4, (ULONG)rd_icc_pmr(),                  0x00FF8000);
+        DrawHex(3, 4, (ULONG)rd_daif(),                     0x00FF8000);
+        if (g_gicr) DrawHex(4, 4, g_gicr[(0x10000 + 0x100) / 4], 0x00FF8000);
+        if (g_gicr) DrawHex(5, 4, g_gicr[(0x10000 + 0x200) / 4], 0x00FF8000);
+        DrawHex(0, 5, KUSER_SYSTEM_TIME_LOW,                0x0000FFFF);
+        DrawHex(1, 5, pi,                                   0x0000FFFF);
+        DrawHex(2, 5, pv,                                   0x0000FFFF);
+        DrawHex(3, 5, pc,                                   0x0000FFFF);
+        if (g_gicr) DrawHex(4, 5, g_gicr[(0x10000 + 0x300) / 4], 0x0000FFFF);
+        { ULONGLONG el; __asm__ volatile("mrs %0, CurrentEL" : "=r"(el)); DrawHex(5, 5, (ULONG)el, 0x0000FFFF); }
+    }
+}
+
 NTSTATUS DriverEntry(PVOID DriverObject, PUNICODE_STRING RegistryPath)
 {
     PHYSICAL_ADDRESS pa;
@@ -296,59 +345,19 @@ NTSTATUS DriverEntry(PVOID DriverObject, PUNICODE_STRING RegistryPath)
     g_bcbuf[0] = 0;
     KeRegisterBugCheckCallback(g_bcrec, (PVOID)BugCheckCb, g_bcbuf, sizeof(g_bcbuf), (UCHAR *)"CANARY");
     DrawAddr(700, "SELF", (ULONGLONG)(PVOID)DriverEntry, 0x00FFFFFF);   /* autotest: debe mostrar canary3.sys */
-    /* Bucle en vivo 60 s: demuestra si el codigo normal y los DPC siguen corriendo y que
-       interrupciones (SPI) estan pendientes/activas.  Fila 3 (blanco): ms transcurridos,
-       InterruptTime, ticks del DPC, 1a palabra ISPENDR no nula (indice, valor, bits).
-       Fila 4 (naranja): idem ISACTIVER, ICC_RPR, ICC_HPPIR1, mayor hueco entre vueltas (ms). */
+    /* Hilo monitor (prioridad minima): sigue dibujando aunque DriverEntry ya haya vuelto.
+       Si la pantalla se sigue actualizando tras el cuelgue, el kernel NO esta girando en un
+       bucle a DISPATCH_LEVEL: esta en espera (p. ej. con el reloj muerto).  Si se congela, si. */
     {
-        volatile ULONG *gd, *pm[3], *m;
-        ULONG pr = 0, off, v;
-        ULONGLONG tl = rd_cntvct(), per = freq / 1000;
-        ULONG ms, lastms = 0, lastdraw = 0, maxgap = 0, w, b, p, a;
-        ULONG pi, pv, pc, ai, av, ac;
+        PVOID th = 0;
+        LONG st;
         pa.QuadPart = (LONGLONG)GICD_PHYS;
-        gd = (volatile ULONG *)MmMapIoSpace(pa, 0x1000, MmNonCached);
-        pa.QuadPart = 0x04804000LL; pm[0] = (volatile ULONG *)MmMapIoSpace(pa, 0x1000, MmNonCached); /* UFS HCI */
-        pa.QuadPart = 0x04744000LL; pm[1] = (volatile ULONG *)MmMapIoSpace(pa, 0x1000, MmNonCached); /* SDCC1 HC */
-        pa.QuadPart = 0x04E0C000LL; pm[2] = (volatile ULONG *)MmMapIoSpace(pa, 0x1000, MmNonCached); /* DWC3 */
-        for (;;) {
-            ms = (ULONG)((rd_cntvct() - tl) / per);
-            if (ms > 8000) break;
-            if (ms - lastms > maxgap) maxgap = ms - lastms;
-            lastms = ms;
-            if (ms - lastdraw < 50) continue;
-            lastdraw = ms;
-            /* Sondas MMIO (fila 5): col0 = numero de sonda a punto de leerse; col k = valor leido.
-               1: UFS HCI VER (+0x08)  2: SDCC1 HC version (+0xFC)  3: DWC3 GSNPSID (+0xC120).
-               Si la CPU se queda colgada en una sonda, la pantalla se congela con ese numero en col0. */
-            if (pr < 2 && ms >= 2000u * (pr + 1)) {
-                m = pm[pr]; off = (pr == 0) ? 0x08 / 4 : (pr == 1) ? 0xFC / 4 : 0x120 / 4;
-                pr++;
-                DrawHex(0, 5, pr, 0x00FF00FF);
-                __asm__ volatile("dsb sy" ::: "memory");
-                v = m ? m[off] : 0xDEADDEAD;
-                DrawHex(pr, 5, v, 0x00FFFFFF);
-                __asm__ volatile("dsb sy" ::: "memory");
-            }
-            pi = 0xFF; pv = 0; pc = 0; ai = 0xFF; av = 0; ac = 0;
-            if (gd) for (w = 1; w < 16; w++) {
-                p = gd[(0x200 + 4 * w) / 4]; a = gd[(0x300 + 4 * w) / 4];
-                if (p) { if (pi == 0xFF) { pi = w; pv = p; } for (b = 0; b < 32; b++) pc += (p >> b) & 1; }
-                if (a) { if (ai == 0xFF) { ai = w; av = a; } for (b = 0; b < 32; b++) ac += (a >> b) & 1; }
-            }
-            DrawDec(0, 3, ms,                    0x00FFFFFF);
-            DrawHex(1, 3, KUSER_INTERRUPT_TIME_LOW, 0x00FFFFFF);
-            DrawDec(2, 3, g_tick,                0x00FFFFFF);
-            DrawHex(3, 3, pi,                    0x00FFFFFF);
-            DrawHex(4, 3, pv,                    0x00FFFFFF);
-            DrawHex(5, 3, pc,                    0x00FFFFFF);
-            DrawHex(0, 4, ai,                    0x00FF8000);
-            DrawHex(1, 4, av,                    0x00FF8000);
-            DrawHex(2, 4, ac,                    0x00FF8000);
-            DrawHex(3, 4, (ULONG)rd_icc_rpr(),   0x00FF8000);
-            DrawHex(4, 4, (ULONG)rd_icc_hppir1(),0x00FF8000);
-            DrawDec(5, 4, maxgap,                0x00FF8000);
-        }
+        g_gicd = (volatile ULONG *)MmMapIoSpace(pa, 0x1000, MmNonCached);
+        pa.QuadPart = (LONGLONG)GICR_PHYS;
+        g_gicr = (volatile ULONG *)MmMapIoSpace(pa, 0x20000, MmNonCached);
+        st = PsCreateSystemThread(&th, 0x1FFFFF, 0, 0, 0, (PVOID)MonThread, 0);
+        if (st >= 0 && th) ZwClose(th);
+        else DrawHex(0, 3, (ULONG)st, 0x00FF0000);
     }
 #endif
     return 0;
