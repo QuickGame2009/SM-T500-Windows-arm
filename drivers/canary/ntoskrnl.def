@@ -1,0 +1,6 @@
+LIBRARY ntoskrnl.exe
+EXPORTS
+MmMapIoSpace
+KeInitializeTimerEx
+KeInitializeDpc
+KeSetTimerEx
