@@ -234,7 +234,7 @@ static inline ULONGLONG rd_icc_hppir1(void) { ULONGLONG v; __asm__ volatile("mrs
 
 #define KUSER_INTERRUPT_TIME_LOW (*(volatile ULONG *)0xFFFFF78000000008ULL)
 
-static volatile ULONG *g_gicd, *g_gicr;
+static volatile ULONG *g_gicd, *g_gicr, *g_sd;
 #define KUSER_SYSTEM_TIME_LOW    (*(volatile ULONG *)0xFFFFF78000000014ULL)
 static inline ULONGLONG rd_cntp_ctl(void) { ULONGLONG v; __asm__ volatile("mrs %0, cntp_ctl_el0" : "=r"(v)); return v; }
 
@@ -276,6 +276,22 @@ static void MonThread(PVOID ctx)
         DrawHex(3, 5, pc,                                   0x0000FFFF);
         if (g_gicr) DrawHex(4, 5, g_gicr[(0x10000 + 0x300) / 4], 0x0000FFFF);
         { ULONGLONG el; __asm__ volatile("mrs %0, CurrentEL" : "=r"(el)); DrawHex(5, 5, (ULONG)el, 0x0000FFFF); }
+        /* SDCC1 (eMMC) registros SDHCI.  Fila 6: PRESENT_STATE(24) HOSTCTL/POWER(28) CLOCK(2C) INT_STATUS(30) INT_EN(34) HC2(3C).
+           Fila 7: CAPS(40) CAPS2(44) VERSION(FC) ADMA_ERR(54) CMD(0C) RESP0(10) */
+        if (g_sd) {
+            DrawHex(0, 6, g_sd[0x24 / 4], 0x00FF00FF);
+            DrawHex(1, 6, g_sd[0x28 / 4], 0x00FF00FF);
+            DrawHex(2, 6, g_sd[0x2C / 4], 0x00FF00FF);
+            DrawHex(3, 6, g_sd[0x30 / 4], 0x00FF00FF);
+            DrawHex(4, 6, g_sd[0x34 / 4], 0x00FF00FF);
+            DrawHex(5, 6, g_sd[0x3C / 4], 0x00FF00FF);
+            DrawHex(0, 7, g_sd[0x40 / 4], 0x0080FF80);
+            DrawHex(1, 7, g_sd[0x44 / 4], 0x0080FF80);
+            DrawHex(2, 7, g_sd[0xFC / 4], 0x0080FF80);
+            DrawHex(3, 7, g_sd[0x54 / 4], 0x0080FF80);
+            DrawHex(4, 7, g_sd[0x0C / 4], 0x0080FF80);
+            DrawHex(5, 7, g_sd[0x10 / 4], 0x0080FF80);
+        }
     }
 }
 
@@ -355,6 +371,8 @@ NTSTATUS DriverEntry(PVOID DriverObject, PUNICODE_STRING RegistryPath)
         g_gicd = (volatile ULONG *)MmMapIoSpace(pa, 0x1000, MmNonCached);
         pa.QuadPart = (LONGLONG)GICR_PHYS;
         g_gicr = (volatile ULONG *)MmMapIoSpace(pa, 0x20000, MmNonCached);
+        pa.QuadPart = 0x04744000LL;
+        g_sd = (volatile ULONG *)MmMapIoSpace(pa, 0x1000, MmNonCached);
         st = PsCreateSystemThread(&th, 0x1FFFFF, 0, 0, 0, (PVOID)MonThread, 0);
         if (st >= 0 && th) ZwClose(th);
         else DrawHex(0, 3, (ULONG)st, 0x00FF0000);
