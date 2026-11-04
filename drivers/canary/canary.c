@@ -107,6 +107,13 @@ static void DrawHex(ULONG col, ULONG row, ULONG v, ULONG color)
         DrawDigitSz(x + i * 22, y, (v >> (28 - 4 * i)) & 15, 18, 32, 4, color);
 }
 
+static void DrawDec(ULONG col, ULONG row, ULONG v, ULONG color)
+{
+    ULONG i, p = 10000000, x = 20 + col * 196, y = 270 + row * 52;
+    for (i = 0; i < 8; i++, p /= 10)
+        DrawDigitSz(x + i * 22, y, (v / p) % 10, 18, 32, 4, color);
+}
+
 static void TimerDpc(PVOID Dpc, PVOID Ctx, PVOID A1, PVOID A2)
 {
     (void)Dpc; (void)Ctx; (void)A1; (void)A2;
@@ -122,6 +129,9 @@ static inline ULONGLONG rd_daif(void) { ULONGLONG v; __asm__ volatile("mrs %0, d
 static inline ULONGLONG rd_icc_sre(void) { ULONGLONG v; __asm__ volatile("mrs %0, S3_0_C12_C12_5" : "=r"(v)); return v; }
 static inline ULONGLONG rd_icc_pmr(void) { ULONGLONG v; __asm__ volatile("mrs %0, S3_0_C4_C6_0" : "=r"(v)); return v; }
 static inline ULONGLONG rd_icc_igrpen1(void) { ULONGLONG v; __asm__ volatile("mrs %0, S3_0_C12_C12_7" : "=r"(v)); return v; }
+
+static inline ULONGLONG rd_icc_rpr(void) { ULONGLONG v; __asm__ volatile("mrs %0, S3_0_C12_C11_3" : "=r"(v)); return v; }
+static inline ULONGLONG rd_icc_hppir1(void) { ULONGLONG v; __asm__ volatile("mrs %0, S3_0_C12_C12_2" : "=r"(v)); return v; }
 
 #define KUSER_INTERRUPT_TIME_LOW (*(volatile ULONG *)0xFFFFF78000000008ULL)
 
@@ -186,5 +196,46 @@ NTSTATUS DriverEntry(PVOID DriverObject, PUNICODE_STRING RegistryPath)
     KeInitializeDpc(g_dpc, (PVOID)TimerDpc, 0);
     due.QuadPart = -5000000LL;           /* 500 ms, relativo */
     KeSetTimerEx(g_timer, due, 500, g_dpc);
+
+#if SLOT == 3
+    /* Bucle en vivo 60 s: demuestra si el codigo normal y los DPC siguen corriendo y que
+       interrupciones (SPI) estan pendientes/activas.  Fila 3 (blanco): ms transcurridos,
+       InterruptTime, ticks del DPC, 1a palabra ISPENDR no nula (indice, valor, bits).
+       Fila 4 (naranja): idem ISACTIVER, ICC_RPR, ICC_HPPIR1, mayor hueco entre vueltas (ms). */
+    {
+        volatile ULONG *gd;
+        ULONGLONG tl = rd_cntvct(), per = freq / 1000;
+        ULONG ms, lastms = 0, lastdraw = 0, maxgap = 0, w, b, p, a;
+        ULONG pi, pv, pc, ai, av, ac;
+        pa.QuadPart = (LONGLONG)GICD_PHYS;
+        gd = (volatile ULONG *)MmMapIoSpace(pa, 0x1000, MmNonCached);
+        for (;;) {
+            ms = (ULONG)((rd_cntvct() - tl) / per);
+            if (ms > 60000) break;
+            if (ms - lastms > maxgap) maxgap = ms - lastms;
+            lastms = ms;
+            if (ms - lastdraw < 50) continue;
+            lastdraw = ms;
+            pi = 0xFF; pv = 0; pc = 0; ai = 0xFF; av = 0; ac = 0;
+            if (gd) for (w = 1; w < 16; w++) {
+                p = gd[(0x200 + 4 * w) / 4]; a = gd[(0x300 + 4 * w) / 4];
+                if (p) { if (pi == 0xFF) { pi = w; pv = p; } for (b = 0; b < 32; b++) pc += (p >> b) & 1; }
+                if (a) { if (ai == 0xFF) { ai = w; av = a; } for (b = 0; b < 32; b++) ac += (a >> b) & 1; }
+            }
+            DrawDec(0, 3, ms,                    0x00FFFFFF);
+            DrawHex(1, 3, KUSER_INTERRUPT_TIME_LOW, 0x00FFFFFF);
+            DrawDec(2, 3, g_tick,                0x00FFFFFF);
+            DrawHex(3, 3, pi,                    0x00FFFFFF);
+            DrawHex(4, 3, pv,                    0x00FFFFFF);
+            DrawHex(5, 3, pc,                    0x00FFFFFF);
+            DrawHex(0, 4, ai,                    0x00FF8000);
+            DrawHex(1, 4, av,                    0x00FF8000);
+            DrawHex(2, 4, ac,                    0x00FF8000);
+            DrawHex(3, 4, (ULONG)rd_icc_rpr(),   0x00FF8000);
+            DrawHex(4, 4, (ULONG)rd_icc_hppir1(),0x00FF8000);
+            DrawDec(5, 4, maxgap,                0x00FF8000);
+        }
+    }
+#endif
     return 0;
 }
