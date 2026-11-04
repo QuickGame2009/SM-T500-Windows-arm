@@ -4,3 +4,5 @@ MmMapIoSpace
 KeInitializeTimerEx
 KeInitializeDpc
 KeSetTimerEx
+KeRegisterBugCheckCallback
+PsLoadedModuleList DATA

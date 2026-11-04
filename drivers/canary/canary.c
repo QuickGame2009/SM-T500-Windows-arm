@@ -51,7 +51,13 @@ __declspec(dllimport) void  KeInitializeTimerEx(PVOID Timer, int Type);
 __declspec(dllimport) void  KeInitializeDpc(PVOID Dpc, PVOID Routine, PVOID Context);
 __declspec(dllimport) UCHAR KeSetTimerEx(PVOID Timer, LARGE_INTEGER DueTime, LONG Period, PVOID Dpc);
 
+typedef struct _LIST_ENTRY { struct _LIST_ENTRY *Flink, *Blink; } LIST_ENTRY;
+__declspec(dllimport) UCHAR KeRegisterBugCheckCallback(PVOID Record, PVOID Routine, PVOID Buffer, ULONG Length, UCHAR *Component);
+__declspec(dllimport) extern LIST_ENTRY PsLoadedModuleList;
+
 __declspec(align(64)) static UCHAR g_timer[256];
+__declspec(align(64)) static UCHAR g_bcrec[128];
+__declspec(align(64)) static UCHAR g_bcbuf[64];
 __declspec(align(64)) static UCHAR g_dpc[256];
 static volatile ULONG *g_fb;
 static ULONG g_tick;
@@ -112,6 +118,95 @@ static void DrawDec(ULONG col, ULONG row, ULONG v, ULONG color)
     ULONG i, p = 10000000, x = 20 + col * 196, y = 270 + row * 52;
     for (i = 0; i < 8; i++, p /= 10)
         DrawDigitSz(x + i * 22, y, (v / p) % 10, 18, 32, 4, color);
+}
+
+#include "font8x14.h"
+
+static void DrawStr(ULONG x, ULONG y, const char *t, ULONG color)
+{
+    ULONG gx, gy, bit;
+    for (; *t; t++, x += 16) {
+        const UCHAR *g = &kFont[((UCHAR)*t - 32) * 14];
+        FillRect(x, y, 16, 28, 0);
+        for (gy = 0; gy < 14; gy++)
+            for (bit = 0; bit < 8; bit++)
+                if (g[gy] & (0x80 >> bit)) FillRect(x + bit * 2, y + gy * 2, 2, 2, color);
+    }
+}
+
+static void Hex(char *o, ULONGLONG v, int digits)
+{
+    int i;
+    for (i = 0; i < digits; i++) { ULONG d = (ULONG)(v >> (4 * (digits - 1 - i))) & 15; o[i] = (char)(d < 10 ? '0' + d : 'A' + d - 10); }
+    o[digits] = 0;
+}
+
+/* Localiza el modulo del kernel que contiene la direccion 'a'; name = 12 chars + 0 */
+static int FindMod(ULONGLONG a, ULONGLONG *off, char *name)
+{
+    LIST_ENTRY *h = &PsLoadedModuleList, *e = h->Flink;
+    int n = 0, i;
+    while (e && e != h && n++ < 600) {
+        UCHAR *m = (UCHAR *)e;
+        ULONGLONG base = *(ULONGLONG *)(m + 0x30);
+        ULONG sz = *(ULONG *)(m + 0x40);
+        if (a >= base && a < base + sz) {
+            UNICODE_STRING *u = (UNICODE_STRING *)(m + 0x58);
+            for (i = 0; i < 12; i++) name[i] = ' ';
+            name[12] = 0;
+            if (u->Buffer) for (i = 0; i < 12 && i < (int)(u->Length / 2); i++) name[i] = (char)u->Buffer[i];
+            *off = a - base;
+            return 1;
+        }
+        e = e->Flink;
+    }
+    return 0;
+}
+
+static void DrawAddr(ULONG y, const char *tag, ULONGLONG a, ULONG color)
+{
+    char line[40], h[17], name[13];
+    ULONGLONG off = 0;
+    int i, p = 0;
+    for (i = 0; tag[i] && p < 4; i++) line[p++] = tag[i];
+    while (p < 4) line[p++] = ' ';
+    Hex(h, a, 16);
+    for (i = 0; i < 16; i++) line[p++] = h[i];
+    line[p++] = ' ';
+    if (FindMod(a, &off, name)) {
+        for (i = 0; i < 12; i++) line[p++] = name[i];
+        line[p++] = '+';
+        Hex(h, off, 8);
+        for (i = 0; i < 8; i++) line[p++] = h[i];
+    }
+    line[p] = 0;
+    DrawStr(8, y, line, color);
+}
+
+static inline ULONGLONG rd_esr(void) { ULONGLONG v; __asm__ volatile("mrs %0, esr_el1" : "=r"(v)); return v; }
+static inline ULONGLONG rd_elr(void) { ULONGLONG v; __asm__ volatile("mrs %0, elr_el1" : "=r"(v)); return v; }
+static inline ULONGLONG rd_far(void) { ULONGLONG v; __asm__ volatile("mrs %0, far_el1" : "=r"(v)); return v; }
+
+/* Se ejecuta durante un bugcheck: dibuja ESR/ELR/FAR y la pila, y se queda aqui (evita el reinicio). */
+static void BugCheckCb(PVOID Buffer, ULONG Length)
+{
+    ULONGLONG *fp = (ULONGLONG *)__builtin_frame_address(0), *nx;
+    ULONG y = 760, i;
+    (void)Buffer; (void)Length;
+    FillRect(0, 700, FB_W, 56, 0x00C00000);
+    DrawStr(20, 714, "BUGCHECK!", 0x00FFFFFF);
+    DrawAddr(y, "ESR", rd_esr(), 0x00FFFFFF);  y += 30;
+    DrawAddr(y, "ELR", rd_elr(), 0x0000FFFF);  y += 30;
+    DrawAddr(y, "FAR", rd_far(), 0x0000FFFF);  y += 30;
+    for (i = 0; i < 12; i++) {
+        if ((ULONGLONG)fp < 0xFFFF000000000000ULL || ((ULONGLONG)fp & 15)) break;
+        DrawAddr(y, "LR", fp[1], 0x0000FF00);  y += 30;
+        nx = (ULONGLONG *)fp[0];
+        if ((ULONGLONG)nx <= (ULONGLONG)fp || (ULONGLONG)nx - (ULONGLONG)fp > 0x4000) break;
+        fp = nx;
+    }
+    __asm__ volatile("dsb sy" ::: "memory");
+    for (;;) { }
 }
 
 static void TimerDpc(PVOID Dpc, PVOID Ctx, PVOID A1, PVOID A2)
@@ -198,6 +293,9 @@ NTSTATUS DriverEntry(PVOID DriverObject, PUNICODE_STRING RegistryPath)
     KeSetTimerEx(g_timer, due, 500, g_dpc);
 
 #if SLOT == 3
+    g_bcbuf[0] = 0;
+    KeRegisterBugCheckCallback(g_bcrec, (PVOID)BugCheckCb, g_bcbuf, sizeof(g_bcbuf), (UCHAR *)"CANARY");
+    DrawAddr(700, "SELF", (ULONGLONG)(PVOID)DriverEntry, 0x00FFFFFF);   /* autotest: debe mostrar canary3.sys */
     /* Bucle en vivo 60 s: demuestra si el codigo normal y los DPC siguen corriendo y que
        interrupciones (SPI) estan pendientes/activas.  Fila 3 (blanco): ms transcurridos,
        InterruptTime, ticks del DPC, 1a palabra ISPENDR no nula (indice, valor, bits).
