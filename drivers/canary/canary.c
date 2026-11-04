@@ -5,8 +5,8 @@
  * Reserved", 0x5C000000, 1200x2000, 32 bpp BGRX) para saber hasta donde llega
  * el kernel de Windows:
  *   - Un cuadrado de color de 100x100 al ejecutarse DriverEntry (color segun SLOT).
- *   - Debajo, 8 cuadraditos que cuentan en binario un temporizador del kernel
- *     (cada 500 ms). Si cuentan, el kernel esta vivo y las interrupciones
+ *   - Debajo, 4 digitos grandes con la cuenta de un temporizador del kernel
+ *     (+1 cada 500 ms; 2 pulsos = 1 segundo). Si cuentan, el kernel esta vivo y las interrupciones
  *     del temporizador funcionan. Si se paran, el sistema se ha colgado.
  * SLOT 1/2/3 elige columna y color (verde / amarillo / magenta).
  */
@@ -67,18 +67,37 @@ static ULONG SlotColor(void)
     return 0x00FF00FF;                  /* magenta */
 }
 
-static void DrawBits(ULONG v)
+/* Dígitos de 7 segmentos grandes (36x64): legibles aunque la foto salga borrosa. */
+static const UCHAR k7seg[10] = { 0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F };
+
+static void DrawDigit(ULONG x, ULONG y, ULONG d)
 {
-    ULONG i;
-    for (i = 0; i < 8; i++)
-        FillRect(COL_X + i * 20, 140, 16, 16, (v & (1u << (7 - i))) ? 0x00FFFFFF : 0x00404040);
+    UCHAR m = k7seg[d % 10];
+    const ULONG W = 36, H = 64, t = 8, on = 0x00FFFFFF, off = 0x00202020;
+    FillRect(x, y, W, H, 0x00000000);
+    FillRect(x + t, y,               W - 2 * t, t, (m & 0x01) ? on : off);            /* a  arriba */
+    FillRect(x + W - t, y + t,       t, H / 2 - t - t / 2, (m & 0x02) ? on : off);    /* b  arriba der. */
+    FillRect(x + W - t, y + H / 2 + t / 2, t, H / 2 - t - t / 2, (m & 0x04) ? on : off); /* c abajo der. */
+    FillRect(x + t, y + H - t,       W - 2 * t, t, (m & 0x08) ? on : off);            /* d  abajo */
+    FillRect(x, y + H / 2 + t / 2,   t, H / 2 - t - t / 2, (m & 0x10) ? on : off);    /* e  abajo izq. */
+    FillRect(x, y + t,               t, H / 2 - t - t / 2, (m & 0x20) ? on : off);    /* f  arriba izq. */
+    FillRect(x + t, y + H / 2 - t / 2, W - 2 * t, t, (m & 0x40) ? on : off);          /* g  medio */
+}
+
+/* Cuenta de pulsos del temporizador (cada 500 ms), 4 digitos, debajo del cuadrado de color. */
+static void DrawCount(ULONG v)
+{
+    DrawDigit(COL_X,       140, (v / 1000) % 10);
+    DrawDigit(COL_X + 42,  140, (v / 100) % 10);
+    DrawDigit(COL_X + 84,  140, (v / 10) % 10);
+    DrawDigit(COL_X + 126, 140, v % 10);
 }
 
 static void TimerDpc(PVOID Dpc, PVOID Ctx, PVOID A1, PVOID A2)
 {
     (void)Dpc; (void)Ctx; (void)A1; (void)A2;
     g_tick++;
-    DrawBits(g_tick);
+    DrawCount(g_tick);
 }
 
 NTSTATUS DriverEntry(PVOID DriverObject, PUNICODE_STRING RegistryPath)
@@ -92,7 +111,7 @@ NTSTATUS DriverEntry(PVOID DriverObject, PUNICODE_STRING RegistryPath)
     if (!g_fb) return 0;                 /* STATUS_SUCCESS: que no moleste */
 
     FillRect(COL_X, 20, 100, 100, SlotColor());
-    DrawBits(0);
+    DrawCount(0);
 
     KeInitializeTimerEx(g_timer, 1 /* SynchronizationTimer */);
     KeInitializeDpc(g_dpc, (PVOID)TimerDpc, 0);
