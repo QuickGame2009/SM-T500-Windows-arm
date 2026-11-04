@@ -58,6 +58,9 @@ __declspec(dllimport) LONG  PsCreateSystemThread(PVOID *Handle, ULONG Access, PV
 __declspec(dllimport) LONG  ZwClose(PVOID Handle);
 __declspec(dllimport) LONG  KeSetPriorityThread(PVOID Thread, LONG Prio);
 __declspec(dllimport) PVOID KeGetCurrentThread(void);
+__declspec(dllimport) LONG  ObReferenceObjectByName(PUNICODE_STRING Name, ULONG Attr, PVOID AccessState, ULONG Access, PVOID Type, UCHAR Mode, PVOID Ctx, PVOID *Obj);
+__declspec(dllimport) ULONGLONG ObfDereferenceObject(PVOID Obj);
+__declspec(dllimport) extern PVOID *IoDriverObjectType;
 
 __declspec(align(64)) static UCHAR g_timer[256];
 __declspec(align(64)) static UCHAR g_bcrec[128];
@@ -238,13 +241,35 @@ static volatile ULONG *g_gicd, *g_gicr, *g_sd;
 #define KUSER_SYSTEM_TIME_LOW    (*(volatile ULONG *)0xFFFFF78000000014ULL)
 static inline ULONGLONG rd_cntp_ctl(void) { ULONGLONG v; __asm__ volatile("mrs %0, cntp_ctl_el0" : "=r"(v)); return v; }
 
+/* Cuenta los DEVICE_OBJECT de un driver (por nombre); 0xFFFFFFFF si el driver no existe. */
+#define DRV(var, txt) static USHORT var[] = txt
+DRV(nm_sdbus,   L"\\Driver\\sdbus");
+DRV(nm_sdstor,  L"\\Driver\\sdstor");
+DRV(nm_acpi,    L"\\Driver\\ACPI");
+DRV(nm_disk,    L"\\Driver\\disk");
+DRV(nm_partmgr, L"\\Driver\\partmgr");
+DRV(nm_volmgr,  L"\\Driver\\volmgr");
+
+static ULONG CountDevs(USHORT *name, USHORT nchars)
+{
+    UNICODE_STRING us;
+    PVOID obj = 0, d;
+    ULONG n = 0;
+    us.Length = (USHORT)(nchars * 2); us.MaximumLength = us.Length; us.Buffer = name;
+    if (ObReferenceObjectByName(&us, 0x40, 0, 0, *IoDriverObjectType, 0, 0, &obj) < 0 || !obj) return 0xFFFFFFFF;
+    d = *(PVOID *)((UCHAR *)obj + 0x08);
+    while (d && n < 64) { n++; d = *(PVOID *)((UCHAR *)d + 0x10); }
+    ObfDereferenceObject(obj);
+    return n;
+}
+
 /* Hilo monitor.  Fila 3 (blanco): ms (dec), InterruptTime, ticks DPC (dec), CNTV_CTL, CNTV_CVAL-CNTVCT, CNTP_CTL.
    Fila 4 (naranja): ICC_RPR, ICC_HPPIR1, ICC_PMR, DAIF, ISENABLER0, ISPENDR0.
    Fila 5 (cian): SystemTime, 1a palabra SPI pendiente (indice, valor), numero de SPI pendientes, ISACTIVER0, CurrentEL. */
 static void MonThread(PVOID ctx)
 {
     ULONGLONG t0 = rd_cntvct(), per, freq = rd_cntfrq();
-    ULONG ms, lastdraw = 0, w, b, p, pi, pv, pc;
+    ULONG ms, lastdraw = 0, lastobj = 0, w, b, p, pi, pv, pc;
     (void)ctx;
     KeSetPriorityThread(KeGetCurrentThread(), 1);
     if (freq == 0) freq = 19200000;
@@ -276,6 +301,15 @@ static void MonThread(PVOID ctx)
         DrawHex(3, 5, pc,                                   0x0000FFFF);
         if (g_gicr) DrawHex(4, 5, g_gicr[(0x10000 + 0x300) / 4], 0x0000FFFF);
         { ULONGLONG el; __asm__ volatile("mrs %0, CurrentEL" : "=r"(el)); DrawHex(5, 5, (ULONG)el, 0x0000FFFF); }
+        if (ms - lastobj >= 500) {
+            lastobj = ms;
+            DrawHex(0, 8, CountDevs(nm_sdbus, (USHORT)(sizeof(nm_sdbus) / 2 - 1)),   0x0000C0FF);
+            DrawHex(1, 8, CountDevs(nm_sdstor, (USHORT)(sizeof(nm_sdstor) / 2 - 1)),  0x0000C0FF);
+            DrawHex(2, 8, CountDevs(nm_acpi, (USHORT)(sizeof(nm_acpi) / 2 - 1)),    0x0000C0FF);
+            DrawHex(3, 8, CountDevs(nm_disk, (USHORT)(sizeof(nm_disk) / 2 - 1)),    0x0000C0FF);
+            DrawHex(4, 8, CountDevs(nm_partmgr, (USHORT)(sizeof(nm_partmgr) / 2 - 1)), 0x0000C0FF);
+            DrawHex(5, 8, CountDevs(nm_volmgr, (USHORT)(sizeof(nm_volmgr) / 2 - 1)),  0x0000C0FF);
+        }
         /* SDCC1 (eMMC) registros SDHCI.  Fila 6: PRESENT_STATE(24) HOSTCTL/POWER(28) CLOCK(2C) INT_STATUS(30) INT_EN(34) HC2(3C).
            Fila 7: CAPS(40) CAPS2(44) VERSION(FC) ADMA_ERR(54) CMD(0C) RESP0(10) */
         if (g_sd) {
@@ -360,7 +394,7 @@ NTSTATUS DriverEntry(PVOID DriverObject, PUNICODE_STRING RegistryPath)
 #if SLOT == 3
     g_bcbuf[0] = 0;
     KeRegisterBugCheckCallback(g_bcrec, (PVOID)BugCheckCb, g_bcbuf, sizeof(g_bcbuf), (UCHAR *)"CANARY");
-    DrawAddr(700, "SELF", (ULONGLONG)(PVOID)DriverEntry, 0x00FFFFFF);   /* autotest: debe mostrar canary3.sys */
+    DrawAddr(740, "SELF", (ULONGLONG)(PVOID)DriverEntry, 0x00FFFFFF);   /* autotest: debe mostrar canary3.sys */
     /* Hilo monitor (prioridad minima): sigue dibujando aunque DriverEntry ya haya vuelto.
        Si la pantalla se sigue actualizando tras el cuelgue, el kernel NO esta girando en un
        bucle a DISPATCH_LEVEL: esta en espera (p. ej. con el reloj muerto).  Si se congela, si. */

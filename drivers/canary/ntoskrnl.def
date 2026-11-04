@@ -9,4 +9,7 @@ PsCreateSystemThread
 ZwClose
 KeSetPriorityThread
 KeGetCurrentThread
+ObReferenceObjectByName
+ObfDereferenceObject
 PsLoadedModuleList DATA
+IoDriverObjectType DATA
