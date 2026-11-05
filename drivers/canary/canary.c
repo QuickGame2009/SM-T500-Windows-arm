@@ -198,6 +198,25 @@ static inline ULONGLONG rd_elr(void) { ULONGLONG v; __asm__ volatile("mrs %0, el
 static inline ULONGLONG rd_far(void) { ULONGLONG v; __asm__ volatile("mrs %0, far_el1" : "=r"(v)); return v; }
 
 /* Se ejecuta durante un bugcheck: dibuja ESR/ELR/FAR y la pila, y se queda aqui (evita el reinicio). */
+__declspec(dllimport) extern UCHAR MmIsAddressValid(PVOID p);
+/* Busca KiBugCheckData en ntoskrnl: {0x7B, arg1, 0xC0000034, 0, 1} y devuelve arg1 (o 0). */
+static ULONGLONG FindArg1(void)
+{
+    PVOID *head = (PVOID *)&PsLoadedModuleList;
+    UCHAR *ent = (UCHAR *)head[0];
+    ULONGLONG base, size, a, ok = 0;
+    if (!MmIsAddressValid(ent + 0x48)) return 0;
+    base = *(ULONGLONG *)(ent + 0x30); size = *(ULONG *)(ent + 0x40);
+    for (a = base; a < base + size; a += 0x1000) {
+        ULONGLONG *q = (ULONGLONG *)a; ULONG i;
+        if (!MmIsAddressValid(q) || !MmIsAddressValid((UCHAR *)q + 0xFFF)) continue;
+        for (i = 0; i + 5 <= 512; i++)
+            if (q[i] == 0x7B && q[i+2] == 0xC0000034ULL && q[i+3] == 0 && q[i+4] == 1 && q[i+1] > 0xFFFF000000000000ULL) {
+                ok = q[i+1]; return ok;
+            }
+    }
+    return 0;
+}
 static void BugCheckCb(PVOID Buffer, ULONG Length)
 {
     ULONGLONG *fp = (ULONGLONG *)__builtin_frame_address(0), *nx;
@@ -214,6 +233,23 @@ static void BugCheckCb(PVOID Buffer, ULONG Length)
         nx = (ULONGLONG *)fp[0];
         if ((ULONGLONG)nx <= (ULONGLONG)fp || (ULONGLONG)nx - (ULONGLONG)fp > 0x4000) break;
         fp = nx;
+    }
+    {
+        ULONGLONG a1 = FindArg1();
+        char ln[96]; ULONG p = 0, k; UCHAR *u;
+        DrawAddr(1280, "ARG1", a1, 0x00FFFFFF);
+        if (a1 && MmIsAddressValid((PVOID)a1) && MmIsAddressValid((PVOID)(a1 + 15))) {
+            ULONGLONG bp = *(ULONGLONG *)(a1 + 8); USHORT len = *(USHORT *)a1;
+            DrawAddr(1310, "BUF", bp, 0x00FFFFFF);
+            if (bp > 0xFFFF000000000000ULL && MmIsAddressValid((PVOID)bp) && MmIsAddressValid((PVOID)(bp + 127))) {
+                USHORT *w = (USHORT *)bp; ULONG n = len / 2; if (n > 90) n = 90;
+                for (k = 0; k < n; k++) ln[p++] = (w[k] >= 32 && w[k] < 127) ? (char)w[k] : '?';
+                ln[p] = 0; DrawStr(20, 1345, ln, 0x0000FF00);
+            }
+            u = (UCHAR *)a1; p = 0;
+            for (k = 0; k < 64 && MmIsAddressValid(u + k); k++) ln[p++] = (u[k] >= 32 && u[k] < 127) ? (char)u[k] : '.';
+            ln[p] = 0; DrawStr(20, 1385, ln, 0x0000FFFF);
+        }
     }
     __asm__ volatile("dsb sy" ::: "memory");
     for (;;) { }

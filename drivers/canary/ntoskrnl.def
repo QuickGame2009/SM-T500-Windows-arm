@@ -13,5 +13,6 @@ ObReferenceObjectByName
 ObfDereferenceObject
 ZwOpenSymbolicLinkObject
 ZwQuerySymbolicLinkObject
+MmIsAddressValid
 PsLoadedModuleList DATA
 IoDriverObjectType DATA
