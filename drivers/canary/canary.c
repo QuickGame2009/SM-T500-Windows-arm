@@ -1170,7 +1170,7 @@ static void ProcScan(void)
 
 /* ---- Registro en fichero: \SystemRoot\canary-log.txt (modulos cargados y, por cada hilo del proceso System, las direcciones de
    la pila que caen dentro de un modulo: modulo+RVA).  Sirve para ver donde esta parada la inicializacion del kernel. ---- */
-static char g_lg[90000]; static ULONG g_lgn;
+static char g_lg[90000]; static ULONG g_lgn; static ULONGLONG g_kso = 0x58;
 static void LgC(char c) { if (g_lgn < sizeof(g_lg) - 1) g_lg[g_lgn++] = c; }
 static void LgS(const char *s) { while (*s) LgC(*s++); }
 static void LgH(ULONGLONG v, int d) { char h[17]; ULONG i; Hex(h, v, d); for (i = 0; h[i]; i++) LgC(h[i]); }
@@ -1200,16 +1200,35 @@ static void WriteLog(ULONG n)
     }
     if (!off) { LgS("sin offset de hilo\r\n"); goto fin; }
     LgS("thoff "); LgH(off, 4); LgS("\r\n");
+    {   /* KernelStack (SP guardado) no esta en +0x58 en ARM64: se busca el desplazamiento cuyo valor cae dentro de la pila en mas hilos */
+        ULONG cn[32], bi = 0, bc = 0, nt = 0, oi; ULONGLONG ee = first;
+        for (oi = 0; oi < 32; oi++) cn[oi] = 0;
+        while (ee != lh && nt < 80 && MmIsAddressValid((PVOID)ee)) {
+            ULONGLONG th = ee - off, ini = *(ULONGLONG *)(th + 0x28), lim = *(ULONGLONG *)(th + 0x30);
+            if (!MmIsAddressValid((PVOID)(th + 0x120))) break;
+            nt++;
+            for (oi = 0; oi < 32; oi++) {
+                ULONGLONG v = *(ULONGLONG *)(th + 0x38 + 8 * oi);
+                if (v > lim + 0x100 && v < ini - 0x40 && !(v & 7) && ini - v < 0x6000) cn[oi]++;
+            }
+            ee = *(ULONGLONG *)ee;
+        }
+        for (oi = 0; oi < 32; oi++) { if (cn[oi] > bc) { bc = cn[oi]; bi = oi; } }
+        g_kso = 0x38 + 8 * bi;
+        LgS("kso "); LgH(g_kso, 4); LgS(" n="); LgH(bc, 4); LgS("/"); LgH(nt, 4); LgS(" cand:");
+        for (oi = 0; oi < 32; oi++) if (cn[oi]) { LgC(' '); LgH(0x38 + 8 * oi, 3); LgC('='); LgH(cn[oi], 2); }
+        LgS("\r\n");
+    }
     e = first;
     while (e != lh && tot < 300 && MmIsAddressValid((PVOID)e)) {
         ULONGLONG th = e - off, ks, ini, lim, q, end; ULONG nf = 0, idx;
         if (!MmIsAddressValid((PVOID)(th + 0x60))) break;
         tot++;
-        ks = *(ULONGLONG *)(th + 0x58); ini = *(ULONGLONG *)(th + 0x28); lim = *(ULONGLONG *)(th + 0x30);
-        LgS("T "); LgH(th & 0xFFFFFFFFFFULL, 10); LgS(" st="); LgH(*(UCHAR *)(th + 0x184), 2); LgS(" :");
+        ks = *(ULONGLONG *)(th + g_kso); ini = *(ULONGLONG *)(th + 0x28); lim = *(ULONGLONG *)(th + 0x30);
+        LgS("T "); LgH(th & 0xFFFFFFFFFFULL, 10); LgS(" ks="); LgH(ks & 0xFFFFFF, 6); LgS(" :");
         if (ks > lim && ks < ini && ini - ks <= 0x40000) {
-            end = ks + 0x2000; if (end > ini) end = ini;
-            for (q = ks & ~7ULL; q < end && nf < 14; q += 8) {
+            end = ks + 0x1800; if (end > ini) end = ini;
+            for (q = ks & ~7ULL; q < end && nf < 24; q += 8) {
                 ULONGLONG v;
                 if ((q & 0xFFF) == 0 && !MmIsAddressValid((PVOID)q)) break;
                 v = *(ULONGLONG *)q;
