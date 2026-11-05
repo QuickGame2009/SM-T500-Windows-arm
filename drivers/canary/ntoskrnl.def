@@ -36,3 +36,4 @@ ExFreePool
 IoGetDevicePropertyData
 IoGetAttachedDeviceReference
 ZwDeviceIoControlFile
+ZwReadFile

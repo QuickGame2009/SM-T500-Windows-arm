@@ -210,6 +210,7 @@ __declspec(dllimport) extern UCHAR MmIsAddressValid(PVOID p);
 __declspec(dllimport) LONG IoGetDeviceObjectPointer(PUNICODE_STRING Name, ULONG Access, PVOID *File, PVOID *Dev);
 __declspec(dllimport) PVOID IoGetDeviceAttachmentBaseRef(PVOID Dev);
 __declspec(dllimport) PVOID IoGetAttachedDeviceReference(PVOID Dev);
+__declspec(dllimport) LONG ZwReadFile(PVOID H, PVOID Ev, PVOID Apc, PVOID Ctx, IOSB *Io, PVOID Buf, ULONG Len, LARGE_INTEGER *Off, PVOID Key);
 __declspec(dllimport) LONG ZwDeviceIoControlFile(PVOID H, PVOID Ev, PVOID Apc, PVOID Ctx, IOSB *Io, ULONG Code, PVOID In, ULONG InLen, PVOID Out, ULONG OutLen);
 __declspec(dllimport) void IoInvalidateDeviceRelations(PVOID Pdo, int Type);
 static volatile ULONG g_kn, g_kst, g_kms;
@@ -661,6 +662,28 @@ static void LayChk(void)
                 }
             }
         }
+    }
+    {   /* lectura directa del disco (LBA1 cabecera y LBA2.. tabla) tal como la ve la tablet */
+        static UCHAR rb[4096]; PVOID hr = 0; IOSB ior; LONG sr; LARGE_INTEGER lo; ULONG v0 = 0xEEEEEEEE, v1 = 0xEEEEEEEE, v2 = 0xEEEEEEEE, t2 = 0xEEEEEEEE, el = 0xEEEEEEEE, ne = 0xEEEEEEEE;
+        ol.Attr = 0x240;
+        sr = ZwOpenFile(&hr, 0x100081, &ol, &ior, 7, 0x20);
+        if (sr >= 0 && hr) {
+            ior.St = 0; ior.Info = 0; lo.QuadPart = 512;
+            sr = ZwReadFile(hr, 0, 0, 0, &ior, rb, 4096, &lo, 0);
+            if (sr >= 0) { el = *(ULONG *)(rb + 72); ne = *(ULONG *)(rb + 80); }
+            ior.St = 0; ior.Info = 0; lo.QuadPart = 1024;
+            sr = ZwReadFile(hr, 0, 0, 0, &ior, rb, 4096, &lo, 0);
+            if (sr >= 0) { v0 = *(ULONG *)(rb + 16); v1 = *(ULONG *)(rb + 128 + 16); v2 = *(ULONG *)(rb + 256 + 16); t2 = *(ULONG *)(rb + 256); }
+            ZwClose(hr);
+        }
+        p = 0; ln[p++]='R'; ln[p++]=' '; Hex(h8, (ULONG)sr, 8); for (k = 0; k < 8; k++) ln[p++] = h8[k]; ln[p++]=' '; ln[p++]='e'; PutDec(ln, &p, el); ln[p++]=' '; ln[p++]='n'; PutDec(ln, &p, ne);
+        ln[p] = 0; FillRect(640, 1642, 540, 22, 0x00000000); DrawStr(640, 1642, ln, 0x0000FF80);
+        p = 0; ln[p++]='U'; ln[p++]=' ';
+        Hex(h8, v0, 8); for (k = 0; k < 8; k++) ln[p++] = h8[k]; ln[p++]=' ';
+        Hex(h8, v1, 8); for (k = 0; k < 8; k++) ln[p++] = h8[k]; ln[p++]=' ';
+        Hex(h8, v2, 8); for (k = 0; k < 8; k++) ln[p++] = h8[k]; ln[p++]=' ';
+        Hex(h8, t2, 8); for (k = 0; k < 8; k++) ln[p++] = h8[k];
+        ln[p] = 0; FillRect(640, 1666, 600, 22, 0x00000000); DrawStr(640, 1666, ln, 0x0000FF80);
     }
     if (sl >= 0) {
         ULONG r;
