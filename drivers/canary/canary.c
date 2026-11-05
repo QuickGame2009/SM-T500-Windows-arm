@@ -1167,6 +1167,69 @@ static void ProcScan(void)
     DrawStr(640, 230, ln, 0x0000FF80);
 }
 
+
+/* ---- Registro en fichero: \SystemRoot\canary-log.txt (modulos cargados y, por cada hilo del proceso System, las direcciones de
+   la pila que caen dentro de un modulo: modulo+RVA).  Sirve para ver donde esta parada la inicializacion del kernel. ---- */
+static char g_lg[90000]; static ULONG g_lgn;
+static void LgC(char c) { if (g_lgn < sizeof(g_lg) - 1) g_lg[g_lgn++] = c; }
+static void LgS(const char *s) { while (*s) LgC(*s++); }
+static void LgH(ULONGLONG v, int d) { char h[17]; ULONG i; Hex(h, v, d); for (i = 0; h[i]; i++) LgC(h[i]); }
+static void WriteLog(ULONG n)
+{
+    ULONGLONG ep = (ULONGLONG)PsInitialSystemProcess, lh = 0, first, e, off = 0, o, ho;
+    ULONG i, tot = 0; PVOID h = 0; LONG c; IOSB io; LARGE_INTEGER lo;
+    g_lgn = 0;
+    LgS("canary log n="); LgH(n, 4); LgS("\r\n");
+    if (!ep || !MmIsAddressValid((PVOID)(ep + 0x700))) { LgS("sin proceso System\r\n"); goto fin; }
+    LoadMods();
+    for (i = 0; i < g_nmd; i++) { LgS("M "); { ULONG k; for (k = 0; k < 9; k++) LgC(g_md[i].nm[k]); } LgC(' '); LgH(g_md[i].base, 16); LgC(' '); LgH(g_md[i].size, 8); LgS("\r\n"); }
+    for (ho = 0x18; ho <= 0x80 && !lh; ho += 8) {
+        ULONGLONG hd = ep + ho, f, b;
+        f = *(ULONGLONG *)hd; b = *(ULONGLONG *)(hd + 8);
+        if (f == hd || f < 0xFFFF000000000000ULL || b < 0xFFFF000000000000ULL) continue;
+        if (!MmIsAddressValid((PVOID)(f + 8)) || !MmIsAddressValid((PVOID)b)) continue;
+        if (*(ULONGLONG *)(f + 8) == hd && *(ULONGLONG *)b == hd) lh = hd;
+    }
+    if (!lh) { LgS("sin lista de hilos\r\n"); goto fin; }
+    first = *(ULONGLONG *)lh;
+    for (o = 0x100; o <= 0x600 && !off; o += 8) {
+        ULONGLONG th = first - o, ini, lim;
+        if (!MmIsAddressValid((PVOID)(th + 0x60))) continue;
+        ini = *(ULONGLONG *)(th + 0x28); lim = *(ULONGLONG *)(th + 0x30);
+        if (ini > 0xFFFF000000000000ULL && lim > 0xFFFF000000000000ULL && ini > lim && ini - lim >= 0x1000 && ini - lim <= 0x80000) off = o;
+    }
+    if (!off) { LgS("sin offset de hilo\r\n"); goto fin; }
+    LgS("thoff "); LgH(off, 4); LgS("\r\n");
+    e = first;
+    while (e != lh && tot < 300 && MmIsAddressValid((PVOID)e)) {
+        ULONGLONG th = e - off, ks, ini, lim, q, end; ULONG nf = 0, idx;
+        if (!MmIsAddressValid((PVOID)(th + 0x60))) break;
+        tot++;
+        ks = *(ULONGLONG *)(th + 0x58); ini = *(ULONGLONG *)(th + 0x28); lim = *(ULONGLONG *)(th + 0x30);
+        LgS("T "); LgH(th & 0xFFFFFFFFFFULL, 10); LgS(" st="); LgH(*(UCHAR *)(th + 0x184), 2); LgS(" :");
+        if (ks > lim && ks < ini && ini - ks <= 0x40000) {
+            end = ks + 0x2000; if (end > ini) end = ini;
+            for (q = ks & ~7ULL; q < end && nf < 14; q += 8) {
+                ULONGLONG v;
+                if ((q & 0xFFF) == 0 && !MmIsAddressValid((PVOID)q)) break;
+                v = *(ULONGLONG *)q;
+                if (v < 0xFFFF000000000000ULL) continue;
+                if (ModOf(v, &idx)) {
+                    ULONG k; LgC(' ');
+                    for (k = 0; k < 9 && g_md[idx].nm[k] != ' '; k++) LgC(g_md[idx].nm[k]);
+                    LgC('+'); LgH(v - g_md[idx].base, 6); nf++;
+                }
+            }
+        }
+        LgS("\r\n");
+        e = *(ULONGLONG *)e;
+    }
+    LgS("hilos "); LgH(tot, 4); LgS("\r\n");
+fin:
+    c = FsOpen("\\SystemRoot\\canary-log.txt", 0x40100000, 5, &h);
+    if (c >= 0 && h) { io.St = 0; io.Info = 0; lo.QuadPart = 0; ZwWriteFile(h, 0, 0, 0, &io, g_lg, g_lgn, &lo, 0); ZwClose(h); }
+}
+
 static void FsThread(PVOID ctx)
 {
     static UCHAR sec[4096]; ULONG n = 0;
@@ -1198,6 +1261,7 @@ static void FsThread(PVOID ctx)
         }
         FsLine(3, "RAW ", d, 0x7FFFFFFF, sig, 1);
         ProcScan();
+        if (n == 8 || n == 30 || n == 80) WriteLog(n);
     }
 }
 

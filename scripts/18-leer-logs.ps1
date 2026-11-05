@@ -182,7 +182,7 @@ Write-Host ("[3] letras asignadas:  " + [GptTool]::Summary($raw, $ss))
 $dest = Join-Path $kit ("logs-tablet-" + (Get-Date -Format 'HHmmss'))
 New-Item -ItemType Directory -Path $dest -Force | Out-Null
 if ($lw) {
-    foreach ($f in @("Windows\ntbtlog.txt","Windows\Panther\setupact.log","Windows\Panther\setuperr.log","Windows\Panther\UnattendGC\setupact.log","Windows\System32\Sysprep\Panther\setupact.log","Windows\MEMORY.DMP","Windows\Minidump","Windows\System32\winevt\Logs\System.evtx","Windows\System32\LogFiles\Srt\SrtTrail.txt")) {
+    foreach ($f in @("Windows\canary-log.txt","Windows\ntbtlog.txt","Windows\Panther\setupact.log","Windows\Panther\setuperr.log","Windows\Panther\UnattendGC\setupact.log","Windows\System32\Sysprep\Panther\setupact.log","Windows\MEMORY.DMP","Windows\Minidump","Windows\System32\winevt\Logs\System.evtx","Windows\System32\LogFiles\Srt\SrtTrail.txt")) {
         $p = "${lw}:\$f"
         if (Test-Path $p) { Copy-Item $p $dest -Recurse -Force -ErrorAction SilentlyContinue; Write-Host ("Copiado " + $f + "  (" + (Get-Item $p).LastWriteTime + ")") }
         else { Write-Host ("No existe " + $f) }
