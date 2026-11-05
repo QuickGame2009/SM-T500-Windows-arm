@@ -625,14 +625,14 @@ static void ProbeThread(PVOID ctx)
     {   /* volcado del registro de cambios (atributo, flags, motivo) de partmgr DR0 */
         ULONG k;
         while ((rd_cntvct() - g_t0v) / g_perv < 20000) ;
-        for (k = 0; k < g_pln && k < 16; k++) {
+        for (k = 0; k < g_pln && k < 10; k++) {
             char ln[60], h8[17]; ULONG p = 0, j;
             ln[p++]='L'; ln[p++]=' '; PutDec(ln, &p, g_plms[k]); ln[p++]=' '; ln[p++]='a'; Hex(h8, g_pla[k], 4); for (j = 0; j < 4; j++) ln[p++] = h8[j];
             ln[p++]=' '; ln[p++]='f'; Hex(h8, g_plf[k], 4); for (j = 0; j < 4; j++) ln[p++] = h8[j];
             ln[p++]=' '; ln[p++]='r'; Hex(h8, g_plr[k], 4); for (j = 0; j < 4; j++) ln[p++] = h8[j];
-            ln[p] = 0; FillRect(640, 1330 + 26 * k, 480, 24, 0x00000000); DrawStr(640, 1330 + 26 * k, ln, 0x0000FFFF);
+            ln[p] = 0; FillRect(640, 1420 + 24 * k, 480, 22, 0x00000000); DrawStr(640, 1420 + 24 * k, ln, 0x0000FFFF);
         }
-        if (!g_pln) DrawStr(640, 1330, "L sin DR0", 0x00FFFF00);
+        if (!g_pln) DrawStr(640, 1420, "L sin DR0", 0x00FFFF00);
     }
     us.Length = (USHORT)(sizeof(nm_acpi) - 2); us.MaximumLength = us.Length; us.Buffer = nm_acpi;
     for (pass = 0; pass < 2; pass++) {
