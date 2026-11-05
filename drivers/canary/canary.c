@@ -210,6 +210,7 @@ __declspec(dllimport) extern UCHAR MmIsAddressValid(PVOID p);
 __declspec(dllimport) LONG IoGetDeviceObjectPointer(PUNICODE_STRING Name, ULONG Access, PVOID *File, PVOID *Dev);
 __declspec(dllimport) PVOID IoGetDeviceAttachmentBaseRef(PVOID Dev);
 __declspec(dllimport) PVOID IoGetAttachedDeviceReference(PVOID Dev);
+__declspec(dllimport) LONG ZwDeviceIoControlFile(PVOID H, PVOID Ev, PVOID Apc, PVOID Ctx, IOSB *Io, ULONG Code, PVOID In, ULONG InLen, PVOID Out, ULONG OutLen);
 __declspec(dllimport) void IoInvalidateDeviceRelations(PVOID Pdo, int Type);
 static volatile ULONG g_kn, g_kst, g_kms;
 static volatile ULONGLONG g_kdo, g_kpdo;
@@ -383,8 +384,46 @@ static LONG QueryId(PVOID dev, ULONG type, char *out, ULONG omax, ULONG *tmo)
     return st;
 }
 /* Envia IRP_MN_QUERY_DEVICE_RELATIONS(BusRelations) al tope de la pila de DR0; guarda estado, n y 1er objeto. */
+static void RpClear(void);
+static void RpA(const char *t);
+static LONG RpOpen(PVOID *h);
+static ULONG RegVal(PVOID k, const char *nm, char *out, ULONG omax, ULONG *dw);
+static UCHAR g_lay[0x8000];
+static void DiskIoctls(void)
+{
+    static USHORT nm[40]; UNICODE_STRING us; OBJ_ATTR oa; IOSB io; PVOID h = 0; const char *a = "\\Device\\Harddisk0\\DR0"; ULONG n = 0, p, i, san = 0xFFFFFFFF, hv = 0;
+    LONG st, s1 = 0, s2 = 0; ULONG att_lo = 0, att_hi = 0, pc = 0xFFFFFFFF; char ln[100], h8[17]; PVOID k = 0;
+    while (a[n]) { nm[n] = (USHORT)(UCHAR)a[n]; n++; }
+    us.Length = (USHORT)(n * 2); us.MaximumLength = us.Length; us.Buffer = nm;
+    oa.Length = sizeof(oa); oa.Root = 0; oa.Name = &us; oa.Attr = 0x240; oa.Sd = 0; oa.Sqos = 0;
+    st = ZwOpenFile(&h, 0x100081, &oa, &io, 7, 0x20);
+    if (st >= 0 && h) {
+        for (i = 0; i < 4; i++) ((ULONG *)g_lay)[i] = 0;
+        io.St = 0; io.Info = 0;
+        s1 = ZwDeviceIoControlFile(h, 0, 0, 0, &io, 0x740F0, 0, 0, g_lay, 16);
+        att_lo = ((ULONG *)g_lay)[2]; att_hi = ((ULONG *)g_lay)[3];
+        io.St = 0; io.Info = 0;
+        for (i = 0; i < 16; i++) ((ULONG *)g_lay)[i] = 0xFFFFFFFF;
+        s2 = ZwDeviceIoControlFile(h, 0, 0, 0, &io, 0x70050, 0, 0, g_lay, sizeof(g_lay));
+        if (s2 >= 0) pc = ((ULONG *)g_lay)[1];
+        ZwClose(h);
+    }
+    RpClear(); RpA("\\Registry\\Machine\\SYSTEM\\ControlSet001\\Services\\partmgr\\Parameters");
+    if (RpOpen(&k) >= 0) { if (RegVal(k, "SanPolicy", 0, 0, &hv) == 4) san = hv; ZwClose(k); }
+    p = 0; ln[p++]='A'; ln[p++]='T'; ln[p++]='T'; ln[p++]=' ';
+    if (st < 0) { ln[p++]='o'; Hex(h8, (ULONG)st, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i]; }
+    else { Hex(h8, (ULONG)s1, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i]; ln[p++]=' '; Hex(h8, att_lo, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i]; }
+    ln[p] = 0; DrawStr(640, 1830, ln, 0x00FF80FF);
+    (void)att_hi;
+    p = 0; ln[p++]='L'; ln[p++]='A'; ln[p++]='Y'; ln[p++]=' ';
+    Hex(h8, (ULONG)s2, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i]; ln[p++]=' '; Hex(h8, pc, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i];
+    ln[p] = 0; DrawStr(640, 1860, ln, 0x00FF80FF);
+    p = 0; ln[p++]='S'; ln[p++]='A'; ln[p++]='N'; ln[p++]=' '; Hex(h8, san, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i];
+    ln[p] = 0; DrawStr(640, 1890, ln, 0x00FF80FF);
+}
 static void DiskRel(void)
 {
+    DiskIoctls();
     static USHORT nm[40]; UNICODE_STRING us; PVOID fo = 0, dev = 0, top; const char *a = "\\Device\\Harddisk0\\DR0"; ULONG n = 0; LONG st;
     UCHAR *irp, *sl; LARGE_INTEGER to;
     while (a[n]) { nm[n] = (USHORT)(UCHAR)a[n]; n++; }

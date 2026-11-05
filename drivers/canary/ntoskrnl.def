@@ -35,3 +35,4 @@ KeWaitForSingleObject
 ExFreePool
 IoGetDevicePropertyData
 IoGetAttachedDeviceReference
+ZwDeviceIoControlFile
