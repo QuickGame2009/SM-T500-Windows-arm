@@ -211,7 +211,7 @@ static ULONGLONG FindArg1(void)
         ULONGLONG *q = (ULONGLONG *)a; ULONG i;
         if (!MmIsAddressValid(q) || !MmIsAddressValid((UCHAR *)q + 0xFFF)) continue;
         for (i = 0; i + 5 <= 512; i++)
-            if (q[i] == 0x7B && q[i+2] == 0xC0000034ULL && q[i+3] == 0 && q[i+4] == 1 && q[i+1] > 0xFFFF000000000000ULL) {
+            if ((ULONG)q[i] == 0x7B && ((q[i+2] == 0xC0000034ULL) || (q[i+2] == 0xFFFFFFFFC0000034ULL)) && q[i+3] == 0 && q[i+4] == 1 && q[i+1] > 0xFFFF000000000000ULL) {
                 ok = q[i+1]; return ok;
             }
     }
