@@ -469,6 +469,20 @@ static void DiskRel(void)
     g_kn = 7;
     (void)fo;
 }
+/* Nombre (ultimos 8 car.) del driver del dispositivo enganchado encima de 'dev'; '-' si no hay. */
+static void AttName(PVOID dev, char *o)
+{
+    PVOID a = *(PVOID *)((UCHAR *)dev + 0x18); ULONG k, n = 0;
+    o[0] = '-'; o[1] = 0;
+    if (!a || !MmIsAddressValid(a)) return;
+    {
+        PVOID drv = *(PVOID *)((UCHAR *)a + 8);
+        if (drv && MmIsAddressValid((PVOID)((UCHAR *)drv + 0x48))) {
+            USHORT len = *(USHORT *)((UCHAR *)drv + 0x38); USHORT *w = *(USHORT **)((UCHAR *)drv + 0x40); ULONG b = 0;
+            if (w && MmIsAddressValid(w)) { if (len / 2 > 9) b = len / 2 - 9; for (k = b; k < len / 2 && n < 9; k++) o[n++] = (char)w[k]; o[n] = 0; }
+        }
+    }
+}
 static void ProbeThread(PVOID ctx)
 {
     PVOID obj = 0, d; UNICODE_STRING us; ULONG n, y, pass;
@@ -501,6 +515,7 @@ static void ProbeThread(PVOID ctx)
                 if (tmo) { ln[p++]='T'; ln[p++]='M'; ln[p++]='O'; }
                 else if (st < 0) { ln[p++]='s'; ln[p++]='t'; ln[p++]='='; Hex(h8, (ULONG)st, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i]; }
                 else { for (i = 0; nm[i] && p < 60; i++) ln[p++] = nm[i]; }
+                { char an[16]; ln[p++] = ' '; ln[p++] = '>'; AttName(d, an); for (i = 0; an[i] && p < 76; i++) ln[p++] = an[i]; }
                 ln[p] = 0;
                 FillRect(700, y, 480, 26, 0x00000000);
                 DrawStr(700, y, ln, 0x0000FFFF);
