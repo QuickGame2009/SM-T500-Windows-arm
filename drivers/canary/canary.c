@@ -513,14 +513,14 @@ static void EnumClass(const char *cls, ULONG y)
 {
     static UCHAR kb[512]; PVOID h = 0, k = 0; ULONG idx, nInst = 0, nSvc = 0, cf = 0, hasCf = 0, rl; char svc[40], ln[100], first[40], h8[17];
     ULONG p, i; svc[0] = 0; first[0] = 0;
-    RpClear(); RpA("\\Registry\\Machine\\SYSTEM\\CurrentControlSet\\Enum\\STORAGE\\"); RpA(cls);
+    RpClear(); RpA("\\Registry\\Machine\\SYSTEM\\ControlSet001\\Enum\\STORAGE\\"); RpA(cls);
     if (RpOpen(&h) < 0) { p = 0; for (i = 0; cls[i]; i++) ln[p++] = cls[i]; ln[p++]=' '; ln[p++]='-'; ln[p++]='-'; ln[p] = 0; DrawStr(20, y, ln, 0x00FFFF00); return; }
     for (idx = 0; idx < 300; idx++) {
         ULONG nl; USHORT *nw; char tmp[40];
         if (ZwEnumerateKey(h, idx, 0, kb, sizeof(kb), &rl) < 0) break;
         nl = *(ULONG *)(kb + 12) / 2; nw = (USHORT *)(kb + 16);
         nInst++;
-        RpClear(); RpA("\\Registry\\Machine\\SYSTEM\\CurrentControlSet\\Enum\\STORAGE\\"); RpA(cls); RpA("\\"); RpW(nw, nl);
+        RpClear(); RpA("\\Registry\\Machine\\SYSTEM\\ControlSet001\\Enum\\STORAGE\\"); RpA(cls); RpA("\\"); RpW(nw, nl);
         if (RpOpen(&k) >= 0) {
             ULONG d2 = 0;
             if (RegVal(k, "Service", tmp, sizeof(tmp), 0) == 1 && tmp[0]) { nSvc++; if (!svc[0]) { for (i = 0; tmp[i] && i < 39; i++) svc[i] = tmp[i]; svc[i] = 0; } }
@@ -538,14 +538,17 @@ static void EnumClass(const char *cls, ULONG y)
     ln[p] = 0; DrawStr(20, y, ln, 0x0000FF00);
     p = 0; for (i = 0; first[i] && p < 72; i++) ln[p++] = first[i]; ln[p] = 0; DrawStr(20, y + 28, ln, 0x00AAAAAA);
 }
-/* Lista los nombres de subclaves bajo Enum\STORAGE */
-static void EnumStorageNames(ULONG y)
+/* Lista los nombres de subclaves de Enum\\<sub> (sub vacio = Enum) */
+static void EnumNames(const char *sub, ULONG y)
 {
     static UCHAR kb[512]; PVOID h = 0; ULONG idx, rl, p = 0, i; char ln[100];
-    RpClear(); RpA("\\Registry\\Machine\\SYSTEM\\CurrentControlSet\\Enum\\STORAGE");
-    ln[p++]='S'; ln[p++]='T'; ln[p++]='O'; ln[p++]='R'; ln[p++]=':'; ln[p++]=' ';
+    RpClear(); RpA("\\Registry\\Machine\\SYSTEM\\ControlSet001\\Enum");
+    if (sub[0]) { RpA("\\"); RpA(sub); }
+    for (i = 0; sub[i] && p < 12; i++) ln[p++] = sub[i];
+    if (!sub[0]) { ln[p++]='E'; ln[p++]='n'; ln[p++]='u'; ln[p++]='m'; }
+    ln[p++] = ':'; ln[p++] = ' ';
     if (RpOpen(&h) < 0) { ln[p++]='-'; ln[p++]='-'; ln[p]=0; DrawStr(20, y, ln, 0x00FFFF00); return; }
-    for (idx = 0; idx < 12; idx++) {
+    for (idx = 0; idx < 40; idx++) {
         ULONG nl; USHORT *nw;
         if (ZwEnumerateKey(h, idx, 0, kb, sizeof(kb), &rl) < 0) break;
         nl = *(ULONG *)(kb + 12) / 2; nw = (USHORT *)(kb + 16);
@@ -557,10 +560,12 @@ static void EnumStorageNames(ULONG y)
 }
 static void DrawEnum(void)
 {
-    EnumStorageNames(1600);
-    EnumClass("Volume", 1632);
-    EnumClass("Partition", 1692);
-    EnumClass("VolumeSnapshot", 1752);
+    EnumNames("", 1570);
+    EnumNames("STORAGE", 1600);
+    EnumNames("SCSI", 1630);
+    EnumNames("SD", 1660);
+    EnumClass("Volume", 1700);
+    EnumClass("Partition", 1760);
 }
 
 /* Rejilla ARC partition(1..130) (verde existe / rojo no) y resumen con destino de los enlaces. */
