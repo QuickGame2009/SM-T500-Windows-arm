@@ -621,6 +621,25 @@ static void ProbeThread(PVOID ctx)
     (void)ctx;
     KeSetPriorityThread(KeGetCurrentThread(), 1);
     DiskRel();
+    {   /* seguimiento temporal del atributo OFFLINE, flags y motivo (ext+0x204) de partmgr */
+        static USHORT nmt[40]; UNICODE_STRING ut; PVOID fot = 0, dvt = 0; const char *at = "\\Device\\Harddisk0\\DR0"; ULONG qt = 0, k;
+        while (at[qt]) { nmt[qt] = (USHORT)(UCHAR)at[qt]; qt++; }
+        ut.Length = (USHORT)(qt * 2); ut.MaximumLength = ut.Length; ut.Buffer = nmt;
+        if (IoGetDeviceObjectPointer(&ut, 0x80, &fot, &dvt) >= 0 && dvt) {
+            UCHAR *ext = *(UCHAR **)((UCHAR *)dvt + 0x40);
+            if (ext && MmIsAddressValid(ext + 0x460)) {
+                for (k = 0; k < 6; k++) {
+                    char ln[60], h8[17]; ULONG p = 0, j;
+                    while ((rd_cntvct() - g_t0v) / g_perv < 5000 + 3000 * k) ;
+                    ln[p++]='t'; PutDec(ln, &p, 5 + 3 * k); ln[p++]=' '; ln[p++]='a'; Hex(h8, *(ULONG *)(ext + 0x210), 4); for (j = 0; j < 4; j++) ln[p++] = h8[j];
+                    ln[p++]=' '; ln[p++]='f'; Hex(h8, *(ULONG *)(ext + 0x200), 4); for (j = 0; j < 4; j++) ln[p++] = h8[j];
+                    ln[p++]=' '; ln[p++]='r'; Hex(h8, *(ULONG *)(ext + 0x204), 4); for (j = 0; j < 4; j++) ln[p++] = h8[j];
+                    ln[p] = 0; FillRect(640, 1500 + 30 * k, 480, 26, 0x00000000); DrawStr(640, 1500 + 30 * k, ln, 0x0000FFFF);
+                }
+            }
+            if (fot) ObfDereferenceObject(fot);
+        }
+    }
     us.Length = (USHORT)(sizeof(nm_acpi) - 2); us.MaximumLength = us.Length; us.Buffer = nm_acpi;
     for (pass = 0; pass < 2; pass++) {
         if (pass == 1) { while ((rd_cntvct() - g_t0v) / g_perv < 22000) ; PartHist(); return; }
