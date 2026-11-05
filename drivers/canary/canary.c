@@ -443,6 +443,34 @@ static void DiskIoctls(void)
     ln[p] = 0; FillRect(640, 1770, 480, 26, 0x00000000); DrawStr(640, 1770, ln, 0x00FF80FF);
     p = 0; ln[p++]='S'; ln[p++]='4'; ln[p++]=' '; Hex(h8, (ULONG)s4, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i];
     ln[p] = 0; FillRect(640, 1800, 480, 26, 0x00000000); DrawStr(640, 1800, ln, 0x00FF80FF);
+    {   /* PRUEBA: forzar ONLINE a mano en memoria (atributo OFFLINE, flag 8 y bit 0x80 de las particiones) */
+        static USHORT nmx[40]; UNICODE_STRING ux; PVOID fox = 0, dvx = 0, objx = 0, dd; const char *ax = "\\Device\\Harddisk0\\DR0"; ULONG qx = 0, nclr = 0, b210 = 0xFFFFFFFF, b200 = 0xFFFFFFFF, a210 = 0xFFFFFFFF, a200 = 0xFFFFFFFF;
+        while (ax[qx]) { nmx[qx] = (USHORT)(UCHAR)ax[qx]; qx++; }
+        ux.Length = (USHORT)(qx * 2); ux.MaximumLength = ux.Length; ux.Buffer = nmx;
+        if (IoGetDeviceObjectPointer(&ux, 0x80, &fox, &dvx) >= 0 && dvx) {
+            UCHAR *ex = *(UCHAR **)((UCHAR *)dvx + 0x40);
+            if (ex && MmIsAddressValid(ex + 0x460)) {
+                b210 = *(ULONG *)(ex + 0x210); b200 = *(ULONG *)(ex + 0x200);
+                *(ULONG *)(ex + 0x210) &= ~1u; *(ULONG *)(ex + 0x200) &= ~8u;
+                a210 = *(ULONG *)(ex + 0x210); a200 = *(ULONG *)(ex + 0x200);
+            }
+            if (fox) ObfDereferenceObject(fox);
+        }
+        us.Length = (USHORT)(sizeof(nm_partmgr) - 2); us.MaximumLength = us.Length; us.Buffer = nm_partmgr;
+        if (ObReferenceObjectByName(&us, 0x40, 0, 0, *IoDriverObjectType, 0, 0, &objx) >= 0 && objx) {
+            dd = *(PVOID *)((UCHAR *)objx + 0x08);
+            while (dd && nclr < 400) {
+                ULONG *fl = (ULONG *)((UCHAR *)dd + 0x30);
+                if (*fl & 0x80) { *fl &= ~0x80u; }
+                nclr++; dd = *(PVOID *)((UCHAR *)dd + 0x10);
+            }
+            ObfDereferenceObject(objx);
+        }
+        p = 0; ln[p++]='P'; ln[p++]='K'; ln[p++]=' '; Hex(h8, b210, 4); for (i = 0; i < 4; i++) ln[p++] = h8[i]; ln[p++]='>'; Hex(h8, a210, 4); for (i = 0; i < 4; i++) ln[p++] = h8[i];
+        ln[p++]=' '; Hex(h8, b200, 4); for (i = 0; i < 4; i++) ln[p++] = h8[i]; ln[p++]='>'; Hex(h8, a200, 4); for (i = 0; i < 4; i++) ln[p++] = h8[i];
+        ln[p++]=' '; PutDec(ln, &p, nclr);
+        ln[p] = 0; FillRect(640, 1740, 480, 26, 0x00000000); DrawStr(640, 1740, ln, 0x0000FF00);
+    }
     (void)san;
     KickPnp();
 }
