@@ -210,10 +210,12 @@ __declspec(dllimport) extern UCHAR MmIsAddressValid(PVOID p);
 __declspec(dllimport) LONG IoGetDeviceObjectPointer(PUNICODE_STRING Name, ULONG Access, PVOID *File, PVOID *Dev);
 __declspec(dllimport) PVOID IoGetDeviceAttachmentBaseRef(PVOID Dev);
 __declspec(dllimport) PVOID IoGetAttachedDeviceReference(PVOID Dev);
+__declspec(dllimport) LONG ZwCreateFile(PVOID *H, ULONG Acc, OBJ_ATTR *Oa, IOSB *Io, PVOID Alloc, ULONG Attr, ULONG Share, ULONG Disp, ULONG Opts, PVOID Ea, ULONG EaLen);
+__declspec(dllimport) LONG ZwWriteFile(PVOID H, PVOID Ev, PVOID Apc, PVOID Ctx, IOSB *Io, PVOID Buf, ULONG Len, LARGE_INTEGER *Off, PVOID Key);
 __declspec(dllimport) LONG ZwReadFile(PVOID H, PVOID Ev, PVOID Apc, PVOID Ctx, IOSB *Io, PVOID Buf, ULONG Len, LARGE_INTEGER *Off, PVOID Key);
 __declspec(dllimport) LONG ZwDeviceIoControlFile(PVOID H, PVOID Ev, PVOID Apc, PVOID Ctx, IOSB *Io, ULONG Code, PVOID In, ULONG InLen, PVOID Out, ULONG OutLen);
 __declspec(dllimport) void IoInvalidateDeviceRelations(PVOID Pdo, int Type);
-static volatile ULONG g_kn, g_kst, g_kms;
+static volatile ULONG g_kn, g_kst, g_kms, g_fsStarted;
 static volatile ULONGLONG g_kdo, g_kpdo;
 static void KickPnp(void)
 {
@@ -1101,6 +1103,63 @@ static int Interesting(const char *n)
     }
     return 0;
 }
+
+/* Prueba del sistema de archivos: abre ntoskrnl por \SystemRoot y por el volumen 80, intenta crear/escribir
+   \SystemRoot\canary-w.txt y lee el sector 0 del volumen (firma NTFS).  Resultados en la esquina superior derecha. */
+static LONG FsOpen(const char *path, ULONG acc, ULONG disp, PVOID *outh)
+{
+    static USHORT nmf[96]; UNICODE_STRING uf; OBJ_ATTR of; IOSB iof; ULONG q = 0; PVOID h = 0; LONG s;
+    while (path[q] && q < 94) { nmf[q] = (USHORT)(UCHAR)path[q]; q++; }
+    uf.Length = (USHORT)(q * 2); uf.MaximumLength = uf.Length; uf.Buffer = nmf;
+    of.Length = sizeof(of); of.Root = 0; of.Name = &uf; of.Attr = 0x240; of.Sd = 0; of.Sqos = 0;
+    iof.St = 0; iof.Info = 0;
+    s = ZwCreateFile(&h, acc, &of, &iof, 0, 0x80, 7, disp, 0x20, 0, 0);
+    if (s >= 0 && outh) *outh = h; else if (s >= 0 && h) ZwClose(h);
+    return s;
+}
+static void FsLine(ULONG row, const char *tag, LONG s1, LONG s2, ULONG extra, int hasextra)
+{
+    char ln[40], h8[17]; ULONG p = 0, i;
+    for (i = 0; tag[i] && p < 6; i++) ln[p++] = tag[i];
+    Hex(h8, (ULONG)s1, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i];
+    if (s2 != 0x7FFFFFFF) { ln[p++] = ' '; Hex(h8, (ULONG)s2, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i]; }
+    if (hasextra) { ln[p++] = ' '; Hex(h8, extra, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i]; }
+    ln[p] = 0;
+    DrawStr(640, 110 + 30 * row, ln, 0x0000FFFF);
+}
+static void FsThread(PVOID ctx)
+{
+    static UCHAR sec[4096]; ULONG n = 0;
+    (void)ctx;
+    KeSetPriorityThread(KeGetCurrentThread(), 1);
+    for (;;) {
+        LONG a, b, c, d, w = 0x7FFFFFFF; PVOID h = 0; IOSB io; LARGE_INTEGER lo; ULONG sig = 0;
+        while ((rd_cntvct() - g_t0v) / g_perv < 6000UL + 3000UL * n) ;
+        n++;
+        a = FsOpen("\\SystemRoot\\System32\\ntoskrnl.exe", 0x120089, 1, 0);
+        FsLine(0, "SR ", a, 0x7FFFFFFF, n, 1);
+        b = FsOpen("\\Device\\HarddiskVolume80\\Windows\\System32\\ntoskrnl.exe", 0x120089, 1, 0);
+        FsLine(1, "V80 ", b, 0x7FFFFFFF, 0, 0);
+        c = FsOpen("\\SystemRoot\\canary-w.txt", 0x40100000, 5, &h);
+        if (c >= 0 && h) {
+            static char msg[8] = { 'O', 'K', 13, 10, 0, 0, 0, 0 };
+            io.St = 0; io.Info = 0; lo.QuadPart = 0;
+            w = ZwWriteFile(h, 0, 0, 0, &io, msg, 4, &lo, 0);
+            ZwClose(h);
+        }
+        FsLine(2, "WR ", c, w, 0, 0);
+        h = 0;
+        d = FsOpen("\\Device\\HarddiskVolume80", 0x120089, 1, &h);
+        if (d >= 0 && h) {
+            io.St = 0; io.Info = 0; lo.QuadPart = 0;
+            d = ZwReadFile(h, 0, 0, 0, &io, sec, 4096, &lo, 0);
+            if (d >= 0) sig = *(ULONG *)(sec + 3);
+            ZwClose(h);
+        }
+        FsLine(3, "RAW ", d, 0x7FFFFFFF, sig, 1);
+    }
+}
+
 /* Recorre los hilos del proceso System, rastrea en cada pila direcciones de retorno en modulos
    (sin suponer el formato de los marcos) y muestra los hilos con modulos de almacenamiento. */
 static void DrawThreads(void)
@@ -1309,6 +1368,7 @@ static void MonThread(PVOID ctx)
             g_lastMs = ms;
             if (ms > 4000 && g_kn == 0) { PVOID th2 = 0; g_kn = 1; if (PsCreateSystemThread(&th2, 0x1FFFFF, 0, 0, 0, (PVOID)ProbeThread, 0) >= 0 && th2) ZwClose(th2); }
             if (0) KickPnp();
+            if (ms > 6000 && !g_fsStarted) { PVOID th3 = 0; g_fsStarted = 1; if (PsCreateSystemThread(&th3, 0x1FFFFF, 0, 0, 0, (PVOID)FsThread, 0) >= 0 && th3) ZwClose(th3); }
         }
         if (ms - lastobj >= 500) {
             lastobj = ms;
