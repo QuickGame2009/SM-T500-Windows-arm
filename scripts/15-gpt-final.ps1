@@ -9,6 +9,21 @@ $id = [Security.Principal.WindowsIdentity]::GetCurrent()
 if (-not (New-Object Security.Principal.WindowsPrincipal($id)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     Write-Host "Ejecuta como administrador." -ForegroundColor Red; Stop-Transcript | Out-Null; exit 1
 }
+# Hace que Windows "olvide" el disco y lo vea de nuevo (equivale a desconectar y reconectar el cable, sin necesitar adb).
+try {
+    $dd = @(Get-PnpDevice -Class DiskDrive -ErrorAction Stop | Where-Object FriendlyName -like '*Linux File-Stor*')
+    foreach ($x in $dd) {
+        Write-Host ("Reiniciando el dispositivo de disco: " + $x.InstanceId)
+        Disable-PnpDevice -InstanceId $x.InstanceId -Confirm:$false -ErrorAction Stop
+        Start-Sleep -Seconds 3
+        Enable-PnpDevice -InstanceId $x.InstanceId -Confirm:$false -ErrorAction Stop
+        Start-Sleep -Seconds 8
+    }
+} catch {
+    Write-Host ("No pude reiniciar el dispositivo por software: " + $_.Exception.Message) -ForegroundColor Yellow
+    Write-Host "Si el informe final sale mal: desconecta el cable USB, espera 10 s, vuelve a conectarlo y repite este script." -ForegroundColor Yellow
+}
+Update-HostStorageCache
 $disk = Get-Disk | Where-Object FriendlyName -like '*Linux File-Stor*' | Select-Object -First 1
 if (-not $disk) { Write-Host "No encuentro el disco de la tablet (3-massstorage.cmd)." -ForegroundColor Red; Stop-Transcript | Out-Null; exit 1 }
 $d = $disk.Number; $ss = [int]$disk.LogicalSectorSize
