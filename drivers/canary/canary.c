@@ -1132,37 +1132,39 @@ static void FsLine(ULONG row, const char *tag, LONG s1, LONG s2, ULONG extra, in
 static void ProcScan(void)
 {
     ULONGLONG ep = (ULONGLONG)PsInitialSystemProcess, ho, lh = 0, e, nmo = 0, o;
-    ULONG cnt = 0, i, k, p; char names[4][9], ln[40], num[17];
+    ULONG cnt = 0, i, k, p; char names[4][8], ln[48];
     if (!ep || !MmIsAddressValid((PVOID)(ep + 0x700))) { DrawStr(640, 230, "PR noep", 0x00FFFF00); return; }
-    for (ho = 0x18; ho <= 0x600 && !lh; ho += 8) {
-        ULONGLONG hd = ep + ho, f, b;
-        f = *(ULONGLONG *)hd; b = *(ULONGLONG *)(hd + 8);
-        if (f == hd || f < 0xFFFF000000000000ULL || b < 0xFFFF000000000000ULL) continue;
-        if (!MmIsAddressValid((PVOID)(f + 8)) || !MmIsAddressValid((PVOID)b)) continue;
-        if (*(ULONGLONG *)(f + 8) == hd && *(ULONGLONG *)b == hd) lh = hd;
-    }
     for (o = 0x100; o < 0x700; o++) {
         UCHAR *s = (UCHAR *)(ep + o);
         if (s[0]=='S' && s[1]=='y' && s[2]=='s' && s[3]=='t' && s[4]=='e' && s[5]=='m' && s[6]==0) { nmo = o; break; }
     }
-    if (!lh || !nmo) { DrawStr(640, 230, "PR nolist", 0x00FFFF00); return; }
+    if (!nmo) { DrawStr(640, 230, "PR noname", 0x00FFFF00); return; }
+    /* ActiveProcessLinks: lista circular cuyo primer elemento es un proceso con nombre ASCII (no la lista de hilos, que esta mas arriba) */
+    for (ho = 0x100; ho <= nmo && !lh; ho += 8) {
+        ULONGLONG hd = ep + ho, f, b2; UCHAR *nm;
+        f = *(ULONGLONG *)hd; b2 = *(ULONGLONG *)(hd + 8);
+        if (f == hd || f < 0xFFFF000000000000ULL || b2 < 0xFFFF000000000000ULL) continue;
+        if (!MmIsAddressValid((PVOID)(f + 8)) || !MmIsAddressValid((PVOID)b2)) continue;
+        if (*(ULONGLONG *)(f + 8) != hd || *(ULONGLONG *)b2 != hd) continue;
+        if (!MmIsAddressValid((PVOID)(f - ho + nmo + 16))) continue;
+        nm = (UCHAR *)(f - ho + nmo);
+        if (nm[0] < 'A' || nm[0] > 'z' || nm[1] < 32 || nm[1] > 126) continue;
+        lh = hd;
+    }
+    if (!lh) { DrawStr(640, 230, "PR nolist", 0x00FFFF00); return; }
     ho = lh - ep;
-    for (k = 0; k < 4; k++) { for (i = 0; i < 8; i++) names[k][i] = ' '; names[k][8] = 0; }
+    for (k = 0; k < 4; k++) for (i = 0; i < 7; i++) names[k][i] = ' ';
     e = *(ULONGLONG *)lh;
-    while (e != lh && cnt < 200 && e > 0xFFFF000000000000ULL && MmIsAddressValid((PVOID)e) && MmIsAddressValid((PVOID)(e - ho + nmo + 16))) {
-        UCHAR *pr = (UCHAR *)(e - ho + nmo);
-        for (k = 0; k < 3; k++) { for (i = 0; i < 8; i++) names[k][i] = names[k + 1][i]; }
-        for (i = 0; i < 8; i++) names[3][i] = (pr[i] >= 32 && pr[i] < 127) ? (char)pr[i] : ' ';
-        for (i = 0; i < 8; i++) if (pr[i] == 0) { for (; i < 8; i++) names[3][i] = ' '; break; }
+    while (e != lh && cnt < 300 && e > 0xFFFF000000000000ULL && MmIsAddressValid((PVOID)e) && MmIsAddressValid((PVOID)(e - ho + nmo + 16))) {
+        UCHAR *pr = (UCHAR *)(e - ho + nmo); int z = 0;
+        for (k = 0; k < 3; k++) for (i = 0; i < 7; i++) names[k][i] = names[k + 1][i];
+        for (i = 0; i < 7; i++) { if (pr[i] == 0) z = 1; names[3][i] = (!z && pr[i] >= 32 && pr[i] < 127) ? (char)pr[i] : ' '; }
         cnt++; e = *(ULONGLONG *)e;
     }
-    p = 0; ln[p++] = 'P'; ln[p++] = 'R'; ln[p++] = ' '; PutDec(ln, &p, cnt); ln[p] = 0;
-    DrawStr(640, 230, ln, 0x00FFFFFF);
-    p = 0;
-    for (k = 0; k < 4; k++) { for (i = 0; i < 8; i++) ln[p++] = names[k][i]; }
+    p = 0; ln[p++] = 'P'; ln[p++] = 'R'; PutDec(ln, &p, cnt); ln[p++] = ' ';
+    for (k = 0; k < 4; k++) { for (i = 0; i < 7; i++) ln[p++] = names[k][i]; ln[p++] = ' '; }
     ln[p] = 0;
-    DrawStr(640, 260, ln, 0x0000FF80);
-    (void)num;
+    DrawStr(640, 230, ln, 0x0000FF80);
 }
 
 static void FsThread(PVOID ctx)
