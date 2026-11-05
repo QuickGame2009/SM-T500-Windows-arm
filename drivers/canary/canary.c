@@ -615,6 +615,22 @@ static void PartHist(void)
         } else DrawStr(700, 1300, "X DR0 no", 0x00FFFF00);
     }
 }
+static UCHAR *g_dr0ext;
+static ULONG g_lstn[2], g_lstown[2], g_lstg[2][4], g_lstgl[2][4];
+static void WalkLst(int w)
+{
+    UCHAR *h, *e; ULONG n = 0, own = 0;
+    if (!g_dr0ext) return;
+    h = g_dr0ext + 0x278; e = *(UCHAR **)h;
+    g_lstg[w][0] = g_lstg[w][1] = g_lstg[w][2] = g_lstg[w][3] = 0xEEEEEEEE;
+    while (e && e != h && n < 200 && MmIsAddressValid(e) && MmIsAddressValid(e + 0x28)) {
+        if (n == 0) { ULONG j; for (j = 0; j < 4; j++) g_lstg[w][j] = ((ULONG *)(e + 0x18))[j]; }
+        { ULONG j; for (j = 0; j < 4; j++) g_lstgl[w][j] = ((ULONG *)(e + 0x18))[j]; }
+        if (*(UCHAR **)(e + 0x10) == g_dr0ext) own++;
+        n++; e = *(UCHAR **)e;
+    }
+    g_lstn[w] = n; g_lstown[w] = own;
+}
 static volatile ULONG g_plms[16], g_pla[16], g_plf[16], g_plr[16], g_pln;
 static void ProbeThread(PVOID ctx)
 {
@@ -633,6 +649,14 @@ static void ProbeThread(PVOID ctx)
             ln[p] = 0; FillRect(640, 1420 + 24 * k, 480, 22, 0x00000000); DrawStr(640, 1420 + 24 * k, ln, 0x0000FFFF);
         }
         if (!g_pln) DrawStr(640, 1420, "L sin DR0", 0x00FFFF00);
+        WalkLst(1);
+        for (k = 0; k < 2; k++) {
+            char ln[80], h8[17]; ULONG p = 0, j;
+            ln[p++]='W'; ln[p++]=(char)('0'+k); ln[p++]=' '; PutDec(ln, &p, g_lstn[k]); ln[p++]=' '; PutDec(ln, &p, g_lstown[k]); ln[p++]=' ';
+            Hex(h8, g_lstg[k][0], 8); for (j = 0; j < 8; j++) ln[p++] = h8[j];
+            ln[p++]=' '; Hex(h8, g_lstg[k][1], 8); for (j = 0; j < 8; j++) ln[p++] = h8[j];
+            ln[p] = 0; FillRect(640, 1730 + 24 * k, 480, 22, 0x00000000); DrawStr(640, 1730 + 24 * k, ln, 0x00FF80FF);
+        }
     }
     us.Length = (USHORT)(sizeof(nm_acpi) - 2); us.MaximumLength = us.Length; us.Buffer = nm_acpi;
     for (pass = 0; pass < 2; pass++) {
@@ -1151,7 +1175,7 @@ static void PollDr0(ULONG ms)
         up.Length = (USHORT)(q * 2); up.MaximumLength = up.Length; up.Buffer = nmp;
         if (IoGetDeviceObjectPointer(&up, 0x80, &fo, &dv) >= 0 && dv) {
             UCHAR *e = *(UCHAR **)((UCHAR *)dv + 0x40);
-            if (e && MmIsAddressValid(e + 0x460)) ext = e;
+            if (e && MmIsAddressValid(e + 0x460)) { ext = e; g_dr0ext = e; WalkLst(0); }
         }
         if (!ext) return;
     }
