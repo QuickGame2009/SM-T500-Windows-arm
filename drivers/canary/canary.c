@@ -207,6 +207,7 @@ static inline ULONGLONG rd_far(void) { ULONGLONG v; __asm__ volatile("mrs %0, fa
 /* Se ejecuta durante un bugcheck: dibuja ESR/ELR/FAR y la pila, y se queda aqui (evita el reinicio). */
 __declspec(dllimport) extern UCHAR MmIsAddressValid(PVOID p);
 static volatile ULONGLONG g_t0v, g_perv;
+static volatile ULONG g_lastPm;
 static volatile ULONG g_lastMs, g_lastP, g_lastV, g_lastStor, g_lastDirT;
 static inline ULONGLONG rd_cntvct0(void) { ULONGLONG v; __asm__ volatile("mrs %0, cntvct_el0" : "=r"(v)); return v; }
 /* Busca KiBugCheckData en ntoskrnl: {0x7B, arg1, 0xC0000034, 0, 1} y devuelve arg1 (o 0). */
@@ -244,6 +245,7 @@ static void BugCheckCb(PVOID Buffer, ULONG Length)
     DrawAddr(y, "P", g_lastP, 0x00FFFFFF); y += 30;
     DrawAddr(y, "V", g_lastV, 0x00FFFFFF); y += 30;
     DrawAddr(y, "S", g_lastStor, 0x00FFFFFF); y += 30;
+    DrawAddr(y, "PM", g_lastPm, 0x00FFFFFF); y += 30;
     (void)fp; (void)nx; (void)i;
     {
         ULONGLONG a1 = FindArg1();
@@ -309,8 +311,9 @@ static ULONG CountDevs(USHORT *name, USHORT nchars)
     us.Length = (USHORT)(nchars * 2); us.MaximumLength = us.Length; us.Buffer = name;
     if (ObReferenceObjectByName(&us, 0x40, 0, 0, *IoDriverObjectType, 0, 0, &obj) < 0 || !obj) return 0xFFFFFFFF;
     d = *(PVOID *)((UCHAR *)obj + 0x08);
-    while (d && n < 64) { n++; d = *(PVOID *)((UCHAR *)d + 0x10); }
+    while (d && n < 500) { n++; d = *(PVOID *)((UCHAR *)d + 0x10); }
     ObfDereferenceObject(obj);
+    if (name == nm_partmgr) g_lastPm = n;
     return n;
 }
 
