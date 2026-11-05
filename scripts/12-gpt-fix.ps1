@@ -49,12 +49,18 @@ public static class GptFix {
     }
     public static string Run(string path, int ss, bool write, string backupPath) {
         StringBuilder sb = new StringBuilder();
-        using (FileStream fs = new FileStream(path, FileMode.Open, write ? FileAccess.ReadWrite : FileAccess.Read, FileShare.ReadWrite, 4096)) {
+        try { RunInner(sb, path, ss, write, backupPath); }
+        catch (Exception ex) { sb.AppendLine("ERROR: " + ex.Message); }
+        return sb.ToString();
+    }
+    static string RunInner(StringBuilder sb, string path, int ss, bool write, string backupPath) {
+        using (FileStream fs = new FileStream(path, FileMode.Open, write ? FileAccess.ReadWrite : FileAccess.Read, FileShare.ReadWrite, 1)) {
             byte[] h = Rd(fs, 1, ss, ss);
-            if (Encoding.ASCII.GetString(h, 0, 8) != "EFI PART") return "ERROR: no hay cabecera GPT en el LBA 1";
+            if (Encoding.ASCII.GetString(h, 0, 8) != "EFI PART") { sb.AppendLine("ERROR: no hay cabecera GPT en el LBA 1"); return ""; }
             int hs = BitConverter.ToInt32(h, 12); long alt = BitConverter.ToInt64(h, 32); long ent = BitConverter.ToInt64(h, 72);
             int n = BitConverter.ToInt32(h, 80), es = BitConverter.ToInt32(h, 84);
             int asec = (n * es + ss - 1) / ss;
+            sb.AppendLine(string.Format("Cabecera primaria: alt={0} tabla={1} n={2} es={3}", alt, ent, n, es));
             byte[] dg = new byte[16]; Array.Copy(h, 56, dg, 0, 16);
             byte[] ea = Rd(fs, ent, ss, asec * ss);
             byte[] bh = Rd(fs, alt, ss, ss); long bent = BitConverter.ToInt64(bh, 72);
