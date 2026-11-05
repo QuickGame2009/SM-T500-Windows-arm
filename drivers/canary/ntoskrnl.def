@@ -21,4 +21,5 @@ ZwOpenSymbolicLinkObject
 ZwQuerySymbolicLinkObject
 MmIsAddressValid
 PsLoadedModuleList DATA
+PsInitialSystemProcess DATA
 IoDriverObjectType DATA

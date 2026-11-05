@@ -54,6 +54,7 @@ __declspec(dllimport) UCHAR KeSetTimerEx(PVOID Timer, LARGE_INTEGER DueTime, LON
 typedef struct _LIST_ENTRY { struct _LIST_ENTRY *Flink, *Blink; } LIST_ENTRY;
 __declspec(dllimport) UCHAR KeRegisterBugCheckCallback(PVOID Record, PVOID Routine, PVOID Buffer, ULONG Length, UCHAR *Component);
 __declspec(dllimport) extern LIST_ENTRY PsLoadedModuleList;
+__declspec(dllimport) extern PVOID PsInitialSystemProcess;
 __declspec(dllimport) LONG  PsCreateSystemThread(PVOID *Handle, ULONG Access, PVOID Oa, PVOID Proc, PVOID Cid, PVOID Start, PVOID Ctx);
 __declspec(dllimport) LONG  ZwClose(PVOID Handle);
 __declspec(dllimport) LONG  KeSetPriorityThread(PVOID Thread, LONG Prio);
@@ -207,7 +208,7 @@ static inline ULONGLONG rd_far(void) { ULONGLONG v; __asm__ volatile("mrs %0, fa
 /* Se ejecuta durante un bugcheck: dibuja ESR/ELR/FAR y la pila, y se queda aqui (evita el reinicio). */
 __declspec(dllimport) extern UCHAR MmIsAddressValid(PVOID p);
 static volatile ULONGLONG g_t0v, g_perv;
-static volatile ULONG g_lastPm;
+static volatile ULONG g_lastPm, g_thdone;
 static volatile ULONG g_lastMs, g_lastP, g_lastV, g_lastStor, g_lastDirT;
 static inline ULONGLONG rd_cntvct0(void) { ULONGLONG v; __asm__ volatile("mrs %0, cntvct_el0" : "=r"(v)); return v; }
 /* Busca KiBugCheckData en ntoskrnl: {0x7B, arg1, 0xC0000034, 0, 1} y devuelve arg1 (o 0). */
@@ -578,6 +579,100 @@ static void DrawEnum(void)
     EnumClass("Partition", 1760);
 }
 
+typedef struct { ULONGLONG base; ULONG size; char nm[10]; } MODE;
+static MODE g_md[300]; static ULONG g_nmd;
+static void LoadMods(void)
+{
+    LIST_ENTRY *h = &PsLoadedModuleList, *e = h->Flink; ULONG n = 0, i;
+    g_nmd = 0;
+    while (e && e != h && n++ < 299) {
+        UCHAR *m = (UCHAR *)e; UNICODE_STRING *u = (UNICODE_STRING *)(m + 0x58); MODE *d = &g_md[g_nmd++];
+        d->base = *(ULONGLONG *)(m + 0x30); d->size = *(ULONG *)(m + 0x40);
+        for (i = 0; i < 9; i++) d->nm[i] = ' ';
+        d->nm[9] = 0;
+        if (u->Buffer) for (i = 0; i < 9 && i < (ULONG)(u->Length / 2); i++) d->nm[i] = (char)u->Buffer[i];
+        e = e->Flink;
+    }
+}
+static int ModOf(ULONGLONG v, ULONG *idx)
+{
+    ULONG i;
+    for (i = 0; i < g_nmd; i++) if (v >= g_md[i].base && v < g_md[i].base + g_md[i].size) { *idx = i; return 1; }
+    return 0;
+}
+static int Interesting(const char *n)
+{
+    static const char *k[] = { "sdbus", "sdstor", "storport", "disk", "partmgr", "volmgr", "mountmgr", "ACPI", "CLASSPNP", "fvevol", "volsnap", "fltmgr", "Ntfs", "ntfs", 0 };
+    ULONG i, j;
+    for (i = 0; k[i]; i++) {
+        for (j = 0; k[i][j] && n[j] == k[i][j]; j++) ;
+        if (!k[i][j]) return 1;
+    }
+    return 0;
+}
+/* Recorre los hilos del proceso System, rastrea en cada pila direcciones de retorno en modulos
+   (sin suponer el formato de los marcos) y muestra los hilos con modulos de almacenamiento. */
+static void DrawThreads(void)
+{
+    ULONGLONG ep = (ULONGLONG)PsInitialSystemProcess, lh, first, e, t, off = 0, o;
+    ULONG total = 0, inter = 0, shown = 0, y = 1000, p, i, nh, hitmod[8], k, any;
+    ULONGLONG hitoff[8];
+    char ln[100], h[17];
+    if (!ep || !MmIsAddressValid((PVOID)(ep + 0x38))) { DrawStr(20, 1128, "TH noep", 0x00FFFF00); return; }
+    LoadMods();
+    lh = ep + 0x30; first = *(ULONGLONG *)lh;
+    for (o = 0x200; o <= 0x400 && !off; o += 8) {
+        ULONGLONG th = first - o, ini, lim;
+        if (!MmIsAddressValid((PVOID)(th + 0x60))) continue;
+        ini = *(ULONGLONG *)(th + 0x28); lim = *(ULONGLONG *)(th + 0x30);
+        if (ini > 0xFFFF000000000000ULL && lim > 0xFFFF000000000000ULL && ini > lim && ini - lim >= 0x2000 && ini - lim <= 0x40000 && !(ini & 0xF)) off = o;
+    }
+    if (!off) { DrawStr(20, 1128, "TH nooff", 0x00FFFF00); return; }
+    e = first;
+    while (e != lh && total < 400) {
+        ULONGLONG ks, ini, lim, q, end;
+        t = e - off;
+        if (!MmIsAddressValid((PVOID)(t + 0x60))) break;
+        total++;
+        ks = *(ULONGLONG *)(t + 0x58); ini = *(ULONGLONG *)(t + 0x28); lim = *(ULONGLONG *)(t + 0x30);
+        nh = 0; any = 0;
+        if (ks > lim && ks < ini && ini - ks <= 0x40000) {
+            end = ks + 0x3000; if (end > ini) end = ini;
+            ks &= ~7ULL;
+            for (q = ks; q < end && nh < 8; q += 8) {
+                ULONGLONG v; ULONG mi;
+                if (((q & 0xFFF) == 0 || q == ks) && !MmIsAddressValid((PVOID)q)) break;
+                v = *(ULONGLONG *)q;
+                if ((v >> 40) != 0xFFFFF8ULL) continue;
+                if (!ModOf(v, &mi)) continue;
+                if (g_md[mi].nm[0] == 'n' && g_md[mi].nm[1] == 't' && g_md[mi].nm[2] == 'o') continue;
+                if (g_md[mi].nm[0] == 'h' && g_md[mi].nm[1] == 'a' && g_md[mi].nm[2] == 'l') continue;
+                if (g_md[mi].nm[0] == 'c' && g_md[mi].nm[1] == 'a' && g_md[mi].nm[2] == 'n') continue;
+                hitmod[nh] = mi; hitoff[nh] = v - g_md[mi].base; nh++;
+                if (Interesting(g_md[mi].nm)) any = 1;
+            }
+        }
+        if (any) {
+            inter++;
+            if (shown < 4) {
+                p = 0; Hex(h, t >> 4, 16); for (i = 0; i < 4; i++) ln[p++] = h[12 + i]; ln[p++] = ':';
+                for (k = 0; k < nh && k < 4; k++) {
+                    char *nm = g_md[hitmod[k]].nm; ULONG a;
+                    for (a = 0; a < 8 && nm[a] != ' ' && nm[a] != '.'; a++) ln[p++] = nm[a];
+                    ln[p++] = '+'; Hex(h, hitoff[k], 16); for (i = 0; i < 5; i++) ln[p++] = h[11 + i];
+                    ln[p++] = ' ';
+                }
+                ln[p] = 0; DrawStr(20, y, ln, 0x0000FFFF); y += 32; shown++;
+            }
+        }
+        if (!MmIsAddressValid((PVOID)e)) break;
+        e = *(ULONGLONG *)e;
+    }
+    p = 0; ln[p++]='T'; ln[p++]='H'; ln[p++]=' '; ln[p++]='n'; ln[p++]='='; PutDec(ln, &p, total);
+    ln[p++]=' '; ln[p++]='i'; ln[p++]='='; PutDec(ln, &p, inter); ln[p] = 0;
+    DrawStr(20, 1128, ln, 0x00FFFFFF);
+}
+
 /* Rejilla ARC partition(1..130) (verde existe / rojo no) y resumen con destino de los enlaces. */
 static void DrawArc(void)
 {
@@ -659,6 +754,7 @@ static void MonThread(PVOID ctx)
             lastgrid = ms;
             DrawArc();
             g_lastMs = ms;
+            if (ms > 20000 && !g_thdone) { g_thdone = 1; DrawThreads(); }
         }
         if (ms - lastobj >= 500) {
             lastobj = ms;
