@@ -664,7 +664,8 @@ static void LayChk(void)
         }
     }
     {   /* lectura directa del disco (LBA1 cabecera y LBA2.. tabla) tal como la ve la tablet */
-        static UCHAR rb[4096]; PVOID hr = 0; IOSB ior; LONG sr; LARGE_INTEGER lo; ULONG v0 = 0xEEEEEEEE, v1 = 0xEEEEEEEE, v2 = 0xEEEEEEEE, t2 = 0xEEEEEEEE, el = 0xEEEEEEEE, ne = 0xEEEEEEEE;
+        static UCHAR rb[16384]; PVOID hr = 0; IOSB ior; LONG sr, sr2 = 0; LARGE_INTEGER lo; ULONG v0 = 0xEEEEEEEE, v1 = 0xEEEEEEEE, v2 = 0xEEEEEEEE, t2 = 0xEEEEEEEE, el = 0xEEEEEEEE, ne = 0xEEEEEEEE;
+        ULONG used = 0, rdup = 0, da = 0xFFFF, db = 0xFFFF, a1, b1;
         ol.Attr = 0x240;
         sr = ZwOpenFile(&hr, 0x100081, &ol, &ior, 7, 0x20);
         if (sr >= 0 && hr) {
@@ -672,18 +673,32 @@ static void LayChk(void)
             sr = ZwReadFile(hr, 0, 0, 0, &ior, rb, 4096, &lo, 0);
             if (sr >= 0) { el = *(ULONG *)(rb + 72); ne = *(ULONG *)(rb + 80); }
             ior.St = 0; ior.Info = 0; lo.QuadPart = 1024;
-            sr = ZwReadFile(hr, 0, 0, 0, &ior, rb, 4096, &lo, 0);
-            if (sr >= 0) { v0 = *(ULONG *)(rb + 16); v1 = *(ULONG *)(rb + 128 + 16); v2 = *(ULONG *)(rb + 256 + 16); t2 = *(ULONG *)(rb + 256); }
+            sr2 = ZwReadFile(hr, 0, 0, 0, &ior, rb, 10752, &lo, 0);
+            if (sr2 >= 0) {
+                v0 = *(ULONG *)(rb + 16); v1 = *(ULONG *)(rb + 128 + 16); v2 = *(ULONG *)(rb + 256 + 16); t2 = *(ULONG *)(rb + 256);
+                for (a1 = 0; a1 < 84; a1++) {
+                    ULONG *ea = (ULONG *)(rb + 128 * a1);
+                    if (!(ea[0] | ea[1] | ea[2] | ea[3])) continue;
+                    used++;
+                    for (b1 = a1 + 1; b1 < 84; b1++) {
+                        ULONG *eb = (ULONG *)(rb + 128 * b1);
+                        if (!(eb[0] | eb[1] | eb[2] | eb[3])) continue;
+                        if (ea[4] == eb[4] && ea[5] == eb[5] && ea[6] == eb[6] && ea[7] == eb[7]) { if (!rdup) { da = a1; db = b1; } rdup++; }
+                    }
+                }
+            }
             ZwClose(hr);
         }
         p = 0; ln[p++]='R'; ln[p++]=' '; Hex(h8, (ULONG)sr, 8); for (k = 0; k < 8; k++) ln[p++] = h8[k]; ln[p++]=' '; ln[p++]='e'; PutDec(ln, &p, el); ln[p++]=' '; ln[p++]='n'; PutDec(ln, &p, ne);
-        ln[p] = 0; FillRect(640, 1642, 540, 22, 0x00000000); DrawStr(640, 1642, ln, 0x0000FF80);
-        p = 0; ln[p++]='U'; ln[p++]=' ';
-        Hex(h8, v0, 8); for (k = 0; k < 8; k++) ln[p++] = h8[k]; ln[p++]=' ';
-        Hex(h8, v1, 8); for (k = 0; k < 8; k++) ln[p++] = h8[k]; ln[p++]=' ';
-        Hex(h8, v2, 8); for (k = 0; k < 8; k++) ln[p++] = h8[k]; ln[p++]=' ';
-        Hex(h8, t2, 8); for (k = 0; k < 8; k++) ln[p++] = h8[k];
-        ln[p] = 0; FillRect(640, 1666, 600, 22, 0x00000000); DrawStr(640, 1666, ln, 0x0000FF80);
+        ln[p] = 0; FillRect(260, 1700, 380, 22, 0x00000000); DrawStr(260, 1700, ln, 0x0000FF80);
+        p = 0; ln[p++]='R'; ln[p++]='D'; ln[p++]=' '; Hex(h8, (ULONG)sr2, 8); for (k = 0; k < 8; k++) ln[p++] = h8[k]; ln[p++]=' '; ln[p++]='u'; PutDec(ln, &p, used); ln[p++]=' '; ln[p++]='d'; PutDec(ln, &p, rdup);
+        ln[p] = 0; FillRect(260, 1724, 380, 22, 0x00000000); DrawStr(260, 1724, ln, 0x0000FF80);
+        p = 0; ln[p++]='D'; ln[p++]=' '; PutDec(ln, &p, da); ln[p++]=','; PutDec(ln, &p, db);
+        ln[p] = 0; FillRect(260, 1748, 380, 22, 0x00000000); DrawStr(260, 1748, ln, 0x0000FF80);
+        p = 0; ln[p++]='V'; ln[p++]=' '; Hex(h8, v0, 8); for (k = 0; k < 8; k++) ln[p++] = h8[k]; ln[p++]=' '; Hex(h8, v1, 8); for (k = 0; k < 8; k++) ln[p++] = h8[k];
+        ln[p] = 0; FillRect(260, 1772, 380, 22, 0x00000000); DrawStr(260, 1772, ln, 0x0000FF80);
+        p = 0; ln[p++]='W'; ln[p++]=' '; Hex(h8, v2, 8); for (k = 0; k < 8; k++) ln[p++] = h8[k]; ln[p++]=' '; Hex(h8, t2, 8); for (k = 0; k < 8; k++) ln[p++] = h8[k];
+        ln[p] = 0; FillRect(260, 1796, 380, 22, 0x00000000); DrawStr(260, 1796, ln, 0x0000FF80);
     }
     if (sl >= 0) {
         ULONG r;
