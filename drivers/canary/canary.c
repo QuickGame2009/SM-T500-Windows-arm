@@ -327,6 +327,7 @@ static inline ULONGLONG rd_cntp_ctl(void) { ULONGLONG v; __asm__ volatile("mrs %
 DRV(nm_sdbus,   L"\\Driver\\sdbus");
 DRV(nm_sdstor,  L"\\Driver\\sdstor");
 DRV(nm_acpi,    L"\\Driver\\ACPI");
+DRV(nm_pnpm,    L"\\Driver\\PnpManager");
 DRV(nm_disk,    L"\\Driver\\disk");
 DRV(nm_partmgr, L"\\Driver\\partmgr");
 DRV(nm_volmgr,  L"\\Driver\\volmgr");
@@ -477,9 +478,10 @@ static void ProbeThread(PVOID ctx)
     us.Length = (USHORT)(sizeof(nm_acpi) - 2); us.MaximumLength = us.Length; us.Buffer = nm_acpi;
     for (pass = 0; pass < 2; pass++) {
         if (pass == 1) { while ((rd_cntvct() - g_t0v) / g_perv < 22000) ; }
-        if (ObReferenceObjectByName(&us, 0x40, 0, 0, *IoDriverObjectType, 0, 0, &obj) < 0 || !obj) { DrawStr(700, 1000, "ACPI no drv", 0x00FFFF00); return; }
+        if (pass == 1) { us.Length = (USHORT)(sizeof(nm_pnpm) - 2); us.MaximumLength = us.Length; us.Buffer = nm_pnpm; }
+        if (ObReferenceObjectByName(&us, 0x40, 0, 0, *IoDriverObjectType, 0, 0, &obj) < 0 || !obj) { DrawStr(700, 1000, "drv no", 0x00FFFF00); return; }
         d = *(PVOID *)((UCHAR *)obj + 0x08); n = 0; y = 1000;
-        while (d && n < 20) {
+        while (d && n < 14) {
             char nm[48], ln[80]; ULONG p = 0, tmo, i; LONG st; char h8[17];
             if (pass == 0) {
                 ln[p++] = (char)('A' + n); ln[p++] = ' '; ln[p++] = '.'; ln[p++] = '.'; ln[p] = 0;
@@ -494,23 +496,11 @@ static void ProbeThread(PVOID ctx)
                 FillRect(700, y, 480, 26, 0x00000000);
                 DrawStr(700, y, ln, tmo ? 0x00FF0000 : 0x0000FF00);
             } else {
-                ULONG v0 = 0, v1 = 0, rq = 0, ty = 0, fl = 0; LONG s0 = 0, s1 = 0; PVOID bs = IoGetDeviceAttachmentBaseRef(d);
-                ln[p++] = (char)('A' + n); ln[p++] = ' ';
-                if (!bs) { ln[p++]='n'; ln[p++]='o'; ln[p++]='b'; ln[p++]='s'; }
-                else {
-                    fl = *(ULONG *)((UCHAR *)bs + 0x30);
-                    ln[p++]='f'; Hex(h8, fl, 8); for (i = 4; i < 8; i++) ln[p++] = h8[i]; ln[p++] = ' ';
-                    if (fl & 0x1000) {
-                        s0 = IoGetDevicePropertyData(bs, g_dnkey[0], 0x409, 0, 4, &v0, &rq, &ty);
-                        s1 = IoGetDevicePropertyData(bs, g_dnkey[1], 0x409, 0, 4, &v1, &rq, &ty);
-                        if (s0 < 0) { ln[p++]='e'; Hex(h8, (ULONG)s0, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i]; }
-                        else { ln[p++]='s'; Hex(h8, v0, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i]; }
-                        ln[p++] = ' ';
-                        if (s1 < 0) { ln[p++]='e'; Hex(h8, (ULONG)s1, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i]; }
-                        else { ln[p++]='p'; Hex(h8, v1, 8); for (i = 6; i < 8; i++) ln[p++] = h8[i]; }
-                    } else { ln[p++]='N'; ln[p++]='O'; ln[p++]='E'; ln[p++]='N'; ln[p++]='U'; ln[p++]='M'; }
-                    ObfDereferenceObject(bs);
-                }
+                st = QueryId(d, 0, nm, sizeof(nm), &tmo);
+                ln[p++] = (char)('a' + n); ln[p++] = ' ';
+                if (tmo) { ln[p++]='T'; ln[p++]='M'; ln[p++]='O'; }
+                else if (st < 0) { ln[p++]='s'; ln[p++]='t'; ln[p++]='='; Hex(h8, (ULONG)st, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i]; }
+                else { for (i = 0; nm[i] && p < 60; i++) ln[p++] = nm[i]; }
                 ln[p] = 0;
                 FillRect(700, y, 480, 26, 0x00000000);
                 DrawStr(700, y, ln, 0x0000FFFF);
