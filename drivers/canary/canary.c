@@ -1226,11 +1226,12 @@ static void WriteLog(ULONG n)
         tot++;
         ks = *(ULONGLONG *)(th + g_kso); ini = *(ULONGLONG *)(th + 0x28); lim = *(ULONGLONG *)(th + 0x30);
         LgS("T "); LgH(th & 0xFFFFFFFFFFULL, 10); LgS(" ks="); LgH(ks & 0xFFFFFF, 6); LgS(" :");
-        if (ks > lim && ks < ini && ini - ks <= 0x40000) {
-            end = ks + 0x1800; if (end > ini) end = ini;
-            for (q = ks & ~7ULL; q < end && nf < 24; q += 8) {
+        {   /* desde la cima de la pila (marcos mas externos) hacia abajo: los desplazamientos de KernelStack en ARM64 no se conocen */
+            ULONGLONG lo2 = (ini - 0x1800 > lim) ? ini - 0x1800 : lim, lastpg = 0; int okpg = 0;
+            for (q = (ini - 8) & ~7ULL; q >= lo2 && nf < 24; q -= 8) {
                 ULONGLONG v;
-                if ((q & 0xFFF) == 0 && !MmIsAddressValid((PVOID)q)) break;
+                if ((q & ~0xFFFULL) != lastpg) { lastpg = q & ~0xFFFULL; okpg = MmIsAddressValid((PVOID)q) ? 1 : 0; }
+                if (!okpg) continue;
                 v = *(ULONGLONG *)q;
                 if (v < 0xFFFF000000000000ULL) continue;
                 if (ModOf(v, &idx)) {
