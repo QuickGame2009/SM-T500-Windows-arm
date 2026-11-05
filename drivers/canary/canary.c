@@ -263,13 +263,46 @@ static ULONG CountDevs(USHORT *name, USHORT nchars)
     return n;
 }
 
+/* Comprueba si existe un objeto por nombre (sin comprobar el tipo). */
+static USHORT g_nm[128];
+static ULONG g_nn;
+static void NmClear(void) { g_nn = 0; }
+static void NmA(const char *t) { while (*t && g_nn < 120) g_nm[g_nn++] = (USHORT)(UCHAR)*t++; }
+static void NmDec(ULONG v)
+{
+    char b[12]; int i = 0;
+    if (v == 0) b[i++] = '0';
+    while (v) { b[i++] = (char)('0' + v % 10); v /= 10; }
+    while (i) { if (g_nn < 120) g_nm[g_nn++] = (USHORT)(UCHAR)b[--i]; }
+}
+static int NmExists(void)
+{
+    UNICODE_STRING us;
+    PVOID obj = 0;
+    us.Length = (USHORT)(g_nn * 2); us.MaximumLength = us.Length; us.Buffer = g_nm;
+    if (ObReferenceObjectByName(&us, 0x40, 0, 0, 0, 0, 0, &obj) < 0 || !obj) return 0;
+    ObfDereferenceObject(obj);
+    return 1;
+}
+
+/* Rejilla de 130 celdas (partition 1..130): verde existe / rojo no.  Marca blanca cada 10. */
+static void DrawGrid(ULONG y, const char *pre, const char *post)
+{
+    ULONG k;
+    for (k = 1; k <= 130; k++) {
+        NmClear(); NmA(pre); NmDec(k); NmA(post);
+        FillRect(20 + (k - 1) * 9, y, 8, 8, NmExists() ? 0x0000C000 : 0x00C00000);
+        if (k % 10 == 0) FillRect(20 + (k - 1) * 9, y - 4, 8, 2, 0x00FFFFFF);
+    }
+}
+
 /* Hilo monitor.  Fila 3 (blanco): ms (dec), InterruptTime, ticks DPC (dec), CNTV_CTL, CNTV_CVAL-CNTVCT, CNTP_CTL.
    Fila 4 (naranja): ICC_RPR, ICC_HPPIR1, ICC_PMR, DAIF, ISENABLER0, ISPENDR0.
    Fila 5 (cian): SystemTime, 1a palabra SPI pendiente (indice, valor), numero de SPI pendientes, ISACTIVER0, CurrentEL. */
 static void MonThread(PVOID ctx)
 {
     ULONGLONG t0 = rd_cntvct(), per, freq = rd_cntfrq();
-    ULONG ms, lastdraw = 0, lastobj = 0, w, b, p, pi, pv, pc;
+    ULONG ms, lastdraw = 0, lastobj = 0, lastgrid = 0, w, b, p, pi, pv, pc;
     (void)ctx;
     KeSetPriorityThread(KeGetCurrentThread(), 1);
     if (freq == 0) freq = 19200000;
@@ -301,6 +334,17 @@ static void MonThread(PVOID ctx)
         DrawHex(3, 5, pc,                                   0x0000FFFF);
         if (g_gicr) DrawHex(4, 5, g_gicr[(0x10000 + 0x300) / 4], 0x0000FFFF);
         { ULONGLONG el; __asm__ volatile("mrs %0, CurrentEL" : "=r"(el)); DrawHex(5, 5, (ULONG)el, 0x0000FFFF); }
+        if (ms > 3000 && ms - lastgrid >= 3000) {
+            lastgrid = ms;
+            DrawGrid(800, "\\ArcName\\multi(0)disk(0)rdisk(0)partition(", ")");
+            DrawGrid(830, "\\Device\\Harddisk0\\Partition", "");
+            NmClear(); NmA("\\ArcName\\multi(0)disk(0)rdisk(0)");
+            FillRect(20, 856, 20, 8, NmExists() ? 0x0000C000 : 0x00C00000);
+            NmClear(); NmA("\\Device\\Harddisk0\\DR0");
+            FillRect(50, 856, 20, 8, NmExists() ? 0x0000C000 : 0x00C00000);
+            NmClear(); NmA("\\Device\\Harddisk1\\Partition1");
+            FillRect(80, 856, 20, 8, NmExists() ? 0x0000C000 : 0x00C00000);
+        }
         if (ms - lastobj >= 500) {
             lastobj = ms;
             DrawHex(0, 8, CountDevs(nm_sdbus, (USHORT)(sizeof(nm_sdbus) / 2 - 1)),   0x0000C0FF);
