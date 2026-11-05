@@ -343,6 +343,66 @@ static ULONG CountDevs(USHORT *name, USHORT nchars)
     return n;
 }
 
+
+__declspec(dllimport) PVOID IoAllocateIrp(signed char StackSize, UCHAR ChargeQuota);
+__declspec(dllimport) void  IoFreeIrp(PVOID Irp);
+__declspec(dllimport) LONG  IofCallDriver(PVOID Dev, PVOID Irp);
+__declspec(dllimport) void  KeInitializeEvent(PVOID Ev, int Type, UCHAR State);
+__declspec(dllimport) LONG  KeSetEvent(PVOID Ev, LONG Inc, UCHAR Wait);
+__declspec(dllimport) LONG  KeWaitForSingleObject(PVOID Obj, int Reason, signed char Mode, UCHAR Alert, LARGE_INTEGER *Tmo);
+__declspec(dllimport) void  ExFreePool(PVOID P);
+static ULONGLONG g_pev[8];
+static LONG PrCompl(PVOID Dev, PVOID Irp, PVOID Ctx) { (void)Dev; (void)Irp; KeSetEvent(Ctx, 0, 0); return (LONG)0xC0000016; }
+/* Envia IRP_MN_QUERY_ID al dispositivo y devuelve estado; copia la 1a cadena a out. */
+static LONG QueryId(PVOID dev, ULONG type, char *out, ULONG omax, ULONG *tmo)
+{
+    UCHAR *irp, *sl; LARGE_INTEGER to; LONG st; ULONG i;
+    out[0] = 0; *tmo = 0;
+    irp = (UCHAR *)IoAllocateIrp(8, 0);
+    if (!irp) return (LONG)0xC000009A;
+    KeInitializeEvent(g_pev, 0, 0);
+    *(LONG *)(irp + 0x30) = (LONG)0xC00000BB; *(ULONGLONG *)(irp + 0x38) = 0;
+    sl = *(UCHAR **)(irp + 0xB8) - 0x48;
+    sl[0] = 0x1B; sl[1] = 0x13; sl[3] = 0xE0;
+    *(ULONG *)(sl + 8) = type;
+    *(PVOID *)(sl + 0x38) = (PVOID)PrCompl; *(PVOID *)(sl + 0x40) = g_pev;
+    IofCallDriver(dev, irp);
+    to.QuadPart = -30000000LL;
+    if (KeWaitForSingleObject(g_pev, 0, 0, 0, &to) != 0) { *tmo = 1; return (LONG)0x102; }
+    st = *(LONG *)(irp + 0x30);
+    if (st >= 0) {
+        USHORT *w = (USHORT *)*(ULONGLONG *)(irp + 0x38);
+        if (w) { for (i = 0; i < omax - 1 && w[i]; i++) out[i] = (w[i] >= 32 && w[i] < 127) ? (char)w[i] : '?'; out[i] = 0; ExFreePool(w); }
+    }
+    IoFreeIrp(irp);
+    return st;
+}
+static void ProbeThread(PVOID ctx)
+{
+    PVOID obj = 0, d; UNICODE_STRING us; ULONG n = 0, y = 1000;
+    (void)ctx;
+    us.Length = (USHORT)(sizeof(nm_acpi) - 2); us.MaximumLength = us.Length; us.Buffer = nm_acpi;
+    if (ObReferenceObjectByName(&us, 0x40, 0, 0, *IoDriverObjectType, 0, 0, &obj) < 0 || !obj) { DrawStr(700, y, "ACPI no drv", 0x00FFFF00); return; }
+    d = *(PVOID *)((UCHAR *)obj + 0x08);
+    while (d && n < 20) {
+        char nm[48], ln[80]; ULONG p = 0, tmo, i; LONG st; char h8[17];
+        ln[p++] = (char)('A' + n); ln[p++] = ' '; ln[p++] = '.'; ln[p++] = '.'; ln[p] = 0;
+        FillRect(700, y, 480, 26, 0x00000000);
+        DrawStr(700, y, ln, 0x00FFFF00);
+        st = QueryId(d, 1, nm, sizeof(nm), &tmo);
+        p = 0; ln[p++] = (char)('A' + n); ln[p++] = ' ';
+        if (tmo) { ln[p++]='T'; ln[p++]='M'; ln[p++]='O'; }
+        else if (st < 0) { ln[p++]='s'; ln[p++]='t'; ln[p++]='='; Hex(h8, (ULONG)st, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i]; }
+        else { for (i = 0; nm[i] && p < 60; i++) ln[p++] = nm[i]; }
+        ln[p] = 0;
+        FillRect(700, y, 480, 26, 0x00000000);
+        DrawStr(700, y, ln, tmo ? 0x00FF0000 : 0x0000FF00);
+        y += 28; n++;
+        d = *(PVOID *)((UCHAR *)d + 0x10);
+    }
+    ObfDereferenceObject(obj);
+}
+
 /* Comprueba si existe un objeto por nombre (sin comprobar el tipo). */
 static USHORT g_nm[128];
 static ULONG g_nn;
@@ -852,8 +912,8 @@ static void MonThread(PVOID ctx)
             lastgrid = ms;
             DrawArc();
             g_lastMs = ms;
-            if (ms > 5000 && g_kn == 0) KickPnp();
-            if (ms > 12000 && g_kn == 1) KickPnp();
+            if (ms > 4000 && g_kn == 0) { PVOID th2 = 0; g_kn = 1; if (PsCreateSystemThread(&th2, 0x1FFFFF, 0, 0, 0, (PVOID)ProbeThread, 0) >= 0 && th2) ZwClose(th2); }
+            if (0) KickPnp();
         }
         if (ms - lastobj >= 500) {
             lastobj = ms;

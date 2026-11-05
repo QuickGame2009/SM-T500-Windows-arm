@@ -26,3 +26,10 @@ IoDriverObjectType DATA
 IoGetDeviceObjectPointer
 IoGetDeviceAttachmentBaseRef
 IoInvalidateDeviceRelations
+IoAllocateIrp
+IoFreeIrp
+IofCallDriver
+KeInitializeEvent
+KeSetEvent
+KeWaitForSingleObject
+ExFreePool
