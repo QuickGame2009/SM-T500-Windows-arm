@@ -574,8 +574,36 @@ static void EnumNames(const char *sub, ULONG y)
     }
     ZwClose(h); ln[p] = 0; DrawStr(20, y, ln, 0x0000FFFF);
 }
+static void DiskInst(ULONG y)
+{
+    static UCHAR kb[512]; PVOID h = 0, k = 0; ULONG rl, p = 0, i, cf = 0; char ln[100], svc[30], cl[10], h8[17];
+    svc[0] = 0; cl[0] = 0;
+    RpClear(); RpA("\\Registry\\Machine\\SYSTEM\\ControlSet001\\Enum\\SD\\DISK&Samsung&DP68MB&0.2");
+    if (RpOpen(&h) < 0) { DrawStr(20, y, "DI --", 0x00FFFF00); return; }
+    if (ZwEnumerateKey(h, 0, 0, kb, sizeof(kb), &rl) >= 0) {
+        ULONG nl = *(ULONG *)(kb + 12) / 2; USHORT *nw = (USHORT *)(kb + 16);
+        RpA("\\"); RpW(nw, nl);
+        if (RpOpen(&k) >= 0) {
+            ULONG d2 = 0; char t2[30];
+            if (RegVal(k, "Service", t2, 30, 0) == 1) for (i = 0; t2[i] && i < 29; i++) svc[i] = t2[i];
+            svc[i] = 0;
+            if (RegVal(k, "ConfigFlags", 0, 0, &d2) == 4) cf = d2;
+            if (RegVal(k, "Class", t2, 30, 0) == 1) for (i = 0; t2[i] && i < 9; i++) cl[i] = t2[i];
+            ZwClose(k);
+        }
+    }
+    ZwClose(h);
+    ln[p++]='D'; ln[p++]='I'; ln[p++]=' '; ln[p++]='s'; ln[p++]='v'; ln[p++]='c'; ln[p++]='=';
+    for (i = 0; svc[i]; i++) ln[p++] = svc[i];
+    ln[p++]=' '; ln[p++]='c'; ln[p++]='l'; ln[p++]='='; for (i = 0; cl[i]; i++) ln[p++] = cl[i];
+    ln[p++]=' '; ln[p++]='c'; ln[p++]='f'; ln[p++]='='; Hex(h8, cf, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i];
+    ln[p] = 0; DrawStr(20, y, ln, 0x0000FF00);
+}
 static void DrawEnum(void)
 {
+    EnumNames("ROOT", 1900);
+    EnumNames("ACPI", 1930);
+    DiskInst(1960);
     EnumNames("", 1570);
     EnumNames("STORAGE", 1600);
     EnumNames("SCSI", 1630);
