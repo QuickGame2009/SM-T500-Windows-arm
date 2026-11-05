@@ -208,7 +208,7 @@ static inline ULONGLONG rd_far(void) { ULONGLONG v; __asm__ volatile("mrs %0, fa
 /* Se ejecuta durante un bugcheck: dibuja ESR/ELR/FAR y la pila, y se queda aqui (evita el reinicio). */
 __declspec(dllimport) extern UCHAR MmIsAddressValid(PVOID p);
 static volatile ULONGLONG g_t0v, g_perv;
-static volatile ULONG g_lastPm, g_thdone;
+static volatile ULONG g_lastPm, g_thdone, g_tPm1, g_tPm82, g_tIo, g_nIo, g_tIo0;
 static volatile ULONG g_lastMs, g_lastP, g_lastV, g_lastStor, g_lastDirT;
 static inline ULONGLONG rd_cntvct0(void) { ULONGLONG v; __asm__ volatile("mrs %0, cntvct_el0" : "=r"(v)); return v; }
 /* Busca KiBugCheckData en ntoskrnl: {0x7B, arg1, 0xC0000034, 0, 1} y devuelve arg1 (o 0). */
@@ -247,6 +247,11 @@ static void BugCheckCb(PVOID Buffer, ULONG Length)
     DrawAddr(y, "V", g_lastV, 0x00FFFFFF); y += 30;
     DrawAddr(y, "S", g_lastStor, 0x00FFFFFF); y += 30;
     DrawAddr(y, "PM", g_lastPm, 0x00FFFFFF); y += 30;
+    DrawAddr(y, "PM1", g_tPm1, 0x0000FFFF); y += 30;
+    DrawAddr(y, "P82", g_tPm82, 0x0000FFFF); y += 30;
+    DrawAddr(y, "IO0", g_tIo0, 0x0000FFFF); y += 30;
+    DrawAddr(y, "IOL", g_tIo, 0x0000FFFF); y += 30;
+    DrawAddr(y, "NIO", g_nIo, 0x0000FFFF); y += 30;
     (void)fp; (void)nx; (void)i;
     {
         ULONGLONG a1 = FindArg1();
@@ -803,11 +808,14 @@ static void MonThread(PVOID ctx)
             DrawHex(2, 8, CountDevs(nm_acpi, (USHORT)(sizeof(nm_acpi) / 2 - 1)),    0x0000C0FF);
             DrawHex(3, 8, CountDevs(nm_disk, (USHORT)(sizeof(nm_disk) / 2 - 1)),    0x0000C0FF);
             DrawHex(4, 8, CountDevs(nm_partmgr, (USHORT)(sizeof(nm_partmgr) / 2 - 1)), 0x0000C0FF);
+            if (g_lastPm > 2 && !g_tPm1) g_tPm1 = ms;
+            if (g_lastPm >= 82 && !g_tPm82) g_tPm82 = ms;
             DrawHex(5, 8, CountDevs(nm_volmgr, (USHORT)(sizeof(nm_volmgr) / 2 - 1)),  0x0000C0FF);
         }
         /* SDCC1 (eMMC) registros SDHCI.  Fila 6: PRESENT_STATE(24) HOSTCTL/POWER(28) CLOCK(2C) INT_STATUS(30) INT_EN(34) HC2(3C).
            Fila 7: CAPS(40) CAPS2(44) VERSION(FC) ADMA_ERR(54) CMD(0C) RESP0(10) */
         if (g_sd) {
+            if (g_sd[0x24 / 4] & 7) { g_tIo = ms; g_nIo++; if (!g_tIo0) g_tIo0 = ms; }
             DrawHex(0, 6, g_sd[0x24 / 4], 0x00FF00FF);
             DrawHex(1, 6, g_sd[0x28 / 4], 0x00FF00FF);
             DrawHex(2, 6, g_sd[0x2C / 4], 0x00FF00FF);
