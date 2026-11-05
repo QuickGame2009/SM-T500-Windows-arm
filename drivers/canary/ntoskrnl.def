@@ -7,6 +7,9 @@ KeSetTimerEx
 KeRegisterBugCheckCallback
 PsCreateSystemThread
 ZwClose
+ZwQueryValueKey
+ZwEnumerateKey
+ZwOpenKey
 ZwQueryDirectoryObject
 ZwOpenDirectoryObject
 ZwOpenFile

@@ -65,6 +65,9 @@ typedef struct _OBJ_ATTR { ULONG Length; PVOID Root; PUNICODE_STRING Name; ULONG
 typedef struct _IOSB { ULONGLONG St; ULONGLONG Info; } IOSB;
 __declspec(dllimport) LONG ZwOpenDirectoryObject(PVOID *Handle, ULONG Access, OBJ_ATTR *Oa);
 __declspec(dllimport) LONG ZwQueryDirectoryObject(PVOID H, PVOID Buf, ULONG Len, UCHAR Single, UCHAR Restart, ULONG *Ctx, ULONG *Ret);
+__declspec(dllimport) LONG ZwOpenKey(PVOID *Handle, ULONG Access, OBJ_ATTR *Oa);
+__declspec(dllimport) LONG ZwEnumerateKey(PVOID H, ULONG Idx, ULONG Cls, PVOID Buf, ULONG Len, ULONG *Ret);
+__declspec(dllimport) LONG ZwQueryValueKey(PVOID H, PUNICODE_STRING Name, ULONG Cls, PVOID Buf, ULONG Len, ULONG *Ret);
 __declspec(dllimport) LONG ZwOpenFile(PVOID *Handle, ULONG Access, OBJ_ATTR *Oa, IOSB *Io, ULONG Share, ULONG Opts);
 __declspec(dllimport) LONG ZwOpenSymbolicLinkObject(PVOID *Handle, ULONG Access, OBJ_ATTR *Oa);
 __declspec(dllimport) LONG ZwQuerySymbolicLinkObject(PVOID Handle, PUNICODE_STRING Target, ULONG *Ret);
@@ -477,6 +480,89 @@ static void DrawDirs(void)
     DrawStr(20, 1860, ln, 0x00FFFFFF);
 }
 
+static USHORT g_rp[320];
+static ULONG g_rn;
+static void RpClear(void) { g_rn = 0; }
+static void RpA(const char *t) { while (*t && g_rn < 310) g_rp[g_rn++] = (USHORT)(UCHAR)*t++; }
+static void RpW(const USHORT *w, ULONG n) { ULONG i; for (i = 0; i < n && g_rn < 310; i++) g_rp[g_rn++] = w[i]; }
+static LONG RpOpen(PVOID *h)
+{
+    UNICODE_STRING us; OBJ_ATTR oa;
+    us.Length = (USHORT)(g_rn * 2); us.MaximumLength = us.Length; us.Buffer = g_rp;
+    oa.Length = sizeof(oa); oa.Root = 0; oa.Name = &us; oa.Attr = 0x240; oa.Sd = 0; oa.Sqos = 0;
+    return ZwOpenKey(h, 0x20019, &oa);
+}
+/* Lee el valor 'nm' de la clave abierta; devuelve tipo (1=SZ,4=DWORD) o 0; copia a out (ASCII) o *dw. */
+static ULONG RegVal(PVOID k, const char *nm, char *out, ULONG omax, ULONG *dw)
+{
+    static UCHAR vb[256]; static USHORT nw[24]; UNICODE_STRING us; ULONG rl = 0, i, n = 0, ty, dl;
+    while (nm[n] && n < 23) { nw[n] = (USHORT)(UCHAR)nm[n]; n++; }
+    us.Length = (USHORT)(n * 2); us.MaximumLength = us.Length; us.Buffer = nw;
+    if (ZwQueryValueKey(k, &us, 2, vb, sizeof(vb), &rl) < 0) return 0;
+    ty = *(ULONG *)(vb + 4); dl = *(ULONG *)(vb + 8);
+    if (ty == 4 && dw) { *dw = *(ULONG *)(vb + 12); return 4; }
+    if ((ty == 1 || ty == 2) && out) {
+        USHORT *w = (USHORT *)(vb + 12); n = dl / 2; if (n > omax - 1) n = omax - 1;
+        for (i = 0; i < n && w[i]; i++) out[i] = (w[i] >= 32 && w[i] < 127) ? (char)w[i] : '?';
+        out[i] = 0; return 1;
+    }
+    return ty;
+}
+/* Cuenta las instancias bajo Enum\STORAGE\<cls> y cuantas tienen valor Service. */
+static void EnumClass(const char *cls, ULONG y)
+{
+    static UCHAR kb[512]; PVOID h = 0, k = 0; ULONG idx, nInst = 0, nSvc = 0, cf = 0, hasCf = 0, rl; char svc[40], ln[100], first[40], h8[17];
+    ULONG p, i; svc[0] = 0; first[0] = 0;
+    RpClear(); RpA("\\Registry\\Machine\\SYSTEM\\CurrentControlSet\\Enum\\STORAGE\\"); RpA(cls);
+    if (RpOpen(&h) < 0) { p = 0; for (i = 0; cls[i]; i++) ln[p++] = cls[i]; ln[p++]=' '; ln[p++]='-'; ln[p++]='-'; ln[p] = 0; DrawStr(20, y, ln, 0x00FFFF00); return; }
+    for (idx = 0; idx < 300; idx++) {
+        ULONG nl; USHORT *nw; char tmp[40];
+        if (ZwEnumerateKey(h, idx, 0, kb, sizeof(kb), &rl) < 0) break;
+        nl = *(ULONG *)(kb + 12) / 2; nw = (USHORT *)(kb + 16);
+        nInst++;
+        RpClear(); RpA("\\Registry\\Machine\\SYSTEM\\CurrentControlSet\\Enum\\STORAGE\\"); RpA(cls); RpA("\\"); RpW(nw, nl);
+        if (RpOpen(&k) >= 0) {
+            ULONG d2 = 0;
+            if (RegVal(k, "Service", tmp, sizeof(tmp), 0) == 1 && tmp[0]) { nSvc++; if (!svc[0]) { for (i = 0; tmp[i] && i < 39; i++) svc[i] = tmp[i]; svc[i] = 0; } }
+            if (!hasCf && RegVal(k, "ConfigFlags", 0, 0, &d2) == 4) { cf = d2; hasCf = 1; }
+            ZwClose(k);
+        }
+        if (idx == 0) { for (i = 0; i < nl && i < 39; i++) first[i] = (char)nw[i]; first[i] = 0; }
+    }
+    ZwClose(h);
+    p = 0; for (i = 0; cls[i] && p < 20; i++) ln[p++] = cls[i];
+    ln[p++]=' '; ln[p++]='n'; ln[p++]='='; PutDec(ln, &p, nInst);
+    ln[p++]=' '; ln[p++]='s'; ln[p++]='v'; ln[p++]='c'; ln[p++]='='; PutDec(ln, &p, nSvc);
+    ln[p++]=' '; for (i = 0; svc[i] && p < 60; i++) ln[p++] = svc[i];
+    ln[p++]=' '; ln[p++]='c'; ln[p++]='f'; ln[p++]='='; Hex(h8, cf, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i];
+    ln[p] = 0; DrawStr(20, y, ln, 0x0000FF00);
+    p = 0; for (i = 0; first[i] && p < 72; i++) ln[p++] = first[i]; ln[p] = 0; DrawStr(20, y + 28, ln, 0x00AAAAAA);
+}
+/* Lista los nombres de subclaves bajo Enum\STORAGE */
+static void EnumStorageNames(ULONG y)
+{
+    static UCHAR kb[512]; PVOID h = 0; ULONG idx, rl, p = 0, i; char ln[100];
+    RpClear(); RpA("\\Registry\\Machine\\SYSTEM\\CurrentControlSet\\Enum\\STORAGE");
+    ln[p++]='S'; ln[p++]='T'; ln[p++]='O'; ln[p++]='R'; ln[p++]=':'; ln[p++]=' ';
+    if (RpOpen(&h) < 0) { ln[p++]='-'; ln[p++]='-'; ln[p]=0; DrawStr(20, y, ln, 0x00FFFF00); return; }
+    for (idx = 0; idx < 12; idx++) {
+        ULONG nl; USHORT *nw;
+        if (ZwEnumerateKey(h, idx, 0, kb, sizeof(kb), &rl) < 0) break;
+        nl = *(ULONG *)(kb + 12) / 2; nw = (USHORT *)(kb + 16);
+        if (p + nl + 1 > 72) break;
+        for (i = 0; i < nl; i++) ln[p++] = (char)nw[i];
+        ln[p++] = ' ';
+    }
+    ZwClose(h); ln[p] = 0; DrawStr(20, y, ln, 0x0000FFFF);
+}
+static void DrawEnum(void)
+{
+    EnumStorageNames(1600);
+    EnumClass("Volume", 1632);
+    EnumClass("Partition", 1692);
+    EnumClass("VolumeSnapshot", 1752);
+}
+
 /* Rejilla ARC partition(1..130) (verde existe / rojo no) y resumen con destino de los enlaces. */
 static void DrawArc(void)
 {
@@ -512,6 +598,7 @@ static void DrawArc(void)
     DrawChain();
     DrawDevGrid();
     DrawDirs();
+    DrawEnum();
 }
 
 /* Hilo monitor.  Fila 3 (blanco): ms (dec), InterruptTime, ticks DPC (dec), CNTV_CTL, CNTV_CVAL-CNTVCT, CNTP_CTL.
