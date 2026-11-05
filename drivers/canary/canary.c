@@ -61,6 +61,9 @@ __declspec(dllimport) PVOID KeGetCurrentThread(void);
 __declspec(dllimport) LONG  ObReferenceObjectByName(PUNICODE_STRING Name, ULONG Attr, PVOID AccessState, ULONG Access, PVOID Type, UCHAR Mode, PVOID Ctx, PVOID *Obj);
 __declspec(dllimport) ULONGLONG ObfDereferenceObject(PVOID Obj);
 __declspec(dllimport) extern PVOID *IoDriverObjectType;
+typedef struct _OBJ_ATTR { ULONG Length; PVOID Root; PUNICODE_STRING Name; ULONG Attr; PVOID Sd; PVOID Sqos; } OBJ_ATTR;
+__declspec(dllimport) LONG ZwOpenSymbolicLinkObject(PVOID *Handle, ULONG Access, OBJ_ATTR *Oa);
+__declspec(dllimport) LONG ZwQuerySymbolicLinkObject(PVOID Handle, PUNICODE_STRING Target, ULONG *Ret);
 
 __declspec(align(64)) static UCHAR g_timer[256];
 __declspec(align(64)) static UCHAR g_bcrec[128];
@@ -275,25 +278,80 @@ static void NmDec(ULONG v)
     while (v) { b[i++] = (char)('0' + v % 10); v /= 10; }
     while (i) { if (g_nn < 120) g_nm[g_nn++] = (USHORT)(UCHAR)b[--i]; }
 }
-static int NmExists(void)
+static int OpenLink(PVOID *h)
 {
     UNICODE_STRING us;
-    PVOID obj = 0;
+    OBJ_ATTR oa;
     us.Length = (USHORT)(g_nn * 2); us.MaximumLength = us.Length; us.Buffer = g_nm;
-    if (ObReferenceObjectByName(&us, 0x40, 0, 0, 0, 0, 0, &obj) < 0 || !obj) return 0;
-    ObfDereferenceObject(obj);
+    oa.Length = sizeof(oa); oa.Root = 0; oa.Name = &us; oa.Attr = 0x240; oa.Sd = 0; oa.Sqos = 0;
+    return ZwOpenSymbolicLinkObject(h, 1, &oa) >= 0;
+}
+static int NmExists(void)
+{
+    PVOID h = 0;
+    if (!OpenLink(&h)) return 0;
+    ZwClose(h);
     return 1;
 }
-
-/* Rejilla de 130 celdas (partition 1..130): verde existe / rojo no.  Marca blanca cada 10. */
-static void DrawGrid(ULONG y, const char *pre, const char *post)
+static char g_tgt[80];
+/* Lee el destino del enlace simbolico g_nm en g_tgt; devuelve 0 si no existe. */
+static int NmTarget(void)
 {
-    ULONG k;
-    for (k = 1; k <= 130; k++) {
-        NmClear(); NmA(pre); NmDec(k); NmA(post);
-        FillRect(20 + (k - 1) * 9, y, 8, 8, NmExists() ? 0x0000C000 : 0x00C00000);
-        if (k % 10 == 0) FillRect(20 + (k - 1) * 9, y - 4, 8, 2, 0x00FFFFFF);
+    PVOID h = 0;
+    USHORT tb[80];
+    UNICODE_STRING t;
+    ULONG rl = 0, i, n;
+    g_tgt[0] = 0;
+    if (!OpenLink(&h)) return 0;
+    t.Length = 0; t.MaximumLength = sizeof(tb); t.Buffer = tb;
+    if (ZwQuerySymbolicLinkObject(h, &t, &rl) >= 0) {
+        n = t.Length / 2; if (n > 70) n = 70;
+        for (i = 0; i < n; i++) g_tgt[i] = (char)tb[i];
+        g_tgt[n] = 0;
     }
+    ZwClose(h);
+    return 1;
+}
+static void PutDec(char *o, ULONG *p, ULONG v)
+{
+    char b[12]; int i = 0;
+    if (v == 0) b[i++] = '0';
+    while (v) { b[i++] = (char)('0' + v % 10); v /= 10; }
+    while (i) o[(*p)++] = b[--i];
+}
+
+/* Rejilla ARC partition(1..130) (verde existe / rojo no) y resumen con destino de los enlaces. */
+static void DrawArc(void)
+{
+    ULONG k, cnt = 0, kmin = 0, kmax = 0, p;
+    char line[96];
+    for (k = 1; k <= 130; k++) {
+        int e;
+        NmClear(); NmA("\\ArcName\\multi(0)disk(0)rdisk(0)partition("); NmDec(k); NmA(")");
+        e = NmExists();
+        FillRect(20 + (k - 1) * 9, 800, 8, 8, e ? 0x0000C000 : 0x00C00000);
+        if (k % 10 == 0) FillRect(20 + (k - 1) * 9, 796, 8, 2, 0x00FFFFFF);
+        if (e) { cnt++; if (!kmin) kmin = k; kmax = k; }
+    }
+    p = 0; line[p++]='N'; line[p++]='='; PutDec(line, &p, cnt);
+    line[p++]=' '; line[p++]='M'; line[p++]='I'; line[p++]='N'; line[p++]='='; PutDec(line, &p, kmin);
+    line[p++]=' '; line[p++]='M'; line[p++]='A'; line[p++]='X'; line[p++]='='; PutDec(line, &p, kmax);
+    line[p] = 0;
+    DrawStr(20, 820, line, 0x00FFFFFF);
+    NmClear(); NmA("\\ArcName\\multi(0)disk(0)rdisk(0)partition(80)");
+    p = 0; line[p++]='8'; line[p++]='0'; line[p++]=' ';
+    if (NmTarget()) { ULONG i; for (i = 0; g_tgt[i] && p < 90; i++) line[p++] = g_tgt[i]; } else { line[p++]='-'; line[p++]='-'; }
+    line[p] = 0;
+    DrawStr(20, 850, line, 0x0000FFFF);
+    if (kmin) {
+        NmClear(); NmA("\\ArcName\\multi(0)disk(0)rdisk(0)partition("); NmDec(kmin); NmA(")");
+        p = 0; PutDec(line, &p, kmin); line[p++]=' ';
+        if (NmTarget()) { ULONG i; for (i = 0; g_tgt[i] && p < 90; i++) line[p++] = g_tgt[i]; }
+        line[p] = 0;
+        DrawStr(20, 880, line, 0x0000FF00);
+    }
+    NmClear(); NmA("\\ArcName\\multi(0)disk(0)rdisk(0)");
+    FillRect(20, 910, 20, 8, NmExists() ? 0x0000C000 : 0x00C00000);
 }
 
 /* Hilo monitor.  Fila 3 (blanco): ms (dec), InterruptTime, ticks DPC (dec), CNTV_CTL, CNTV_CVAL-CNTVCT, CNTP_CTL.
@@ -336,14 +394,7 @@ static void MonThread(PVOID ctx)
         { ULONGLONG el; __asm__ volatile("mrs %0, CurrentEL" : "=r"(el)); DrawHex(5, 5, (ULONG)el, 0x0000FFFF); }
         if (ms > 3000 && ms - lastgrid >= 3000) {
             lastgrid = ms;
-            DrawGrid(800, "\\ArcName\\multi(0)disk(0)rdisk(0)partition(", ")");
-            DrawGrid(830, "\\Device\\Harddisk0\\Partition", "");
-            NmClear(); NmA("\\ArcName\\multi(0)disk(0)rdisk(0)");
-            FillRect(20, 856, 20, 8, NmExists() ? 0x0000C000 : 0x00C00000);
-            NmClear(); NmA("\\Device\\Harddisk0\\DR0");
-            FillRect(50, 856, 20, 8, NmExists() ? 0x0000C000 : 0x00C00000);
-            NmClear(); NmA("\\Device\\Harddisk1\\Partition1");
-            FillRect(80, 856, 20, 8, NmExists() ? 0x0000C000 : 0x00C00000);
+            DrawArc();
         }
         if (ms - lastobj >= 500) {
             lastobj = ms;

@@ -11,5 +11,7 @@ KeSetPriorityThread
 KeGetCurrentThread
 ObReferenceObjectByName
 ObfDereferenceObject
+ZwOpenSymbolicLinkObject
+ZwQuerySymbolicLinkObject
 PsLoadedModuleList DATA
 IoDriverObjectType DATA
