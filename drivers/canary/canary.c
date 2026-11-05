@@ -238,26 +238,16 @@ static void BugCheckCb(PVOID Buffer, ULONG Length)
     DrawAddr(y, "ESR", rd_esr(), 0x00FFFFFF);  y += 30;
     DrawAddr(y, "ELR", rd_elr(), 0x0000FFFF);  y += 30;
     DrawAddr(y, "FAR", rd_far(), 0x0000FFFF);  y += 30;
-        {
-            char tl[96]; ULONG tp = 0; ULONG now = g_perv ? (ULONG)((rd_cntvct0() - g_t0v) / g_perv) : 0;
-            tl[tp++]='T'; tl[tp++]='='; PutDec(tl, &tp, now);
-            tl[tp++]=' '; tl[tp++]='L'; tl[tp++]='='; PutDec(tl, &tp, g_lastMs);
-            tl[tp++]=' '; tl[tp++]='P'; tl[tp++]='='; PutDec(tl, &tp, g_lastP);
-            tl[tp++]=' '; tl[tp++]='V'; tl[tp++]='='; PutDec(tl, &tp, g_lastV);
-            tl[tp++]=' '; tl[tp++]='S'; tl[tp++]='='; PutDec(tl, &tp, g_lastStor);
-            tl[tp] = 0; DrawStr(20, 1180, tl, 0x00FFFFFF);
-        }
-    FillRect(20, 1215, 30, 8, 0x0000FF00);
-    for (i = 0; i < 12; i++) {
-        if ((ULONGLONG)fp < 0xFFFF000000000000ULL || ((ULONGLONG)fp & 15)) break;
-        DrawAddr(y, "LR", fp[1], 0x0000FF00);  y += 30;
-        nx = (ULONGLONG *)fp[0];
-        if ((ULONGLONG)nx <= (ULONGLONG)fp || (ULONGLONG)nx - (ULONGLONG)fp > 0x4000) break;
-        fp = nx;
-    }
+    DrawAddr(y, "G1", 1, 0x0000FF00); y += 30;
+    DrawAddr(y, "T", g_perv ? (rd_cntvct0() - g_t0v) / g_perv : 0, 0x00FFFFFF); y += 30;
+    DrawAddr(y, "L", g_lastMs, 0x00FFFFFF); y += 30;
+    DrawAddr(y, "P", g_lastP, 0x00FFFFFF); y += 30;
+    DrawAddr(y, "V", g_lastV, 0x00FFFFFF); y += 30;
+    DrawAddr(y, "S", g_lastStor, 0x00FFFFFF); y += 30;
+    (void)fp; (void)nx; (void)i;
     {
         ULONGLONG a1 = FindArg1();
-        FillRect(60, 1215, 30, 8, 0x00FFFF00);
+        DrawAddr(1250, "G2", 2, 0x0000FF00);
         char ln[96]; ULONG p = 0, k; UCHAR *u;
         DrawAddr(1280, "ARG1", a1, 0x00FFFFFF);
         if (a1 && MmIsAddressValid((PVOID)a1) && MmIsAddressValid((PVOID)(a1 + 15))) {
