@@ -207,6 +207,26 @@ static inline ULONGLONG rd_far(void) { ULONGLONG v; __asm__ volatile("mrs %0, fa
 
 /* Se ejecuta durante un bugcheck: dibuja ESR/ELR/FAR y la pila, y se queda aqui (evita el reinicio). */
 __declspec(dllimport) extern UCHAR MmIsAddressValid(PVOID p);
+__declspec(dllimport) LONG IoGetDeviceObjectPointer(PUNICODE_STRING Name, ULONG Access, PVOID *File, PVOID *Dev);
+__declspec(dllimport) PVOID IoGetDeviceAttachmentBaseRef(PVOID Dev);
+__declspec(dllimport) void IoInvalidateDeviceRelations(PVOID Pdo, int Type);
+static volatile ULONG g_kn, g_kst, g_kms;
+static volatile ULONGLONG g_kdo, g_kpdo;
+static void KickPnp(void)
+{
+    static USHORT nm[40]; UNICODE_STRING us; PVOID fo = 0, dev = 0; const char *a = "\\Device\\Harddisk0\\DR0"; ULONG n = 0; LONG st;
+    while (a[n]) { nm[n] = (USHORT)(UCHAR)a[n]; n++; }
+    us.Length = (USHORT)(n * 2); us.MaximumLength = us.Length; us.Buffer = nm;
+    g_kn++;
+    st = IoGetDeviceObjectPointer(&us, 0x80, &fo, &dev);
+    g_kst = (ULONG)st; g_kdo = (ULONGLONG)dev; g_kpdo = 0;
+    if (st >= 0 && dev) {
+        PVOID pdo = IoGetDeviceAttachmentBaseRef(dev);
+        g_kpdo = (ULONGLONG)pdo;
+        if (pdo) { IoInvalidateDeviceRelations(pdo, 0); ObfDereferenceObject(pdo); }
+        if (fo) ObfDereferenceObject(fo);
+    }
+}
 static volatile ULONGLONG g_t0v, g_perv;
 static volatile ULONG g_lastPm, g_thdone, g_tPm1, g_tPm82, g_tIo, g_nIo, g_tIo0;
 static volatile ULONG g_lastMs, g_lastP, g_lastV, g_lastStor, g_lastDirT;
@@ -602,6 +622,10 @@ static void DiskInst(ULONG y)
 }
 static void DrawEnum(void)
 {
+    DrawAddr(1000, "KN", g_kn, 0x0000FF00);
+    DrawAddr(1030, "KS", g_kst, 0x00FFFF00);
+    DrawAddr(1060, "KDO", g_kdo, 0x00FFFFFF);
+    DrawAddr(1090, "KPD", g_kpdo, 0x00FFFFFF);
     EnumNames("ROOT", 1900);
     EnumNamesFrom("ROOT", 1930, 6);
     EnumNamesFrom("ROOT\\VOLMGR", 1960, 0);
@@ -828,7 +852,8 @@ static void MonThread(PVOID ctx)
             lastgrid = ms;
             DrawArc();
             g_lastMs = ms;
-            if (ms > 20000 && !g_thdone) { g_thdone = 1; DrawThreads(); }
+            if (ms > 5000 && g_kn == 0) KickPnp();
+            if (ms > 12000 && g_kn == 1) KickPnp();
         }
         if (ms - lastobj >= 500) {
             lastobj = ms;

@@ -23,3 +23,6 @@ MmIsAddressValid
 PsLoadedModuleList DATA
 PsInitialSystemProcess DATA
 IoDriverObjectType DATA
+IoGetDeviceObjectPointer
+IoGetDeviceAttachmentBaseRef
+IoInvalidateDeviceRelations
