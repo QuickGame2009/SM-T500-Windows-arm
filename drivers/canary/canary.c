@@ -483,6 +483,37 @@ static void AttName(PVOID dev, char *o)
         }
     }
 }
+/* Histograma de DEVICE_OBJECT.Flags de los objetos de partmgr, con driver enganchado y un ejemplo de ID. */
+static void PartHist(void)
+{
+    PVOID obj = 0, d, ex[8]; UNICODE_STRING us; ULONG fv[8], fc[8], nv = 0, n = 0, i, j, y = 1000, att[8];
+    us.Length = (USHORT)(sizeof(nm_partmgr) - 2); us.MaximumLength = us.Length; us.Buffer = nm_partmgr;
+    if (ObReferenceObjectByName(&us, 0x40, 0, 0, *IoDriverObjectType, 0, 0, &obj) < 0 || !obj) { DrawStr(700, y, "pm no drv", 0x00FFFF00); return; }
+    d = *(PVOID *)((UCHAR *)obj + 0x08);
+    while (d && n < 200) {
+        ULONG f = *(ULONG *)((UCHAR *)d + 0x30);
+        for (i = 0; i < nv && fv[i] != f; i++) ;
+        if (i == nv && nv < 8) { fv[nv] = f; fc[nv] = 0; ex[nv] = d; att[nv] = (*(PVOID *)((UCHAR *)d + 0x18) != 0); nv++; }
+        if (i < nv) fc[i]++;
+        n++; d = *(PVOID *)((UCHAR *)d + 0x10);
+    }
+    for (i = 0; i < nv; i++) {
+        char ln[80], nm[48], h8[17]; ULONG p = 0, tmo; LONG st;
+        ln[p++]='f'; Hex(h8, fv[i], 8); for (j = 0; j < 8; j++) ln[p++] = h8[j];
+        ln[p++]=' '; ln[p++]='n'; ln[p++]='='; PutDec(ln, &p, fc[i]);
+        ln[p++]=' '; ln[p++]='a'; ln[p++]='='; ln[p++] = att[i] ? '1' : '0';
+        ln[p] = 0;
+        FillRect(700, y, 480, 26, 0x00000000); DrawStr(700, y, ln, 0x00FFFF00); y += 28;
+        st = QueryId(ex[i], 0, nm, sizeof(nm), &tmo);
+        p = 0; ln[p++]=' ';
+        if (tmo) { ln[p++]='T'; ln[p++]='M'; ln[p++]='O'; }
+        else if (st < 0) { ln[p++]='s'; ln[p++]='t'; ln[p++]='='; Hex(h8, (ULONG)st, 8); for (j = 0; j < 8; j++) ln[p++] = h8[j]; }
+        else { for (j = 0; nm[j] && p < 60; j++) ln[p++] = nm[j]; }
+        ln[p] = 0;
+        FillRect(700, y, 480, 26, 0x00000000); DrawStr(700, y, ln, 0x0000FF00); y += 28;
+    }
+    ObfDereferenceObject(obj);
+}
 static void ProbeThread(PVOID ctx)
 {
     PVOID obj = 0, d; UNICODE_STRING us; ULONG n, y, pass;
@@ -491,7 +522,7 @@ static void ProbeThread(PVOID ctx)
     DiskRel();
     us.Length = (USHORT)(sizeof(nm_acpi) - 2); us.MaximumLength = us.Length; us.Buffer = nm_acpi;
     for (pass = 0; pass < 2; pass++) {
-        if (pass == 1) { while ((rd_cntvct() - g_t0v) / g_perv < 22000) ; }
+        if (pass == 1) { while ((rd_cntvct() - g_t0v) / g_perv < 22000) ; PartHist(); return; }
         if (pass == 1) { us.Length = (USHORT)(sizeof(nm_pnpm) - 2); us.MaximumLength = us.Length; us.Buffer = nm_pnpm; }
         if (ObReferenceObjectByName(&us, 0x40, 0, 0, *IoDriverObjectType, 0, 0, &obj) < 0 || !obj) { DrawStr(700, 1000, "drv no", 0x00FFFF00); return; }
         d = *(PVOID *)((UCHAR *)obj + 0x08); n = 0; y = 1000;
