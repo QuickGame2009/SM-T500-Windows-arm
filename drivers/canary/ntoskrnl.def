@@ -33,3 +33,4 @@ KeInitializeEvent
 KeSetEvent
 KeWaitForSingleObject
 ExFreePool
+IoGetDevicePropertyData
