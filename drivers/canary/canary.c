@@ -63,6 +63,8 @@ __declspec(dllimport) ULONGLONG ObfDereferenceObject(PVOID Obj);
 __declspec(dllimport) extern PVOID *IoDriverObjectType;
 typedef struct _OBJ_ATTR { ULONG Length; PVOID Root; PUNICODE_STRING Name; ULONG Attr; PVOID Sd; PVOID Sqos; } OBJ_ATTR;
 typedef struct _IOSB { ULONGLONG St; ULONGLONG Info; } IOSB;
+__declspec(dllimport) LONG ZwOpenDirectoryObject(PVOID *Handle, ULONG Access, OBJ_ATTR *Oa);
+__declspec(dllimport) LONG ZwQueryDirectoryObject(PVOID H, PVOID Buf, ULONG Len, UCHAR Single, UCHAR Restart, ULONG *Ctx, ULONG *Ret);
 __declspec(dllimport) LONG ZwOpenFile(PVOID *Handle, ULONG Access, OBJ_ATTR *Oa, IOSB *Io, ULONG Share, ULONG Opts);
 __declspec(dllimport) LONG ZwOpenSymbolicLinkObject(PVOID *Handle, ULONG Access, OBJ_ATTR *Oa);
 __declspec(dllimport) LONG ZwQuerySymbolicLinkObject(PVOID Handle, PUNICODE_STRING Target, ULONG *Ret);
@@ -421,6 +423,60 @@ static void DrawDevGrid(void)
     }
 }
 
+static ULONG g_dy;           /* siguiente y libre de DirList */
+static ULONG g_dtot, g_ddig, g_dhd;
+/* Lista un directorio del Object Manager. filt=1: solo nombres Harddisk, Volume o Part; cuenta totales. */
+static void DirList(const char *path, ULONG filt, ULONG maxlines)
+{
+    PVOID h = 0; UNICODE_STRING us; OBJ_ATTR oa; static UCHAR buf[512]; ULONG ctx = 0, rl, n = 0, lines = 0, p = 0, i;
+    char ln[100]; USHORT pl = 0;
+    static USHORT pw[64];
+    for (; path[pl]; pl++) pw[pl] = (USHORT)(UCHAR)path[pl];
+    us.Length = (USHORT)(pl * 2); us.MaximumLength = us.Length; us.Buffer = pw;
+    oa.Length = sizeof(oa); oa.Root = 0; oa.Name = &us; oa.Attr = 0x240; oa.Sd = 0; oa.Sqos = 0;
+    g_dtot = g_ddig = g_dhd = 0;
+    if (ZwOpenDirectoryObject(&h, 1, &oa) < 0) { DrawStr(20, g_dy, "(sin dir)", 0x00FFFF00); g_dy += 32; return; }
+    for (;;) {
+        LONG st = ZwQueryDirectoryObject(h, buf, sizeof(buf), 1, n == 0, &ctx, &rl);
+        USHORT nl, tl; USHORT *nb, *tb; char tok[48]; ULONG t = 0, show = 1;
+        if (st < 0) break;
+        nl = *(USHORT *)buf / 2; nb = *(USHORT **)(buf + 8);
+        tl = *(USHORT *)(buf + 16) / 2; tb = *(USHORT **)(buf + 24);
+        if (!nl) break;
+        n++; g_dtot++;
+        { int dig = 1; for (i = 0; i < nl; i++) if (nb[i] < '0' || nb[i] > '9') dig = 0; if (dig) g_ddig++; }
+        if (nl >= 8 && nb[0]=='H' && nb[1]=='a' && nb[2]=='r' && nb[3]=='d' && nb[4]=='d') g_dhd++;
+        if (filt) {
+            show = (nl >= 4 && ((nb[0]=='H' && nb[1]=='a' && nb[2]=='r' && nb[3]=='d') ||
+                                (nb[0]=='V' && nb[1]=='o' && nb[2]=='l' && nb[3]=='u') ||
+                                (nb[0]=='P' && nb[1]=='a' && nb[2]=='r' && nb[3]=='t')));
+        }
+        if (!show) continue;
+        for (i = 0; i < nl && t < 36; i++) tok[t++] = (nb[i] >= 32 && nb[i] < 127) ? (char)nb[i] : '?';
+        tok[t++] = '('; for (i = 0; i < 3 && i < tl; i++) tok[t++] = (char)tb[i]; tok[t++] = ')'; tok[t++] = ' '; tok[t] = 0;
+        if (p + t > 72) {
+            ln[p] = 0; DrawStr(20, g_dy, ln, 0x0000FFFF); g_dy += 32; p = 0;
+            if (++lines >= maxlines) { ZwClose(h); return; }
+        }
+        for (i = 0; i < t; i++) ln[p++] = tok[i];
+    }
+    if (p && lines < maxlines) { ln[p] = 0; DrawStr(20, g_dy, ln, 0x0000FFFF); g_dy += 32; }
+    ZwClose(h);
+}
+static void DrawDirs(void)
+{
+    char ln[100]; ULONG p;
+    g_dy = 1400;
+    DirList("\\Device\\Harddisk0", 0, 3);
+    p = 0; ln[p++]='D'; ln[p++]='e'; ln[p++]='v'; ln[p++]=' '; ln[p++]='t'; ln[p++]='='; PutDec(ln, &p, g_dtot);
+    ln[p++]=' '; ln[p++]='d'; ln[p++]='='; PutDec(ln, &p, g_ddig); ln[p] = 0;
+    DrawStr(20, g_dy, ln, 0x00FFFFFF); g_dy += 32;
+    DirList("\\Device", 1, 14);
+    p = 0; ln[p++]='D'; ln[p++]='e'; ln[p++]='v'; ln[p++]=' '; ln[p++]='t'; ln[p++]='='; PutDec(ln, &p, g_dtot);
+    ln[p++]=' '; ln[p++]='d'; ln[p++]='='; PutDec(ln, &p, g_ddig); ln[p++]=' '; ln[p++]='h'; ln[p++]='='; PutDec(ln, &p, g_dhd); ln[p] = 0;
+    DrawStr(20, 1860, ln, 0x00FFFFFF);
+}
+
 /* Rejilla ARC partition(1..130) (verde existe / rojo no) y resumen con destino de los enlaces. */
 static void DrawArc(void)
 {
@@ -455,6 +511,7 @@ static void DrawArc(void)
     FillRect(20, 910, 20, 8, NmExists() ? 0x0000C000 : 0x00C00000);
     DrawChain();
     DrawDevGrid();
+    DrawDirs();
 }
 
 /* Hilo monitor.  Fila 3 (blanco): ms (dec), InterruptTime, ticks DPC (dec), CNTV_CTL, CNTV_CVAL-CNTVCT, CNTP_CTL.
