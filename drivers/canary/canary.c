@@ -393,6 +393,23 @@ static void DiskRel(void)
     g_kst = (ULONG)st; g_kdo = 0; g_kpdo = 0;
     if (st < 0 || !dev) return;
     top = IoGetAttachedDeviceReference(dev);
+    {   /* pila de dispositivos, de abajo (PDO) arriba */
+        PVOID bs2 = IoGetDeviceAttachmentBaseRef(dev), cur; char ln[100]; ULONG p = 0, k, c = 0;
+        ln[p++]='S'; ln[p++]='T'; ln[p++]='K'; ln[p++]=' ';
+        for (cur = bs2; cur && c < 6; c++) {
+            PVOID drv = *(PVOID *)((UCHAR *)cur + 8);
+            if (drv && MmIsAddressValid((PVOID)((UCHAR *)drv + 0x48))) {
+                USHORT len = *(USHORT *)((UCHAR *)drv + 0x38); USHORT *w = *(USHORT **)((UCHAR *)drv + 0x40);
+                ULONG o = 0;
+                if (w && MmIsAddressValid(w)) { if (len / 2 > 8) o = len / 2 - 8; for (k = o; k < len / 2 && p < 90; k++) ln[p++] = (char)w[k]; }
+            }
+            if (cur == dev) { ln[p++]='*'; }
+            ln[p++] = ' '; ln[p++] = '<'; ln[p++] = ' ';
+            cur = *(PVOID *)((UCHAR *)cur + 0x18);
+        }
+        ln[p] = 0; DrawStr(20, 1830, ln, 0x0000FFFF);
+        if (bs2) ObfDereferenceObject(bs2);
+    }
     irp = (UCHAR *)IoAllocateIrp(12, 0);
     if (!irp || !top) { g_kst = 0xDEAD0001; return; }
     KeInitializeEvent(g_pev, 0, 0);
