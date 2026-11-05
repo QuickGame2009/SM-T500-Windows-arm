@@ -554,7 +554,7 @@ static void EnumClass(const char *cls, ULONG y)
     p = 0; for (i = 0; first[i] && p < 72; i++) ln[p++] = first[i]; ln[p] = 0; DrawStr(20, y + 28, ln, 0x00AAAAAA);
 }
 /* Lista los nombres de subclaves de Enum\\<sub> (sub vacio = Enum) */
-static void EnumNames(const char *sub, ULONG y)
+static void EnumNamesFrom(const char *sub, ULONG y, ULONG skip)
 {
     static UCHAR kb[512]; PVOID h = 0; ULONG idx, rl, p = 0, i; char ln[100];
     RpClear(); RpA("\\Registry\\Machine\\SYSTEM\\ControlSet001\\Enum");
@@ -564,7 +564,7 @@ static void EnumNames(const char *sub, ULONG y)
     ln[p++] = ':'; ln[p++] = ' ';
     if (RpOpen(&h) < 0) { if (sub[0]=='S' && sub[1]=='T') g_lastStor = 0; ln[p++]='-'; ln[p++]='-'; ln[p]=0; DrawStr(20, y, ln, 0x00FFFF00); return; }
     if (sub[0]=='S' && sub[1]=='T') g_lastStor = 1;
-    for (idx = 0; idx < 40; idx++) {
+    for (idx = skip; idx < 40; idx++) {
         ULONG nl; USHORT *nw;
         if (ZwEnumerateKey(h, idx, 0, kb, sizeof(kb), &rl) < 0) break;
         nl = *(ULONG *)(kb + 12) / 2; nw = (USHORT *)(kb + 16);
@@ -574,6 +574,7 @@ static void EnumNames(const char *sub, ULONG y)
     }
     ZwClose(h); ln[p] = 0; DrawStr(20, y, ln, 0x0000FFFF);
 }
+static void EnumNames(const char *sub, ULONG y) { EnumNamesFrom(sub, y, 0); }
 static void DiskInst(ULONG y)
 {
     static UCHAR kb[512]; PVOID h = 0, k = 0; ULONG rl, p = 0, i, cf = 0; char ln[100], svc[30], cl[10], h8[17];
@@ -602,8 +603,8 @@ static void DiskInst(ULONG y)
 static void DrawEnum(void)
 {
     EnumNames("ROOT", 1900);
-    EnumNames("ACPI", 1930);
-    DiskInst(1960);
+    EnumNamesFrom("ROOT", 1930, 6);
+    EnumNamesFrom("ROOT\\VOLMGR", 1960, 0);
     EnumNames("", 1570);
     EnumNames("STORAGE", 1600);
     EnumNames("SCSI", 1630);
