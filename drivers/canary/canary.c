@@ -615,30 +615,24 @@ static void PartHist(void)
         } else DrawStr(700, 1300, "X DR0 no", 0x00FFFF00);
     }
 }
+static volatile ULONG g_plms[16], g_pla[16], g_plf[16], g_plr[16], g_pln;
 static void ProbeThread(PVOID ctx)
 {
     PVOID obj = 0, d; UNICODE_STRING us; ULONG n, y, pass;
     (void)ctx;
     KeSetPriorityThread(KeGetCurrentThread(), 1);
     if (0) DiskRel();   /* v45: sin tocar nada, solo observar */
-    {   /* seguimiento temporal del atributo OFFLINE, flags y motivo (ext+0x204) de partmgr */
-        static USHORT nmt[40]; UNICODE_STRING ut; PVOID fot = 0, dvt = 0; const char *at = "\\Device\\Harddisk0\\DR0"; ULONG qt = 0, k;
-        while (at[qt]) { nmt[qt] = (USHORT)(UCHAR)at[qt]; qt++; }
-        ut.Length = (USHORT)(qt * 2); ut.MaximumLength = ut.Length; ut.Buffer = nmt;
-        if (IoGetDeviceObjectPointer(&ut, 0x80, &fot, &dvt) >= 0 && dvt) {
-            UCHAR *ext = *(UCHAR **)((UCHAR *)dvt + 0x40);
-            if (ext && MmIsAddressValid(ext + 0x460)) {
-                for (k = 0; k < 9; k++) {
-                    char ln[60], h8[17]; ULONG p = 0, j;
-                    while ((rd_cntvct() - g_t0v) / g_perv < 4000 + 2000 * k) ;
-                    ln[p++]='t'; PutDec(ln, &p, 4 + 2 * k); ln[p++]=' '; ln[p++]='a'; Hex(h8, *(ULONG *)(ext + 0x210), 4); for (j = 0; j < 4; j++) ln[p++] = h8[j];
-                    ln[p++]=' '; ln[p++]='f'; Hex(h8, *(ULONG *)(ext + 0x200), 4); for (j = 0; j < 4; j++) ln[p++] = h8[j];
-                    ln[p++]=' '; ln[p++]='r'; Hex(h8, *(ULONG *)(ext + 0x204), 4); for (j = 0; j < 4; j++) ln[p++] = h8[j];
-                    ln[p] = 0; FillRect(640, 1480 + 28 * k, 480, 26, 0x00000000); DrawStr(640, 1480 + 28 * k, ln, 0x0000FFFF);
-                }
-            }
-            if (fot) ObfDereferenceObject(fot);
+    {   /* volcado del registro de cambios (atributo, flags, motivo) de partmgr DR0 */
+        ULONG k;
+        while ((rd_cntvct() - g_t0v) / g_perv < 20000) ;
+        for (k = 0; k < g_pln && k < 16; k++) {
+            char ln[60], h8[17]; ULONG p = 0, j;
+            ln[p++]='L'; ln[p++]=' '; PutDec(ln, &p, g_plms[k]); ln[p++]=' '; ln[p++]='a'; Hex(h8, g_pla[k], 4); for (j = 0; j < 4; j++) ln[p++] = h8[j];
+            ln[p++]=' '; ln[p++]='f'; Hex(h8, g_plf[k], 4); for (j = 0; j < 4; j++) ln[p++] = h8[j];
+            ln[p++]=' '; ln[p++]='r'; Hex(h8, g_plr[k], 4); for (j = 0; j < 4; j++) ln[p++] = h8[j];
+            ln[p] = 0; FillRect(640, 1330 + 26 * k, 480, 24, 0x00000000); DrawStr(640, 1330 + 26 * k, ln, 0x0000FFFF);
         }
+        if (!g_pln) DrawStr(640, 1330, "L sin DR0", 0x00FFFF00);
     }
     us.Length = (USHORT)(sizeof(nm_acpi) - 2); us.MaximumLength = us.Length; us.Buffer = nm_acpi;
     for (pass = 0; pass < 2; pass++) {
@@ -1146,6 +1140,27 @@ static void DrawArc(void)
 /* Hilo monitor.  Fila 3 (blanco): ms (dec), InterruptTime, ticks DPC (dec), CNTV_CTL, CNTV_CVAL-CNTVCT, CNTP_CTL.
    Fila 4 (naranja): ICC_RPR, ICC_HPPIR1, ICC_PMR, DAIF, ISENABLER0, ISPENDR0.
    Fila 5 (cian): SystemTime, 1a palabra SPI pendiente (indice, valor), numero de SPI pendientes, ISACTIVER0, CurrentEL. */
+static void PollDr0(ULONG ms)
+{
+    static UCHAR *ext; static ULONG la = 0xFFFFFFFF, lf = 0xFFFFFFFF, lr = 0xFFFFFFFF;
+    ULONG a, f, r;
+    if (!ext) {
+        static USHORT nmp[40]; UNICODE_STRING up; PVOID fo = 0, dv = 0; const char *ap = "\\Device\\Harddisk0\\DR0"; ULONG q = 0;
+        if (g_lastPm < 2) return;
+        while (ap[q]) { nmp[q] = (USHORT)(UCHAR)ap[q]; q++; }
+        up.Length = (USHORT)(q * 2); up.MaximumLength = up.Length; up.Buffer = nmp;
+        if (IoGetDeviceObjectPointer(&up, 0x80, &fo, &dv) >= 0 && dv) {
+            UCHAR *e = *(UCHAR **)((UCHAR *)dv + 0x40);
+            if (e && MmIsAddressValid(e + 0x460)) ext = e;
+        }
+        if (!ext) return;
+    }
+    a = *(ULONG *)(ext + 0x210); f = *(ULONG *)(ext + 0x200); r = *(ULONG *)(ext + 0x204);
+    if ((a != la || f != lf || r != lr) && g_pln < 16) {
+        g_plms[g_pln] = ms; g_pla[g_pln] = a; g_plf[g_pln] = f; g_plr[g_pln] = r; g_pln++;
+        la = a; lf = f; lr = r;
+    }
+}
 static void MonThread(PVOID ctx)
 {
     ULONGLONG t0 = rd_cntvct(), per, freq = rd_cntfrq();
@@ -1159,6 +1174,7 @@ static void MonThread(PVOID ctx)
         ms = (ULONG)((rd_cntvct() - t0) / per);
         if (ms - lastdraw < 100) continue;
         lastdraw = ms;
+        PollDr0(ms);
         pi = 0xFF; pv = 0; pc = 0;
         if (g_gicd) for (w = 1; w < 16; w++) {
             p = g_gicd[(0x200 + 4 * w) / 4];
