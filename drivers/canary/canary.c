@@ -406,15 +406,23 @@ static void ProbeThread(PVOID ctx)
                 FillRect(700, y, 480, 26, 0x00000000);
                 DrawStr(700, y, ln, tmo ? 0x00FF0000 : 0x0000FF00);
             } else {
-                ULONG v0 = 0, v1 = 0, rq = 0, ty = 0; LONG s0, s1;
-                s0 = IoGetDevicePropertyData(d, g_dnkey[0], 0x409, 0, 4, &v0, &rq, &ty);
-                s1 = IoGetDevicePropertyData(d, g_dnkey[1], 0x409, 0, 4, &v1, &rq, &ty);
+                ULONG v0 = 0, v1 = 0, rq = 0, ty = 0, fl = 0; LONG s0 = 0, s1 = 0; PVOID bs = IoGetDeviceAttachmentBaseRef(d);
                 ln[p++] = (char)('A' + n); ln[p++] = ' ';
-                if (s0 < 0) { ln[p++]='e'; Hex(h8, (ULONG)s0, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i]; }
-                else { ln[p++]='s'; Hex(h8, v0, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i]; }
-                ln[p++] = ' ';
-                if (s1 < 0) { ln[p++]='e'; Hex(h8, (ULONG)s1, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i]; }
-                else { ln[p++]='p'; Hex(h8, v1, 8); for (i = 6; i < 8; i++) ln[p++] = h8[i]; }
+                if (!bs) { ln[p++]='n'; ln[p++]='o'; ln[p++]='b'; ln[p++]='s'; }
+                else {
+                    fl = *(ULONG *)((UCHAR *)bs + 0x30);
+                    ln[p++]='f'; Hex(h8, fl, 8); for (i = 4; i < 8; i++) ln[p++] = h8[i]; ln[p++] = ' ';
+                    if (fl & 0x1000) {
+                        s0 = IoGetDevicePropertyData(bs, g_dnkey[0], 0x409, 0, 4, &v0, &rq, &ty);
+                        s1 = IoGetDevicePropertyData(bs, g_dnkey[1], 0x409, 0, 4, &v1, &rq, &ty);
+                        if (s0 < 0) { ln[p++]='e'; Hex(h8, (ULONG)s0, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i]; }
+                        else { ln[p++]='s'; Hex(h8, v0, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i]; }
+                        ln[p++] = ' ';
+                        if (s1 < 0) { ln[p++]='e'; Hex(h8, (ULONG)s1, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i]; }
+                        else { ln[p++]='p'; Hex(h8, v1, 8); for (i = 6; i < 8; i++) ln[p++] = h8[i]; }
+                    } else { ln[p++]='N'; ln[p++]='O'; ln[p++]='E'; ln[p++]='N'; ln[p++]='U'; ln[p++]='M'; }
+                    ObfDereferenceObject(bs);
+                }
                 ln[p] = 0;
                 FillRect(700, y, 480, 26, 0x00000000);
                 DrawStr(700, y, ln, 0x0000FFFF);
