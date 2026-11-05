@@ -620,7 +620,7 @@ static void ProbeThread(PVOID ctx)
     PVOID obj = 0, d; UNICODE_STRING us; ULONG n, y, pass;
     (void)ctx;
     KeSetPriorityThread(KeGetCurrentThread(), 1);
-    DiskRel();
+    if (0) DiskRel();   /* v45: sin tocar nada, solo observar */
     {   /* seguimiento temporal del atributo OFFLINE, flags y motivo (ext+0x204) de partmgr */
         static USHORT nmt[40]; UNICODE_STRING ut; PVOID fot = 0, dvt = 0; const char *at = "\\Device\\Harddisk0\\DR0"; ULONG qt = 0, k;
         while (at[qt]) { nmt[qt] = (USHORT)(UCHAR)at[qt]; qt++; }
@@ -628,13 +628,13 @@ static void ProbeThread(PVOID ctx)
         if (IoGetDeviceObjectPointer(&ut, 0x80, &fot, &dvt) >= 0 && dvt) {
             UCHAR *ext = *(UCHAR **)((UCHAR *)dvt + 0x40);
             if (ext && MmIsAddressValid(ext + 0x460)) {
-                for (k = 0; k < 6; k++) {
+                for (k = 0; k < 9; k++) {
                     char ln[60], h8[17]; ULONG p = 0, j;
-                    while ((rd_cntvct() - g_t0v) / g_perv < 5000 + 3000 * k) ;
-                    ln[p++]='t'; PutDec(ln, &p, 5 + 3 * k); ln[p++]=' '; ln[p++]='a'; Hex(h8, *(ULONG *)(ext + 0x210), 4); for (j = 0; j < 4; j++) ln[p++] = h8[j];
+                    while ((rd_cntvct() - g_t0v) / g_perv < 4000 + 2000 * k) ;
+                    ln[p++]='t'; PutDec(ln, &p, 4 + 2 * k); ln[p++]=' '; ln[p++]='a'; Hex(h8, *(ULONG *)(ext + 0x210), 4); for (j = 0; j < 4; j++) ln[p++] = h8[j];
                     ln[p++]=' '; ln[p++]='f'; Hex(h8, *(ULONG *)(ext + 0x200), 4); for (j = 0; j < 4; j++) ln[p++] = h8[j];
                     ln[p++]=' '; ln[p++]='r'; Hex(h8, *(ULONG *)(ext + 0x204), 4); for (j = 0; j < 4; j++) ln[p++] = h8[j];
-                    ln[p] = 0; FillRect(640, 1500 + 30 * k, 480, 26, 0x00000000); DrawStr(640, 1500 + 30 * k, ln, 0x0000FFFF);
+                    ln[p] = 0; FillRect(640, 1480 + 28 * k, 480, 26, 0x00000000); DrawStr(640, 1480 + 28 * k, ln, 0x0000FFFF);
                 }
             }
             if (fot) ObfDereferenceObject(fot);
