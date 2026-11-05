@@ -662,6 +662,17 @@ static void LayChk(void)
             }
         }
     }
+    if (sl >= 0) {
+        ULONG r;
+        for (r = 0; r < 4; r++) {
+            ULONG c; p = 0; ln[p++]='E'; PutDec(ln, &p, r * 3); ln[p++]=' ';
+            for (c = 0; c < 3; c++) {
+                ULONG idx = r * 3 + c; ULONG *pq = (ULONG *)(g_lay + 0x30 + 0x90 * idx + 0x30);
+                Hex(h8, pq[0], 8); for (k = 0; k < 8; k++) ln[p++] = h8[k]; ln[p++]=' ';
+            }
+            ln[p] = 0; FillRect(640, 1690 + 24 * r, 540, 22, 0x00000000); DrawStr(640, 1690 + 24 * r, ln, 0x0000FFFF);
+        }
+    }
     p = 0; ln[p++]='Y'; ln[p++]=' '; Hex(h8, (ULONG)sl, 8); for (k = 0; k < 8; k++) ln[p++] = h8[k];
     ln[p++]=' '; ln[p++]='s'; PutDec(ln, &p, sty); ln[p++]=' '; ln[p++]='c'; PutDec(ln, &p, cnt);
     ln[p] = 0; FillRect(640, 1790, 480, 22, 0x00000000); DrawStr(640, 1790, ln, 0x0000FFFF);
@@ -689,13 +700,6 @@ static void ProbeThread(PVOID ctx)
         if (!g_pln) DrawStr(640, 1420, "L sin DR0", 0x00FFFF00);
         WalkLst(1);
         LayChk();
-        for (k = 0; k < 2; k++) {
-            char ln[80], h8[17]; ULONG p = 0, j;
-            ln[p++]='W'; ln[p++]=(char)('0'+k); ln[p++]=' '; PutDec(ln, &p, g_lstn[k]); ln[p++]=' '; PutDec(ln, &p, g_lstown[k]); ln[p++]=' ';
-            Hex(h8, g_lstg[k][0], 8); for (j = 0; j < 8; j++) ln[p++] = h8[j];
-            ln[p++]=' '; Hex(h8, g_lstg[k][1], 8); for (j = 0; j < 8; j++) ln[p++] = h8[j];
-            ln[p] = 0; FillRect(640, 1730 + 24 * k, 480, 22, 0x00000000); DrawStr(640, 1730 + 24 * k, ln, 0x00FF80FF);
-        }
     }
     us.Length = (USHORT)(sizeof(nm_acpi) - 2); us.MaximumLength = us.Length; us.Buffer = nm_acpi;
     for (pass = 0; pass < 2; pass++) {
