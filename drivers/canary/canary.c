@@ -206,6 +206,9 @@ static inline ULONGLONG rd_far(void) { ULONGLONG v; __asm__ volatile("mrs %0, fa
 
 /* Se ejecuta durante un bugcheck: dibuja ESR/ELR/FAR y la pila, y se queda aqui (evita el reinicio). */
 __declspec(dllimport) extern UCHAR MmIsAddressValid(PVOID p);
+static volatile ULONGLONG g_t0v, g_perv;
+static volatile ULONG g_lastMs, g_lastP, g_lastV, g_lastStor, g_lastDirT;
+static inline ULONGLONG rd_cntvct0(void) { ULONGLONG v; __asm__ volatile("mrs %0, cntvct_el0" : "=r"(v)); return v; }
 /* Busca KiBugCheckData en ntoskrnl: {0x7B, arg1, 0xC0000034, 0, 1} y devuelve arg1 (o 0). */
 static ULONGLONG FindArg1(void)
 {
@@ -224,6 +227,7 @@ static ULONGLONG FindArg1(void)
     }
     return 0;
 }
+static void PutDec(char *o, ULONG *p, ULONG v);
 static void BugCheckCb(PVOID Buffer, ULONG Length)
 {
     ULONGLONG *fp = (ULONGLONG *)__builtin_frame_address(0), *nx;
@@ -244,6 +248,15 @@ static void BugCheckCb(PVOID Buffer, ULONG Length)
     {
         ULONGLONG a1 = FindArg1();
         char ln[96]; ULONG p = 0, k; UCHAR *u;
+        {
+            char tl[96]; ULONG tp = 0; ULONG now = g_perv ? (ULONG)((rd_cntvct0() - g_t0v) / g_perv) : 0;
+            tl[tp++]='T'; tl[tp++]='='; PutDec(tl, &tp, now);
+            tl[tp++]=' '; tl[tp++]='L'; tl[tp++]='='; PutDec(tl, &tp, g_lastMs);
+            tl[tp++]=' '; tl[tp++]='P'; tl[tp++]='='; PutDec(tl, &tp, g_lastP);
+            tl[tp++]=' '; tl[tp++]='V'; tl[tp++]='='; PutDec(tl, &tp, g_lastV);
+            tl[tp++]=' '; tl[tp++]='S'; tl[tp++]='='; PutDec(tl, &tp, g_lastStor);
+            tl[tp] = 0; DrawStr(20, 1230, tl, 0x00FFFFFF);
+        }
         DrawAddr(1280, "ARG1", a1, 0x00FFFFFF);
         if (a1 && MmIsAddressValid((PVOID)a1) && MmIsAddressValid((PVOID)(a1 + 15))) {
             ULONGLONG bp = *(ULONGLONG *)(a1 + 8); USHORT len = *(USHORT *)a1;
@@ -411,6 +424,7 @@ static void DrawDevGrid(void)
             if (e) { cnt[g]++; if (!mn[g]) mn[g] = k; mx[g] = k; }
         }
     }
+    g_lastP = cnt[0]; g_lastV = cnt[1];
     p = 0; ln[p++]='P'; ln[p++]='='; PutDec(ln, &p, cnt[0]); ln[p++]=' '; PutDec(ln, &p, mn[0]); ln[p++]='-'; PutDec(ln, &p, mx[0]);
     ln[p++]=' '; ln[p++]='V'; ln[p++]='='; PutDec(ln, &p, cnt[1]); ln[p++]=' '; PutDec(ln, &p, mn[1]); ln[p++]='-'; PutDec(ln, &p, mx[1]);
     ln[p] = 0; DrawStr(20, y + 34, ln, 0x00FFFFFF);
@@ -547,7 +561,8 @@ static void EnumNames(const char *sub, ULONG y)
     for (i = 0; sub[i] && p < 12; i++) ln[p++] = sub[i];
     if (!sub[0]) { ln[p++]='E'; ln[p++]='n'; ln[p++]='u'; ln[p++]='m'; }
     ln[p++] = ':'; ln[p++] = ' ';
-    if (RpOpen(&h) < 0) { ln[p++]='-'; ln[p++]='-'; ln[p]=0; DrawStr(20, y, ln, 0x00FFFF00); return; }
+    if (RpOpen(&h) < 0) { if (sub[0]=='S' && sub[1]=='T') g_lastStor = 0; ln[p++]='-'; ln[p++]='-'; ln[p]=0; DrawStr(20, y, ln, 0x00FFFF00); return; }
+    if (sub[0]=='S' && sub[1]=='T') g_lastStor = 1;
     for (idx = 0; idx < 40; idx++) {
         ULONG nl; USHORT *nw;
         if (ZwEnumerateKey(h, idx, 0, kb, sizeof(kb), &rl) < 0) break;
@@ -617,6 +632,7 @@ static void MonThread(PVOID ctx)
     KeSetPriorityThread(KeGetCurrentThread(), 1);
     if (freq == 0) freq = 19200000;
     per = freq / 1000;
+    g_t0v = t0; g_perv = per;
     for (;;) {
         ms = (ULONG)((rd_cntvct() - t0) / per);
         if (ms - lastdraw < 100) continue;
@@ -647,6 +663,7 @@ static void MonThread(PVOID ctx)
         if (ms > 3000 && ms - lastgrid >= 3000) {
             lastgrid = ms;
             DrawArc();
+            g_lastMs = ms;
         }
         if (ms - lastobj >= 500) {
             lastobj = ms;
