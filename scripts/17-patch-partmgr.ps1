@@ -196,7 +196,18 @@ if ($lw) {
             & takeown.exe /f $pm | Out-Null
             & icacls.exe $pm /grant "*S-1-5-32-544:F" | Out-Null
         }
-        try { Write-Host ([GptTool]::PatchPartmgr($pm)) } catch { Write-Host ("ERROR al parchear: " + $_.Exception.Message) -ForegroundColor Red }
+        # Version ya parcheada Y firmada con el certificado de prueba (igual que canary3.sys): el parche sin firma daba 0xC0000428
+        $pat = @("$kit\partmgr-parcheado.sys", "$kit\scripts\partmgr-parcheado.sys") | Where-Object { Test-Path $_ } | Select-Object -First 1
+        $h0 = (Get-FileHash "$pm.orig" -Algorithm SHA256).Hash
+        Write-Host "SHA256 partmgr.sys.orig: $h0"
+        if ($h0 -ne '6B9F427CA3ED805E00EA9596D7DF337D440C6E455175E3121D15C8F119AB8D37') {
+            Write-Host "ERROR: partmgr.sys.orig no es la version esperada; no se toca" -ForegroundColor Red
+        } elseif (-not $pat) {
+            Write-Host "ERROR: falta partmgr-parcheado.sys en la carpeta del kit" -ForegroundColor Red
+        } else {
+            Copy-Item $pat $pm -Force
+            Write-Host ("partmgr.sys parcheado y firmado. SHA256: " + (Get-FileHash $pm -Algorithm SHA256).Hash)
+        }
     } else { Write-Host "No encuentro $pm" -ForegroundColor Red }
 }
 Set-Location $kit
