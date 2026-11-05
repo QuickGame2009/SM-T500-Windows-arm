@@ -391,6 +391,36 @@ static void DrawChain(void)
     }
 }
 
+static int StExists(LONG st) { return st >= 0 || (ULONG)st != 0xC0000034UL; }
+static void DrawDevGrid(void)
+{
+    ULONG k, g, y = 1150, p, i, cnt[2], mn[2], mx[2]; char ln[100], h[17];
+    static const char *pre[2] = { "\\Device\\Harddisk0\\Partition", "\\Device\\HarddiskVolume" };
+    for (g = 0; g < 2; g++) {
+        cnt[g] = mn[g] = mx[g] = 0;
+        for (k = 1; k <= 130; k++) {
+            int e;
+            NmClear(); NmA(pre[g]); NmDec(k);
+            e = StExists(OpenSt());
+            FillRect(20 + (k - 1) * 8, y + g * 14, 7, 7, e ? 0x0000C000 : 0x00C00000);
+            if (e) { cnt[g]++; if (!mn[g]) mn[g] = k; mx[g] = k; }
+        }
+    }
+    p = 0; ln[p++]='P'; ln[p++]='='; PutDec(ln, &p, cnt[0]); ln[p++]=' '; PutDec(ln, &p, mn[0]); ln[p++]='-'; PutDec(ln, &p, mx[0]);
+    ln[p++]=' '; ln[p++]='V'; ln[p++]='='; PutDec(ln, &p, cnt[1]); ln[p++]=' '; PutDec(ln, &p, mn[1]); ln[p++]='-'; PutDec(ln, &p, mx[1]);
+    ln[p] = 0; DrawStr(20, y + 34, ln, 0x00FFFFFF);
+    {
+        static const char *nm[4] = { "\\Device\\Harddisk0\\DR0", "\\Device\\Harddisk0\\Partition0", "\\Device\\Harddisk0\\Partition76", "\\Device\\Harddisk0\\Partition80" };
+        for (g = 0; g < 4; g++) {
+            LONG st; NmClear(); NmA(nm[g]); st = OpenSt();
+            Hex(h, (ULONGLONG)(ULONG)st, 8);
+            p = 0; for (i = 0; i < 8; i++) ln[p++] = h[i];
+            ln[p++] = ' '; for (i = 0; nm[g][i] && p < 97; i++) ln[p++] = nm[g][i];
+            ln[p] = 0; DrawStr(20, y + 70 + g * 32, ln, StExists(st) ? 0x0000FF00 : 0x00FFFF00);
+        }
+    }
+}
+
 /* Rejilla ARC partition(1..130) (verde existe / rojo no) y resumen con destino de los enlaces. */
 static void DrawArc(void)
 {
@@ -424,6 +454,7 @@ static void DrawArc(void)
     NmClear(); NmA("\\ArcName\\multi(0)disk(0)rdisk(0)");
     FillRect(20, 910, 20, 8, NmExists() ? 0x0000C000 : 0x00C00000);
     DrawChain();
+    DrawDevGrid();
 }
 
 /* Hilo monitor.  Fila 3 (blanco): ms (dec), InterruptTime, ticks DPC (dec), CNTV_CTL, CNTV_CVAL-CNTVCT, CNTP_CTL.
