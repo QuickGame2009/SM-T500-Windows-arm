@@ -661,30 +661,48 @@ static void DrawThreads(void)
         if (ks > lim && ks < ini && ini - ks <= 0x40000) {
             end = ks + 0x3000; if (end > ini) end = ini;
             ks &= ~7ULL;
-            for (q = ks; q < end && nh < 8; q += 8) {
-                ULONGLONG v; ULONG mi;
+            for (q = ks; q < end; q += 8) {
+                ULONGLONG v, ue, csl, dev, drv, dev2, drv2, nb2;
                 if (((q & 0xFFF) == 0 || q == ks) && !MmIsAddressValid((PVOID)q)) break;
                 v = *(ULONGLONG *)q;
-                if ((v >> 40) != 0xFFFFF8ULL) continue;
-                if (!ModOf(v, &mi)) continue;
-                if (g_md[mi].nm[0] == 'n' && g_md[mi].nm[1] == 't' && g_md[mi].nm[2] == 'o') continue;
-                if (g_md[mi].nm[0] == 'h' && g_md[mi].nm[1] == 'a' && g_md[mi].nm[2] == 'l') continue;
-                if (g_md[mi].nm[0] == 'c' && g_md[mi].nm[1] == 'a' && g_md[mi].nm[2] == 'n') continue;
-                hitmod[nh] = mi; hitoff[nh] = v - g_md[mi].base; nh++;
-                if (Interesting(g_md[mi].nm)) any = 1;
-            }
-        }
-        if (any) {
-            inter++;
-            if (shown < 3) {
-                p = 0; Hex(h, t >> 4, 16); for (i = 0; i < 4; i++) ln[p++] = h[12 + i]; ln[p++] = ':';
-                for (k = 0; k < nh && k < 4; k++) {
-                    char *nm = g_md[hitmod[k]].nm; ULONG a;
-                    for (a = 0; a < 8 && nm[a] != ' ' && nm[a] != '.'; a++) ln[p++] = nm[a];
-                    ln[p++] = '+'; Hex(h, hitoff[k], 16); for (i = 0; i < 5; i++) ln[p++] = h[11 + i];
-                    ln[p++] = ' ';
+                if (v < 0xFFFF000000000000ULL || (v & 7)) continue;
+                if (!MmIsAddressValid((PVOID)v) || !MmIsAddressValid((PVOID)(v + 0xC8))) continue;
+                if (*(USHORT *)v != 6) continue;
+                { USHORT sz = *(USHORT *)(v + 2); UCHAR sc = *(UCHAR *)(v + 0x42), cl = *(UCHAR *)(v + 0x43);
+                  if (sz < 0xB8 || sz > 0x600 || sc == 0 || sc > 20 || cl == 0 || cl > sc + 1) continue; }
+                ue = *(ULONGLONG *)(v + 0x50);
+                if (ue < lim || ue >= ini) continue;           /* evento en la pila del propio hilo: espera sincrona */
+                csl = *(ULONGLONG *)(v + 0xB8);
+                if (csl < 0xFFFF000000000000ULL || !MmIsAddressValid((PVOID)csl) || !MmIsAddressValid((PVOID)(csl + 0x48))) continue;
+                inter++; any = 1;
+                if (shown < 3) {
+                    char dn[16], un[16]; ULONG a2;
+                    dev = *(ULONGLONG *)(csl + 0x28); dev2 = *(ULONGLONG *)(csl - 0x48 + 0x28);
+                    for (a2 = 0; a2 < 15; a2++) { dn[a2] = '-'; un[a2] = '-'; } dn[15] = 0; un[15] = 0;
+                    if (dev > 0xFFFF000000000000ULL && MmIsAddressValid((PVOID)(dev + 0x10))) {
+                        drv = *(ULONGLONG *)(dev + 8);
+                        if (drv > 0xFFFF000000000000ULL && MmIsAddressValid((PVOID)(drv + 0x48))) {
+                            USHORT nl2 = *(USHORT *)(drv + 0x38) / 2; USHORT *nb = *(USHORT **)(drv + 0x40);
+                            if (nb && MmIsAddressValid(nb) && MmIsAddressValid(nb + 15)) for (a2 = 0; a2 < 14 && a2 < nl2; a2++) dn[a2] = (char)nb[a2];
+                        }
+                    }
+                    if (dev2 > 0xFFFF000000000000ULL && MmIsAddressValid((PVOID)(dev2 + 0x10))) {
+                        drv2 = *(ULONGLONG *)(dev2 + 8);
+                        if (drv2 > 0xFFFF000000000000ULL && MmIsAddressValid((PVOID)(drv2 + 0x48))) {
+                            USHORT nl2 = *(USHORT *)(drv2 + 0x38) / 2; USHORT *nb = *(USHORT **)(drv2 + 0x40);
+                            if (nb && MmIsAddressValid(nb) && MmIsAddressValid(nb + 15)) for (a2 = 0; a2 < 14 && a2 < nl2; a2++) un[a2] = (char)nb[a2];
+                        }
+                    }
+                    (void)nb2;
+                    p = 0; Hex(h, t >> 4, 16); for (i = 0; i < 4; i++) ln[p++] = h[12 + i]; ln[p++] = ' ';
+                    Hex(h, (ULONGLONG)*(UCHAR *)csl, 2); ln[p++] = h[0]; ln[p++] = h[1]; ln[p++] = '/';
+                    Hex(h, (ULONGLONG)*(UCHAR *)(csl + 1), 2); ln[p++] = h[0]; ln[p++] = h[1]; ln[p++] = ' ';
+                    for (i = 0; dn[i] && p < 50; i++) ln[p++] = dn[i];
+                    ln[p++] = ' '; ln[p++] = '<'; ln[p++] = ' ';
+                    for (i = 0; un[i] && p < 80; i++) ln[p++] = un[i];
+                    ln[p] = 0; DrawStr(20, y, ln, 0x0000FFFF); y += 32; shown++;
                 }
-                ln[p] = 0; DrawStr(20, y, ln, 0x0000FFFF); y += 32; shown++;
+                break;
             }
         }
         if (!MmIsAddressValid((PVOID)e)) break;
