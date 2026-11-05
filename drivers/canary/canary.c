@@ -62,6 +62,8 @@ __declspec(dllimport) LONG  ObReferenceObjectByName(PUNICODE_STRING Name, ULONG 
 __declspec(dllimport) ULONGLONG ObfDereferenceObject(PVOID Obj);
 __declspec(dllimport) extern PVOID *IoDriverObjectType;
 typedef struct _OBJ_ATTR { ULONG Length; PVOID Root; PUNICODE_STRING Name; ULONG Attr; PVOID Sd; PVOID Sqos; } OBJ_ATTR;
+typedef struct _IOSB { ULONGLONG St; ULONGLONG Info; } IOSB;
+__declspec(dllimport) LONG ZwOpenFile(PVOID *Handle, ULONG Access, OBJ_ATTR *Oa, IOSB *Io, ULONG Share, ULONG Opts);
 __declspec(dllimport) LONG ZwOpenSymbolicLinkObject(PVOID *Handle, ULONG Access, OBJ_ATTR *Oa);
 __declspec(dllimport) LONG ZwQuerySymbolicLinkObject(PVOID Handle, PUNICODE_STRING Target, ULONG *Ret);
 
@@ -356,6 +358,39 @@ static void PutDec(char *o, ULONG *p, ULONG v)
     while (i) o[(*p)++] = b[--i];
 }
 
+static LONG OpenSt(void)
+{
+    PVOID h = 0; UNICODE_STRING us; OBJ_ATTR oa; IOSB io; LONG st;
+    us.Length = (USHORT)(g_nn * 2); us.MaximumLength = us.Length; us.Buffer = g_nm;
+    oa.Length = sizeof(oa); oa.Root = 0; oa.Name = &us; oa.Attr = 0x240; oa.Sd = 0; oa.Sqos = 0;
+    io.St = 0; io.Info = 0;
+    st = ZwOpenFile(&h, 0x100080, &oa, &io, 7, 0x20);
+    if (st >= 0 && h) ZwClose(h);
+    return st;
+}
+/* Replica la apertura del kernel: ZwOpenFile del nombre ARC y sigue la cadena de enlaces. */
+static void DrawChain(void)
+{
+    ULONG lvl, y = 950, i, p; char ln[100], h[17], cur[80];
+    NmClear(); NmA("\\ArcName\\multi(0)disk(0)rdisk(0)partition(80)");
+    for (lvl = 0; lvl < 5; lvl++) {
+        LONG st; int lk;
+        for (i = 0; i < g_nn && i < 79; i++) cur[i] = (char)g_nm[i];
+        cur[i] = 0;
+        st = OpenSt();
+        lk = NmTarget();
+        Hex(h, (ULONGLONG)(ULONG)st, 8);
+        p = 0; for (i = 0; i < 8; i++) ln[p++] = h[i];
+        ln[p++] = lk ? 'L' : 'D'; ln[p++] = ' ';
+        for (i = 0; cur[i] && p < 97; i++) ln[p++] = cur[i];
+        ln[p] = 0;
+        DrawStr(20, y, ln, st >= 0 ? 0x0000FF00 : 0x00FFFF00);
+        y += 32;
+        if (!lk) break;
+        NmClear(); NmA(g_tgt);
+    }
+}
+
 /* Rejilla ARC partition(1..130) (verde existe / rojo no) y resumen con destino de los enlaces. */
 static void DrawArc(void)
 {
@@ -388,6 +423,7 @@ static void DrawArc(void)
     }
     NmClear(); NmA("\\ArcName\\multi(0)disk(0)rdisk(0)");
     FillRect(20, 910, 20, 8, NmExists() ? 0x0000C000 : 0x00C00000);
+    DrawChain();
 }
 
 /* Hilo monitor.  Fila 3 (blanco): ms (dec), InterruptTime, ticks DPC (dec), CNTV_CTL, CNTV_CVAL-CNTVCT, CNTP_CTL.
