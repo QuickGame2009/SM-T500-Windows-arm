@@ -422,6 +422,34 @@ static void DiskIoctls(void)
     p = 0; ln[p++]='S'; ln[p++]='A'; ln[p++]='N'; ln[p++]=' '; Hex(h8, san, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i];
     ln[p] = 0; DrawStr(640, 1890, ln, 0x00FF80FF);
 }
+/* Envia IRP_MN_QUERY_DEVICE_RELATIONS(BusRelations) directamente a 'target'; devuelve el estado y el numero de objetos. */
+static LONG SendQdr(PVOID target, ULONG *cnt)
+{
+    UCHAR *irp, *sl; LARGE_INTEGER to; LONG st;
+    *cnt = 0xFFFFFFFF;
+    irp = (UCHAR *)IoAllocateIrp(12, 0);
+    if (!irp || !target) return (LONG)0xDEAD0001;
+    KeInitializeEvent(g_pev, 0, 0);
+    *(LONG *)(irp + 0x30) = (LONG)0xC00000BB; *(ULONGLONG *)(irp + 0x38) = 0;
+    sl = *(UCHAR **)(irp + 0xB8) - 0x48;
+    sl[0] = 0x1B; sl[1] = 0x07; sl[3] = 0xE0;
+    *(ULONG *)(sl + 8) = 0;
+    *(PVOID *)(sl + 0x38) = (PVOID)PrCompl; *(PVOID *)(sl + 0x40) = g_pev;
+    IofCallDriver(target, irp);
+    to.QuadPart = -30000000LL;
+    if (KeWaitForSingleObject(g_pev, 0, 0, 0, &to) != 0) return (LONG)0xDEAD0002;
+    st = *(LONG *)(irp + 0x30);
+    if (st >= 0) { UCHAR *r = (UCHAR *)*(ULONGLONG *)(irp + 0x38); *cnt = r ? *(ULONG *)r : 0; }
+    return st;
+}
+static void DrawQ(ULONG x, ULONG y, const char *tag, LONG st, ULONG cnt)
+{
+    char ln[40], h8[17]; ULONG p = 0, i;
+    for (i = 0; tag[i]; i++) ln[p++] = tag[i];
+    ln[p++] = ' '; Hex(h8, (ULONG)st, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i];
+    ln[p++] = ' '; ln[p++] = 'n'; ln[p++] = '='; if (cnt == 0xFFFFFFFF) ln[p++] = '-'; else PutDec(ln, &p, cnt);
+    ln[p] = 0; DrawStr(x, y, ln, 0x00FFA040);
+}
 static void DiskRel(void)
 {
     DiskIoctls();
@@ -434,9 +462,10 @@ static void DiskRel(void)
     if (st < 0 || !dev) return;
     top = IoGetAttachedDeviceReference(dev);
     {   /* pila de dispositivos, de abajo (PDO) arriba */
-        PVOID bs2 = IoGetDeviceAttachmentBaseRef(dev), cur; char ln[100]; ULONG p = 0, k, c = 0;
+        PVOID bs2 = IoGetDeviceAttachmentBaseRef(dev), cur, chain[6] = {0,0,0,0,0,0}; char ln[100]; ULONG p = 0, k, c = 0, qc;
         ln[p++]='S'; ln[p++]='T'; ln[p++]='K'; ln[p++]=' ';
         for (cur = bs2; cur && c < 6; c++) {
+            chain[c] = cur;
             PVOID drv = *(PVOID *)((UCHAR *)cur + 8);
             if (drv && MmIsAddressValid((PVOID)((UCHAR *)drv + 0x48))) {
                 USHORT len = *(USHORT *)((UCHAR *)drv + 0x38); USHORT *w = *(USHORT **)((UCHAR *)drv + 0x40);
@@ -448,6 +477,8 @@ static void DiskRel(void)
             cur = *(PVOID *)((UCHAR *)cur + 0x18);
         }
         ln[p] = 0; DrawStr(20, 1830, ln, 0x0000FFFF);
+        if (chain[1]) { LONG qs = SendQdr(chain[1], &qc); DrawQ(20, 1890, "QF", qs, qc); }
+        if (chain[0]) { LONG qs = SendQdr(chain[0], &qc); DrawQ(330, 1890, "QP", qs, qc); }
         if (bs2) ObfDereferenceObject(bs2);
     }
     irp = (UCHAR *)IoAllocateIrp(12, 0);
@@ -513,6 +544,24 @@ static void PartHist(void)
         FillRect(700, y, 480, 26, 0x00000000); DrawStr(700, y, ln, 0x0000FF00); y += 28;
     }
     ObfDereferenceObject(obj);
+    {   /* extension del filtro de disco (DR0) de partmgr */
+        static USHORT nm2[40]; UNICODE_STRING u2; PVOID fo2 = 0, dv = 0; const char *a2 = "\\Device\\Harddisk0\\DR0"; ULONG q = 0;
+        while (a2[q]) { nm2[q] = (USHORT)(UCHAR)a2[q]; q++; }
+        u2.Length = (USHORT)(q * 2); u2.MaximumLength = u2.Length; u2.Buffer = nm2;
+        if (IoGetDeviceObjectPointer(&u2, 0x80, &fo2, &dv) >= 0 && dv) {
+            UCHAR *ex2 = *(UCHAR **)((UCHAR *)dv + 0x40); char ln[80], h8[17]; ULONG p = 0, jj;
+            if (ex2 && MmIsAddressValid(ex2 + 0x460)) {
+                ln[p++]='X'; ln[p++]='2'; ln[p++]='0'; ln[p++]='0'; ln[p++]=' '; Hex(h8, *(ULONG *)(ex2 + 0x200), 8); for (jj = 0; jj < 8; jj++) ln[p++] = h8[jj];
+                ln[p++]=' '; ln[p++]='c'; Hex(h8, ex2[0x20C], 2); ln[p++]=h8[0]; ln[p++]=h8[1];
+                ln[p++]=' '; ln[p++]='d'; Hex(h8, ex2[0x25C], 2); ln[p++]=h8[0]; ln[p++]=h8[1];
+                ln[p] = 0; FillRect(700, 1300, 480, 26, 0x00000000); DrawStr(700, 1300, ln, 0x00FF80FF);
+                p = 0; ln[p++]='A'; ln[p++]='T'; ln[p++]='T'; ln[p++]=' '; Hex(h8, *(ULONGLONG *)(ex2 + 0x210), 16); for (jj = 0; jj < 16; jj++) ln[p++] = h8[jj];
+                ln[p++]=' '; ln[p++]='r'; Hex(h8, *(ULONG *)(ex2 + 0x458), 8); for (jj = 0; jj < 8; jj++) ln[p++] = h8[jj];
+                ln[p] = 0; FillRect(700, 1330, 480, 26, 0x00000000); DrawStr(700, 1330, ln, 0x00FF80FF);
+            } else DrawStr(700, 1300, "X ext?", 0x00FFFF00);
+            if (fo2) ObfDereferenceObject(fo2);
+        } else DrawStr(700, 1300, "X DR0 no", 0x00FFFF00);
+    }
 }
 static void ProbeThread(PVOID ctx)
 {
