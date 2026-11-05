@@ -134,6 +134,12 @@ public static class GptTool {
 
 Set-Disk -Number $d -IsOffline $true -ErrorAction SilentlyContinue
 Write-Host ("[0] inicio:            " + [GptTool]::Summary($raw, $ss))
+if ([GptTool]::Summary($raw, $ss) -notmatch 'LBA 2,.*en uso=80') {
+    Write-Host "La GPT no esta bien: se restaura desde gpt-backup.bin antes de seguir."
+    if (-not (Test-Path $bk)) { Write-Host "No existe gpt-backup.bin." -ForegroundColor Red; Stop-Transcript | Out-Null; exit 1 }
+    Write-Host ([GptTool]::Restore($raw, $ss, $total, $bk))
+    Write-Host ("[0b] restaurada:       " + [GptTool]::Summary($raw, $ss))
+}
 $t = [Guid]'ebd0a0a2-b9e5-4433-87c0-68b6b72699c7'
 Write-Host ([GptTool]::SetTypes($raw, $ss, @($Esp, $Win), $t.ToByteArray()))
 Write-Host ("[1] tras editar tipos: " + [GptTool]::Summary($raw, $ss))
@@ -165,15 +171,6 @@ if ($le) { Write-VolumeCache -DriveLetter $le }
 Write-Host ("[4] tras copiar:       " + [GptTool]::Summary($raw, $ss))
 Set-Disk -Number $d -IsOffline $true
 Write-Host ("[5] disco offline:     " + [GptTool]::Summary($raw, $ss))
-# Windows (esta version) reescribe mal la GPT en cuanto el disco se pone online: la restauramos desde la copia
-# y dejamos los tipos de ESP/Windows en "datos basicos", todo directamente en el disco y con el disco offline.
-if (-not (Test-Path $bk)) { Write-Host "No existe gpt-backup.bin: no se puede restaurar." -ForegroundColor Red }
-else {
-    Write-Host ([GptTool]::Restore($raw, $ss, $total, $bk))
-    Write-Host ("[6] restaurada:        " + [GptTool]::Summary($raw, $ss))
-    Write-Host ([GptTool]::SetTypes($raw, $ss, @($Esp, $Win), $t.ToByteArray()))
-    Write-Host ("[7] tipos puestos:     " + [GptTool]::Summary($raw, $ss))
-}
 Write-Host ""
-Write-Host "Listo. Si [7] dice 'tabla en LBA 2, entradas=84, en uso=80, repetidos=0', puedes reiniciar la tablet con Encendido." -ForegroundColor Green
+Write-Host "Listo. Windows suele estropear la GPT al poner el disco online ([2]); es normal. Ahora ejecuta 3-massstorage.cmd otra vez y despues 15-gpt-final.cmd. NO reinicies todavia la tablet." -ForegroundColor Yellow
 Stop-Transcript | Out-Null
