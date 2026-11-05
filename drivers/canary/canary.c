@@ -393,7 +393,7 @@ static UCHAR g_lay[0x8000];
 static void DiskIoctls(void)
 {
     static USHORT nm[40]; UNICODE_STRING us; OBJ_ATTR oa; IOSB io; PVOID h = 0; const char *a = "\\Device\\Harddisk0\\DR0"; ULONG n = 0, p, i, san = 0xFFFFFFFF, hv = 0;
-    LONG st, s1 = 0, s2 = 0; ULONG att_lo = 0, att_hi = 0, pc = 0xFFFFFFFF; char ln[100], h8[17]; PVOID k = 0;
+    LONG st, s1 = 0, s2 = 0, s3 = 0, s4 = 0; ULONG att2 = 0xFFFFFFFF; ULONG att_lo = 0, att_hi = 0, pc = 0xFFFFFFFF; char ln[100], h8[17]; PVOID k = 0;
     while (a[n]) { nm[n] = (USHORT)(UCHAR)a[n]; n++; }
     us.Length = (USHORT)(n * 2); us.MaximumLength = us.Length; us.Buffer = nm;
     oa.Length = sizeof(oa); oa.Root = 0; oa.Name = &us; oa.Attr = 0x240; oa.Sd = 0; oa.Sqos = 0;
@@ -401,13 +401,33 @@ static void DiskIoctls(void)
     if (st >= 0 && h) {
         for (i = 0; i < 4; i++) ((ULONG *)g_lay)[i] = 0;
         io.St = 0; io.Info = 0;
-        s1 = ZwDeviceIoControlFile(h, 0, 0, 0, &io, 0x740F0, 0, 0, g_lay, 16);
+        s1 = ZwDeviceIoControlFile(h, 0, 0, 0, &io, 0x700F0, 0, 0, g_lay, 16);
         att_lo = ((ULONG *)g_lay)[2]; att_hi = ((ULONG *)g_lay)[3];
+        ZwClose(h); h = 0;
+        /* intento: poner el disco ONLINE (quitar atributo OFFLINE) con IOCTL_DISK_SET_DISK_ATTRIBUTES */
+        {
+            PVOID h2 = 0; IOSB io2;
+            if (ZwOpenFile(&h2, 0x100003, &oa, &io2, 7, 0x20) >= 0 && h2) {
+                ULONG *b = (ULONG *)g_lay; ULONG q;
+                for (q = 0; q < 16; q++) b[q] = 0;
+                b[0] = 0x28; b[4] = 1;   /* Version, Attributes=0 (b[2..3]), Mask=1 (b[4..5]), Owner=0 */
+                io2.St = 0; io2.Info = 0;
+                s3 = ZwDeviceIoControlFile(h2, 0, 0, 0, &io2, 0x7C0F4, b, 0x28, 0, 0);
+                for (q = 0; q < 16; q++) b[q] = 0;
+                io2.St = 0; io2.Info = 0;
+                s4 = ZwDeviceIoControlFile(h2, 0, 0, 0, &io2, 0x700F0, 0, 0, b, 16);
+                att2 = b[2];
+                ZwClose(h2);
+            } else s3 = (LONG)0xDEAD0003;
+        }
+        st = ZwOpenFile(&h, 0x100081, &oa, &io, 7, 0x20);
+        if (st < 0) h = 0;
+        io.St = 0; io.Info = 0;
         io.St = 0; io.Info = 0;
         for (i = 0; i < 16; i++) ((ULONG *)g_lay)[i] = 0xFFFFFFFF;
-        s2 = ZwDeviceIoControlFile(h, 0, 0, 0, &io, 0x70050, 0, 0, g_lay, sizeof(g_lay));
+        if (h) { s2 = ZwDeviceIoControlFile(h, 0, 0, 0, &io, 0x70050, 0, 0, g_lay, sizeof(g_lay));
         if (s2 >= 0) pc = ((ULONG *)g_lay)[1];
-        ZwClose(h);
+        ZwClose(h); }
     }
     RpClear(); RpA("\\Registry\\Machine\\SYSTEM\\ControlSet001\\Services\\partmgr\\Parameters");
     if (RpOpen(&k) >= 0) { if (RegVal(k, "SanPolicy", 0, 0, &hv) == 4) san = hv; ZwClose(k); }
@@ -419,8 +439,10 @@ static void DiskIoctls(void)
     p = 0; ln[p++]='L'; ln[p++]='A'; ln[p++]='Y'; ln[p++]=' ';
     Hex(h8, (ULONG)s2, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i]; ln[p++]=' '; Hex(h8, pc, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i];
     ln[p] = 0; DrawStr(640, 1860, ln, 0x00FF80FF);
-    p = 0; ln[p++]='S'; ln[p++]='A'; ln[p++]='N'; ln[p++]=' '; Hex(h8, san, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i];
+    p = 0; ln[p++]='S'; ln[p++]='E'; ln[p++]='T'; ln[p++]=' '; Hex(h8, (ULONG)s3, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i]; ln[p++]=' '; Hex(h8, att2, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i];
     ln[p] = 0; DrawStr(640, 1890, ln, 0x00FF80FF);
+    (void)san; (void)s4;
+    KickPnp();
 }
 /* Envia IRP_MN_QUERY_DEVICE_RELATIONS(BusRelations) directamente a 'target'; devuelve el estado y el numero de objetos. */
 static LONG SendQdr(PVOID target, ULONG *cnt)
@@ -477,8 +499,8 @@ static void DiskRel(void)
             cur = *(PVOID *)((UCHAR *)cur + 0x18);
         }
         ln[p] = 0; DrawStr(20, 1830, ln, 0x0000FFFF);
-        if (chain[1]) { LONG qs = SendQdr(chain[1], &qc); DrawQ(20, 1890, "QF", qs, qc); }
-        if (chain[0]) { LONG qs = SendQdr(chain[0], &qc); DrawQ(330, 1890, "QP", qs, qc); }
+        if (chain[1]) { LONG qs = SendQdr(chain[1], &qc); DrawQ(700, 1360, "QF", qs, qc); }
+        if (chain[0]) { LONG qs = SendQdr(chain[0], &qc); DrawQ(700, 1390, "QP", qs, qc); }
         if (bs2) ObfDereferenceObject(bs2);
     }
     irp = (UCHAR *)IoAllocateIrp(12, 0);
