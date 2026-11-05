@@ -631,6 +631,44 @@ static void WalkLst(int w)
     }
     g_lstn[w] = n; g_lstown[w] = own;
 }
+static void LayChk(void)
+{
+    static USHORT nml[40]; UNICODE_STRING ul; OBJ_ATTR ol; IOSB iol; PVOID hl = 0; const char *al = "\\Device\\Harddisk0\\DR0"; ULONG q = 0, i, j, k;
+    LONG sl = 0; ULONG cnt = 0, sty = 0xFFFFFFFF, zero = 0, eqd = 0, dup = 0, fi = 0xFFFF, fj = 0xFFFF, dz = 0, ntab = 0;
+    char ln[100], h8[17]; ULONG p;
+    while (al[q]) { nml[q] = (USHORT)(UCHAR)al[q]; q++; }
+    ul.Length = (USHORT)(q * 2); ul.MaximumLength = ul.Length; ul.Buffer = nml;
+    ol.Length = sizeof(ol); ol.Root = 0; ol.Name = &ul; ol.Attr = 0x240; ol.Sd = 0; ol.Sqos = 0;
+    sl = ZwOpenFile(&hl, 0x100081, &ol, &iol, 7, 0x20);
+    if (sl >= 0 && hl) {
+        for (i = 0; i < 16; i++) ((ULONG *)g_lay)[i] = 0;
+        iol.St = 0; iol.Info = 0;
+        sl = ZwDeviceIoControlFile(hl, 0, 0, 0, &iol, 0x70050, 0, 0, g_lay, sizeof(g_lay));
+        ZwClose(hl);
+        if (sl >= 0) {
+            ULONG *L = (ULONG *)g_lay; sty = L[0]; cnt = L[1];
+            if (L[2] == 0 && L[3] == 0 && L[4] == 0 && L[5] == 0) dz = 1;
+            if (cnt > 200) cnt = 200;
+            for (i = 0; i < cnt; i++) {
+                ULONG *pi_ = (ULONG *)(g_lay + 0x30 + 0x90 * i + 0x30);
+                int z = (pi_[0] == 0 && pi_[1] == 0 && pi_[2] == 0 && pi_[3] == 0);
+                if (z) { zero++; continue; }
+                ntab++;
+                if (pi_[0] == L[2] && pi_[1] == L[3] && pi_[2] == L[4] && pi_[3] == L[5]) eqd++;
+                for (j = i + 1; j < cnt; j++) {
+                    ULONG *pj = (ULONG *)(g_lay + 0x30 + 0x90 * j + 0x30);
+                    if (pi_[0] == pj[0] && pi_[1] == pj[1] && pi_[2] == pj[2] && pi_[3] == pj[3]) { if (!dup) { fi = i; fj = j; } dup++; }
+                }
+            }
+        }
+    }
+    p = 0; ln[p++]='Y'; ln[p++]=' '; Hex(h8, (ULONG)sl, 8); for (k = 0; k < 8; k++) ln[p++] = h8[k];
+    ln[p++]=' '; ln[p++]='s'; PutDec(ln, &p, sty); ln[p++]=' '; ln[p++]='c'; PutDec(ln, &p, cnt);
+    ln[p] = 0; FillRect(640, 1790, 480, 22, 0x00000000); DrawStr(640, 1790, ln, 0x0000FFFF);
+    p = 0; ln[p++]='Y'; ln[p++]='z'; PutDec(ln, &p, zero); ln[p++]=' '; ln[p++]='e'; PutDec(ln, &p, eqd); ln[p++]=' '; ln[p++]='d'; PutDec(ln, &p, dup);
+    ln[p++]=' '; PutDec(ln, &p, fi); ln[p++]=','; PutDec(ln, &p, fj); ln[p++]=' '; ln[p++]='D'; PutDec(ln, &p, dz);
+    ln[p] = 0; FillRect(640, 1814, 480, 22, 0x00000000); DrawStr(640, 1814, ln, 0x0000FFFF);
+}
 static volatile ULONG g_plms[16], g_pla[16], g_plf[16], g_plr[16], g_pln;
 static void ProbeThread(PVOID ctx)
 {
@@ -650,6 +688,7 @@ static void ProbeThread(PVOID ctx)
         }
         if (!g_pln) DrawStr(640, 1420, "L sin DR0", 0x00FFFF00);
         WalkLst(1);
+        LayChk();
         for (k = 0; k < 2; k++) {
             char ln[80], h8[17]; ULONG p = 0, j;
             ln[p++]='W'; ln[p++]=(char)('0'+k); ln[p++]=' '; PutDec(ln, &p, g_lstn[k]); ln[p++]=' '; PutDec(ln, &p, g_lstown[k]); ln[p++]=' ';
