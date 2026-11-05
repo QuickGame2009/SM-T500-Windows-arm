@@ -440,8 +440,10 @@ static void DiskIoctls(void)
     Hex(h8, (ULONG)s2, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i]; ln[p++]=' '; Hex(h8, pc, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i];
     ln[p] = 0; DrawStr(640, 1860, ln, 0x00FF80FF);
     p = 0; ln[p++]='S'; ln[p++]='E'; ln[p++]='T'; ln[p++]=' '; Hex(h8, (ULONG)s3, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i]; ln[p++]=' '; Hex(h8, att2, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i];
-    ln[p] = 0; DrawStr(640, 1890, ln, 0x00FF80FF);
-    (void)san; (void)s4;
+    ln[p] = 0; FillRect(640, 1770, 480, 26, 0x00000000); DrawStr(640, 1770, ln, 0x00FF80FF);
+    p = 0; ln[p++]='S'; ln[p++]='4'; ln[p++]=' '; Hex(h8, (ULONG)s4, 8); for (i = 0; i < 8; i++) ln[p++] = h8[i];
+    ln[p] = 0; FillRect(640, 1800, 480, 26, 0x00000000); DrawStr(640, 1800, ln, 0x00FF80FF);
+    (void)san;
     KickPnp();
 }
 /* Envia IRP_MN_QUERY_DEVICE_RELATIONS(BusRelations) directamente a 'target'; devuelve el estado y el numero de objetos. */
