@@ -209,6 +209,7 @@ static inline ULONGLONG rd_far(void) { ULONGLONG v; __asm__ volatile("mrs %0, fa
 __declspec(dllimport) extern UCHAR MmIsAddressValid(PVOID p);
 __declspec(dllimport) LONG IoGetDeviceObjectPointer(PUNICODE_STRING Name, ULONG Access, PVOID *File, PVOID *Dev);
 __declspec(dllimport) PVOID IoGetDeviceAttachmentBaseRef(PVOID Dev);
+__declspec(dllimport) PVOID IoGetAttachedDeviceReference(PVOID Dev);
 __declspec(dllimport) void IoInvalidateDeviceRelations(PVOID Pdo, int Type);
 static volatile ULONG g_kn, g_kst, g_kms;
 static volatile ULONGLONG g_kdo, g_kpdo;
@@ -381,11 +382,42 @@ static LONG QueryId(PVOID dev, ULONG type, char *out, ULONG omax, ULONG *tmo)
     IoFreeIrp(irp);
     return st;
 }
+/* Envia IRP_MN_QUERY_DEVICE_RELATIONS(BusRelations) al tope de la pila de DR0; guarda estado, n y 1er objeto. */
+static void DiskRel(void)
+{
+    static USHORT nm[40]; UNICODE_STRING us; PVOID fo = 0, dev = 0, top; const char *a = "\\Device\\Harddisk0\\DR0"; ULONG n = 0; LONG st;
+    UCHAR *irp, *sl; LARGE_INTEGER to;
+    while (a[n]) { nm[n] = (USHORT)(UCHAR)a[n]; n++; }
+    us.Length = (USHORT)(n * 2); us.MaximumLength = us.Length; us.Buffer = nm;
+    st = IoGetDeviceObjectPointer(&us, 0x80, &fo, &dev);
+    g_kst = (ULONG)st; g_kdo = 0; g_kpdo = 0;
+    if (st < 0 || !dev) return;
+    top = IoGetAttachedDeviceReference(dev);
+    irp = (UCHAR *)IoAllocateIrp(12, 0);
+    if (!irp || !top) { g_kst = 0xDEAD0001; return; }
+    KeInitializeEvent(g_pev, 0, 0);
+    *(LONG *)(irp + 0x30) = (LONG)0xC00000BB; *(ULONGLONG *)(irp + 0x38) = 0;
+    sl = *(UCHAR **)(irp + 0xB8) - 0x48;
+    sl[0] = 0x1B; sl[1] = 0x07; sl[3] = 0xE0;
+    *(ULONG *)(sl + 8) = 0;
+    *(PVOID *)(sl + 0x38) = (PVOID)PrCompl; *(PVOID *)(sl + 0x40) = g_pev;
+    IofCallDriver(top, irp);
+    to.QuadPart = -30000000LL;
+    if (KeWaitForSingleObject(g_pev, 0, 0, 0, &to) != 0) { g_kst = 0xDEAD0002; return; }
+    g_kst = (ULONG)*(LONG *)(irp + 0x30);
+    if ((LONG)g_kst >= 0) {
+        UCHAR *r = (UCHAR *)*(ULONGLONG *)(irp + 0x38);
+        if (r) { g_kdo = *(ULONG *)r; g_kpdo = (g_kdo > 0) ? *(ULONGLONG *)(r + 8) : 0; }
+    }
+    g_kn = 7;
+    (void)fo;
+}
 static void ProbeThread(PVOID ctx)
 {
     PVOID obj = 0, d; UNICODE_STRING us; ULONG n, y, pass;
     (void)ctx;
     KeSetPriorityThread(KeGetCurrentThread(), 1);
+    DiskRel();
     us.Length = (USHORT)(sizeof(nm_acpi) - 2); us.MaximumLength = us.Length; us.Buffer = nm_acpi;
     for (pass = 0; pass < 2; pass++) {
         if (pass == 1) { while ((rd_cntvct() - g_t0v) / g_perv < 22000) ; }

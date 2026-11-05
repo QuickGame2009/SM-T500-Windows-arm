@@ -34,3 +34,4 @@ KeSetEvent
 KeWaitForSingleObject
 ExFreePool
 IoGetDevicePropertyData
+IoGetAttachedDeviceReference
