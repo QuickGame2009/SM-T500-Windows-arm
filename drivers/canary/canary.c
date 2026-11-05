@@ -615,19 +615,41 @@ static int Interesting(const char *n)
 static void DrawThreads(void)
 {
     ULONGLONG ep = (ULONGLONG)PsInitialSystemProcess, lh, first, e, t, off = 0, o;
-    ULONG total = 0, inter = 0, shown = 0, y = 1000, p, i, nh, hitmod[8], k, any;
+    ULONG total = 0, inter = 0, shown = 0, y = 1060, p, i, nh, hitmod[8], k, any;
     ULONGLONG hitoff[8];
     char ln[100], h[17];
     if (!ep || !MmIsAddressValid((PVOID)(ep + 0x38))) { DrawStr(20, 1128, "TH noep", 0x00FFFF00); return; }
     LoadMods();
-    lh = ep + 0x30; first = *(ULONGLONG *)lh;
-    for (o = 0x200; o <= 0x400 && !off; o += 8) {
+    {
+        ULONGLONG ho, found = 0;
+        for (ho = 0x18; ho <= 0x80 && !found; ho += 8) {
+            ULONGLONG hd = ep + ho, f, b;
+            if (!MmIsAddressValid((PVOID)(hd + 8))) continue;
+            f = *(ULONGLONG *)hd; b = *(ULONGLONG *)(hd + 8);
+            if (f == hd || f < 0xFFFF000000000000ULL || b < 0xFFFF000000000000ULL) continue;
+            if (!MmIsAddressValid((PVOID)(f + 8)) || !MmIsAddressValid((PVOID)b)) continue;
+            if (*(ULONGLONG *)(f + 8) == hd && *(ULONGLONG *)b == hd) found = ho;
+        }
+        if (!found) { DrawAddr(1000, "EP", ep, 0x00FFFF00); DrawStr(20, 1128, "TH nohead", 0x00FFFF00); return; }
+        lh = ep + found; first = *(ULONGLONG *)lh;
+        DrawAddr(1000, "HO", found, 0x00AAAAAA);
+    }
+    for (o = 0x100; o <= 0x600 && !off; o += 8) {
         ULONGLONG th = first - o, ini, lim;
         if (!MmIsAddressValid((PVOID)(th + 0x60))) continue;
         ini = *(ULONGLONG *)(th + 0x28); lim = *(ULONGLONG *)(th + 0x30);
-        if (ini > 0xFFFF000000000000ULL && lim > 0xFFFF000000000000ULL && ini > lim && ini - lim >= 0x2000 && ini - lim <= 0x40000 && !(ini & 0xF)) off = o;
+        if (ini > 0xFFFF000000000000ULL && lim > 0xFFFF000000000000ULL && ini > lim && ini - lim >= 0x1000 && ini - lim <= 0x80000) off = o;
     }
-    if (!off) { DrawStr(20, 1128, "TH nooff", 0x00FFFF00); return; }
+    if (!off) {
+        ULONGLONG t0 = first - 0x2F8;
+        DrawAddr(1030, "F", first, 0x00FFFF00);
+        if (MmIsAddressValid((PVOID)(t0 + 0x60))) {
+            DrawAddr(1060, "+28", *(ULONGLONG *)(t0 + 0x28), 0x00FFFF00);
+            DrawAddr(1090, "+30", *(ULONGLONG *)(t0 + 0x30), 0x00FFFF00);
+        }
+        DrawStr(20, 1128, "TH nooff", 0x00FFFF00); return;
+    }
+    DrawAddr(1030, "TO", off, 0x00AAAAAA);
     e = first;
     while (e != lh && total < 400) {
         ULONGLONG ks, ini, lim, q, end;
@@ -654,7 +676,7 @@ static void DrawThreads(void)
         }
         if (any) {
             inter++;
-            if (shown < 4) {
+            if (shown < 3) {
                 p = 0; Hex(h, t >> 4, 16); for (i = 0; i < 4; i++) ln[p++] = h[12 + i]; ln[p++] = ':';
                 for (k = 0; k < nh && k < 4; k++) {
                     char *nm = g_md[hitmod[k]].nm; ULONG a;
@@ -670,7 +692,7 @@ static void DrawThreads(void)
     }
     p = 0; ln[p++]='T'; ln[p++]='H'; ln[p++]=' '; ln[p++]='n'; ln[p++]='='; PutDec(ln, &p, total);
     ln[p++]=' '; ln[p++]='i'; ln[p++]='='; PutDec(ln, &p, inter); ln[p] = 0;
-    DrawStr(20, 1128, ln, 0x00FFFFFF);
+    DrawStr(420, 1000, ln, 0x00FFFFFF);
 }
 
 /* Rejilla ARC partition(1..130) (verde existe / rojo no) y resumen con destino de los enlaces. */
