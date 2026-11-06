@@ -141,6 +141,8 @@ jobs:
       - name: Compilar
         working-directory: upstream
         run: |
+          # El upgrade de apt de setup_env.sh intenta instalar el snap de Firefox y se cuelga si la Snap Store no responde.
+          sudo apt-mark hold firefox snapd || true
           bash ./setup_env.sh -p apt
           export CLANGPDB_AARCH64_PREFIX=aarch64-linux-gnu-
           python3 build_uefi.py -d gta4lwifi -r ${{ matrix.release }} -c
