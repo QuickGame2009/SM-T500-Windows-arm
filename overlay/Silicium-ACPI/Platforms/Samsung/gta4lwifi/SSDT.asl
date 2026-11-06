@@ -9,9 +9,10 @@ DefinitionBlock ("SSDT.aml", "SSDT", 2, "SAMSNG", "GTA4LWIF", 3)
         Name (PSUB, "IDP06115")
     }
 
+    // PRUEBA: URS0 (USB role switch) desactivado para ver si el arranque deja de pararse
     Scope (\_SB.URS0)
     {
-        Method (_STA, 0, NotSerialized) { Return (0x0F) }
+        Method (_STA, 0, NotSerialized) { Return (0x00) }
     }
 
     // El SM-T500 usa eMMC (SDC1), no UFS
