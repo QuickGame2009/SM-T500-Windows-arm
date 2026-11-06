@@ -1155,7 +1155,7 @@ static void ProcScan(void)
     ho = lh - ep;
     for (k = 0; k < 4; k++) for (i = 0; i < 7; i++) names[k][i] = ' ';
     e = *(ULONGLONG *)lh;
-    while (e != lh && cnt < 300 && e > 0xFFFF000000000000ULL && MmIsAddressValid((PVOID)e) && MmIsAddressValid((PVOID)(e - ho + nmo + 16))) {
+    while (e != lh && cnt < 300 && e > 0xFFFF000000000000ULL && MmIsAddressValid((PVOID)e) && MmIsAddressValid((PVOID)(e - ho + nmo + 16)) && *(UCHAR *)(e - ho + nmo) != 0) {
         UCHAR *pr = (UCHAR *)(e - ho + nmo); int z = 0;
         for (k = 0; k < 3; k++) for (i = 0; i < 7; i++) names[k][i] = names[k + 1][i];
         for (i = 0; i < 7; i++) { if (pr[i] == 0) z = 1; names[3][i] = (!z && pr[i] >= 32 && pr[i] < 127) ? (char)pr[i] : ' '; }
@@ -1197,7 +1197,7 @@ static void LgProcs(void)
     }
     if (!lh) { LgS("procesos: lista no encontrada\r\n"); return; }
     ho = lh - ep; e = *(ULONGLONG *)lh;
-    while (e != lh && cnt < 300 && e > 0xFFFF000000000000ULL && MmIsAddressValid((PVOID)e) && MmIsAddressValid((PVOID)(e - ho + nmo + 16))) {
+    while (e != lh && cnt < 300 && e > 0xFFFF000000000000ULL && MmIsAddressValid((PVOID)e) && MmIsAddressValid((PVOID)(e - ho + nmo + 16)) && *(UCHAR *)(e - ho + nmo) != 0) {
         UCHAR *pr = (UCHAR *)(e - ho + nmo);
         LgS("P ");
         for (i = 0; i < 15 && pr[i]; i++) LgC((pr[i] >= 32 && pr[i] < 127) ? (char)pr[i] : '?');
@@ -1279,7 +1279,7 @@ static void WriteLog(ULONG n)
     ULONGLONG ep = (ULONGLONG)PsInitialSystemProcess, lh = 0, first, e, off = 0, o, ho;
     ULONG i, tot = 0; PVOID h = 0; LONG c; IOSB io; LARGE_INTEGER lo;
     g_lgn = 0;
-    LgS("canary log n="); LgH(n, 4); LgS("\r\n");
+    LgS("canary log n="); LgH(n, 4); LgS(" t_ms="); LgH((rd_cntvct() - g_t0v) / g_perv, 8); LgS("\r\n");
     LgProcs();
     if (!ep || !MmIsAddressValid((PVOID)(ep + 0x700))) { LgS("sin proceso System\r\n"); goto fin; }
     LoadMods();
@@ -1385,7 +1385,7 @@ static void FsThread(PVOID ctx)
         }
         FsLine(3, "RAW ", d, 0x7FFFFFFF, sig, 1);
         ProcScan();
-        if (n == 8 || n == 30 || n == 80) WriteLog(n);
+        if (n == 8 || n == 30 || n == 80 || n == 160 || n == 300) WriteLog(n);
     }
 }
 
