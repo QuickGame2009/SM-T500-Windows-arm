@@ -1170,7 +1170,7 @@ static void ProcScan(void)
 
 /* ---- Registro en fichero: \SystemRoot\canary-log.txt (modulos cargados y, por cada hilo del proceso System, las direcciones de
    la pila que caen dentro de un modulo: modulo+RVA).  Sirve para ver donde esta parada la inicializacion del kernel. ---- */
-static char g_lg[90000]; static ULONG g_lgn; static ULONGLONG g_kso = 0x58;
+static char g_lg[260000]; static ULONG g_lgn; static ULONGLONG g_kso = 0x58;
 static void LgC(char c) { if (g_lgn < sizeof(g_lg) - 1) g_lg[g_lgn++] = c; }
 static void LgS(const char *s) { while (*s) LgC(*s++); }
 static void LgH(ULONGLONG v, int d) { char h[17]; ULONG i; Hex(h, v, d); for (i = 0; h[i]; i++) LgC(h[i]); }
@@ -1204,6 +1204,74 @@ static void LgProcs(void)
         LgS("\r\n"); cnt++; e = *(ULONGLONG *)e;
     }
     LgS("procesos "); LgH(cnt, 4); LgS("\r\n");
+}
+
+
+/* Procesos distintos de System: volcado crudo del EPROCESS y de cada uno de sus hilos + marcos de su pila de kernel. */
+static void LgRaw(ULONGLONG a, ULONG bytes)
+{
+    ULONG i;
+    for (i = 0; i < bytes; i += 8) {
+        if ((i % 64) == 0) { LgS("\r\n  "); LgH(i, 3); LgC(':'); }
+        LgC(' '); LgH(*(ULONGLONG *)(a + i), 16);
+    }
+    LgS("\r\n");
+}
+static void LgUser(ULONGLONG ep0, ULONGLONG tho, ULONGLONG toff)
+{
+    ULONGLONG ho, lh = 0, e, nmo = 0, o; ULONG np = 0;
+    for (o = 0x100; o < 0x700; o++) {
+        UCHAR *s = (UCHAR *)(ep0 + o);
+        if (s[0]=='S' && s[1]=='y' && s[2]=='s' && s[3]=='t' && s[4]=='e' && s[5]=='m' && s[6]==0) { nmo = o; break; }
+    }
+    for (ho = 0x100; nmo && ho <= nmo && !lh; ho += 8) {
+        ULONGLONG hd = ep0 + ho, f, b2; UCHAR *nm;
+        f = *(ULONGLONG *)hd; b2 = *(ULONGLONG *)(hd + 8);
+        if (f == hd || f < 0xFFFF000000000000ULL || b2 < 0xFFFF000000000000ULL) continue;
+        if (!MmIsAddressValid((PVOID)(f + 8)) || !MmIsAddressValid((PVOID)b2)) continue;
+        if (*(ULONGLONG *)(f + 8) != hd || *(ULONGLONG *)b2 != hd) continue;
+        if (!MmIsAddressValid((PVOID)(f - ho + nmo + 16))) continue;
+        nm = (UCHAR *)(f - ho + nmo);
+        if (nm[0] < 'A' || nm[0] > 'z' || nm[1] < 32 || nm[1] > 126) continue;
+        lh = hd;
+    }
+    if (!lh) return;
+    ho = lh - ep0; e = *(ULONGLONG *)lh;
+    LgS("--- procesos (EPROCESS crudo) nmo="); LgH(nmo, 4); LgS(" ho="); LgH(ho, 4); LgS(" tho="); LgH(tho, 4); LgS("\r\n");
+    while (e != lh && np < 8 && e > 0xFFFF000000000000ULL && MmIsAddressValid((PVOID)e) && MmIsAddressValid((PVOID)(e - ho + 0x700))) {
+        ULONGLONG ep = e - ho, th0 = ep + tho, te; ULONG nt = 0;
+        LgS("XP "); LgH(ep & 0xFFFFFFFFFFULL, 10); LgS(" nombre=");
+        { UCHAR *pr = (UCHAR *)(ep + nmo); ULONG i; for (i = 0; i < 15 && pr[i]; i++) LgC((pr[i] >= 32 && pr[i] < 127) ? (char)pr[i] : '?'); }
+        LgRaw(ep, 0x600);
+        te = *(ULONGLONG *)th0;
+        while (te != th0 && nt < 6 && te > 0xFFFF000000000000ULL && MmIsAddressValid((PVOID)te) && MmIsAddressValid((PVOID)(te - toff + 0x400))) {
+            ULONGLONG th = te - toff, ini, lim, q, lastpg = 0, prev = 0; ULONG nf = 0, idx; int okpg = 0;
+            ini = *(ULONGLONG *)(th + 0x28); lim = *(ULONGLONG *)(th + 0x30);
+            LgS("XT "); LgH(th & 0xFFFFFFFFFFULL, 10); LgS(" ini="); LgH(ini, 16); LgS(" lim="); LgH(lim, 16);
+            LgRaw(th, 0x400);
+            LgS("  frames:");
+            if (ini > lim && ini - lim < 0x80000) {
+                for (q = (ini - 8) & ~7ULL; q >= lim && nf < 60; q -= 8) {
+                    ULONGLONG v;
+                    if ((q & ~0xFFFULL) != lastpg) { lastpg = q & ~0xFFFULL; okpg = MmIsAddressValid((PVOID)q) ? 1 : 0; }
+                    if (!okpg) continue;
+                    v = *(ULONGLONG *)q;
+                    if (v < 0xFFFF000000000000ULL || v == prev) continue;
+                    if (ModOf(v, &idx)) {
+                        ULONGLONG rva = v - g_md[idx].base; ULONG k;
+                        if (idx == 0 && (rva < 0x200000 || rva >= 0xA8C000)) continue;
+                        prev = v; LgC(' ');
+                        for (k = 0; k < 9 && g_md[idx].nm[k] != ' '; k++) LgC(g_md[idx].nm[k]);
+                        LgC('+'); LgH(rva, 6); nf++;
+                    }
+                }
+            }
+            LgS("\r\n");
+            nt++; te = *(ULONGLONG *)te;
+        }
+        LgS("XT hilos "); LgH(nt, 2); LgS("\r\n");
+        np++; e = *(ULONGLONG *)e;
+    }
 }
 
 static void WriteLog(ULONG n)
@@ -1280,6 +1348,7 @@ static void WriteLog(ULONG n)
         e = *(ULONGLONG *)e;
     }
     LgS("hilos "); LgH(tot, 4); LgS("\r\n");
+    LgUser(ep, lh - ep, off);
 fin:
     c = FsOpen("\\SystemRoot\\canary-log.txt", 0x40100000, 5, &h);
     if (c >= 0 && h) { io.St = 0; io.Info = 0; lo.QuadPart = 0; ZwWriteFile(h, 0, 0, 0, &io, g_lg, g_lgn, &lo, 0); ZwClose(h); }
