@@ -39,3 +39,4 @@ ZwDeviceIoControlFile
 ZwReadFile
 ZwCreateFile
 ZwWriteFile
+ZwFlushKey

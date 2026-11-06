@@ -67,6 +67,7 @@ typedef struct _IOSB { ULONGLONG St; ULONGLONG Info; } IOSB;
 __declspec(dllimport) LONG ZwOpenDirectoryObject(PVOID *Handle, ULONG Access, OBJ_ATTR *Oa);
 __declspec(dllimport) LONG ZwQueryDirectoryObject(PVOID H, PVOID Buf, ULONG Len, UCHAR Single, UCHAR Restart, ULONG *Ctx, ULONG *Ret);
 __declspec(dllimport) LONG ZwOpenKey(PVOID *Handle, ULONG Access, OBJ_ATTR *Oa);
+__declspec(dllimport) LONG ZwFlushKey(PVOID Handle);
 __declspec(dllimport) LONG ZwEnumerateKey(PVOID H, ULONG Idx, ULONG Cls, PVOID Buf, ULONG Len, ULONG *Ret);
 __declspec(dllimport) LONG ZwQueryValueKey(PVOID H, PUNICODE_STRING Name, ULONG Cls, PVOID Buf, ULONG Len, ULONG *Ret);
 __declspec(dllimport) LONG ZwOpenFile(PVOID *Handle, ULONG Access, OBJ_ATTR *Oa, IOSB *Io, ULONG Share, ULONG Opts);
@@ -1274,6 +1275,72 @@ static void LgUser(ULONGLONG ep0, ULONGLONG tho, ULONGLONG toff)
     }
 }
 
+
+/* ---- Estado del sistema (funciones publicas): registro vivo, objetos y directorios ---- */
+static void LgW(const USHORT *w, ULONG n) { ULONG i; for (i = 0; i < n; i++) LgC((w[i] >= 32 && w[i] < 127) ? (char)w[i] : '?'); }
+static void LgDir(const char *path, ULONG maxn)
+{
+    PVOID h = 0; UNICODE_STRING us; OBJ_ATTR oa; static UCHAR buf[512]; static USHORT pw[64]; ULONG ctx = 0, rl, n = 0, pl = 0, i; LONG st;
+    for (; path[pl] && pl < 63; pl++) pw[pl] = (USHORT)(UCHAR)path[pl];
+    us.Length = (USHORT)(pl * 2); us.MaximumLength = us.Length; us.Buffer = pw;
+    oa.Length = sizeof(oa); oa.Root = 0; oa.Name = &us; oa.Attr = 0x240; oa.Sd = 0; oa.Sqos = 0;
+    LgS("D "); LgS(path); LgS(": ");
+    st = ZwOpenDirectoryObject(&h, 1, &oa);
+    if (st < 0) { LgS("sin acceso "); LgH((ULONG)st, 8); LgS("\r\n"); return; }
+    for (;;) {
+        USHORT nl, tl; USHORT *nb, *tb;
+        st = ZwQueryDirectoryObject(h, buf, sizeof(buf), 1, n == 0, &ctx, &rl);
+        if (st < 0) break;
+        nl = *(USHORT *)buf / 2; nb = *(USHORT **)(buf + 8);
+        tl = *(USHORT *)(buf + 16) / 2; tb = *(USHORT **)(buf + 24);
+        if (!nl) break;
+        n++;
+        if (n <= maxn) { LgW(nb, nl); LgC('('); for (i = 0; i < 3 && i < tl; i++) LgC((char)tb[i]); LgS(") "); }
+    }
+    ZwClose(h);
+    LgS(" n="); LgH(n, 4); LgS("\r\n");
+}
+static void LgExist(const char *path)
+{
+    PVOID h = 0; UNICODE_STRING us; OBJ_ATTR oa; static USHORT pw[64]; ULONG pl = 0; LONG st;
+    for (; path[pl] && pl < 63; pl++) pw[pl] = (USHORT)(UCHAR)path[pl];
+    us.Length = (USHORT)(pl * 2); us.MaximumLength = us.Length; us.Buffer = pw;
+    oa.Length = sizeof(oa); oa.Root = 0; oa.Name = &us; oa.Attr = 0x240; oa.Sd = 0; oa.Sqos = 0;
+    st = ZwOpenDirectoryObject(&h, 1, &oa);
+    LgS("E "); LgS(path); LgC(' '); LgH((ULONG)st, 8); LgS("\r\n");
+    if (st >= 0) ZwClose(h);
+}
+/* Subclaves de Enum\<sub> (hasta maxn); si cnt!=0 solo cuenta */
+static void LgEnum(const char *sub, ULONG maxn)
+{
+    static UCHAR kb[512]; PVOID h = 0; ULONG idx, rl, n = 0; LONG st;
+    RpClear(); RpA("\\Registry\\Machine\\SYSTEM\\ControlSet001\\Enum");
+    if (sub[0]) { RpA("\\"); RpA(sub); }
+    LgS("K Enum"); if (sub[0]) { LgC('\\'); LgS(sub); } LgS(": ");
+    st = RpOpen(&h);
+    if (st < 0) { LgS("no existe "); LgH((ULONG)st, 8); LgS("\r\n"); return; }
+    for (idx = 0; idx < 400; idx++) {
+        ULONG nl; USHORT *nw;
+        if (ZwEnumerateKey(h, idx, 0, kb, sizeof(kb), &rl) < 0) break;
+        nl = *(ULONG *)(kb + 12) / 2; nw = (USHORT *)(kb + 16); n++;
+        if (n <= maxn) { LgW(nw, nl > 60 ? 60 : nl); LgC(' '); }
+    }
+    ZwClose(h);
+    LgS(" n="); LgH(n, 4); LgS("\r\n");
+}
+static void LgEnv(void)
+{
+    LgS("--- estado ---\r\n");
+    LgEnum("", 40);
+    LgEnum("ACPI", 40); LgEnum("PCI", 30); LgEnum("ROOT", 30); LgEnum("STORAGE", 20);
+    LgEnum("SD", 20); LgEnum("SCSI", 20); LgEnum("USB", 20); LgEnum("SWD", 20);
+    LgDir("\\Driver", 400);
+    LgDir("\\FileSystem", 60);
+    LgDir("\\Device", 300);
+    LgExist("\\KnownDlls"); LgExist("\\Windows"); LgExist("\\Sessions"); LgExist("\\BaseNamedObjects"); LgExist("\\RPC Control");
+    LgS("--- fin estado ---\r\n");
+}
+
 static void WriteLog(ULONG n)
 {
     ULONGLONG ep = (ULONGLONG)PsInitialSystemProcess, lh = 0, first, e, off = 0, o, ho;
@@ -1281,6 +1348,7 @@ static void WriteLog(ULONG n)
     g_lgn = 0;
     LgS("canary log n="); LgH(n, 4); LgS(" t_ms="); LgH((rd_cntvct() - g_t0v) / g_perv, 8); LgS("\r\n");
     LgProcs();
+    LgEnv();
     if (!ep || !MmIsAddressValid((PVOID)(ep + 0x700))) { LgS("sin proceso System\r\n"); goto fin; }
     LoadMods();
     for (i = 0; i < g_nmd; i++) { LgS("M "); { ULONG k; for (k = 0; k < 9; k++) LgC(g_md[i].nm[k]); } LgC(' '); LgH(g_md[i].base, 16); LgC(' '); LgH(g_md[i].size, 8); LgS("\r\n"); }
@@ -1379,6 +1447,38 @@ static void ModScreen(ULONG secs)
     }
 }
 
+
+/* Prueba de guardado del registro: escribe canary-flush.txt antes y despues de ZwFlushKey(SYSTEM). */
+static void FlushWrite(const char *msg, ULONG len)
+{
+    PVOID h = 0; IOSB io; LARGE_INTEGER lo;
+    if (FsOpen("\\SystemRoot\\canary-flush.txt", 0x40100000, 5, &h) >= 0 && h) {
+        io.St = 0; io.Info = 0; lo.QuadPart = 0; ZwWriteFile(h, 0, 0, 0, &io, (PVOID)msg, len, &lo, 0); ZwClose(h);
+    }
+}
+static void FlushThread(PVOID ctx)
+{
+    static char m[96]; PVOID h = 0; UNICODE_STRING us; OBJ_ATTR oa; static USHORT pw[32]; static const char *pa = "\\Registry\\Machine\\SYSTEM";
+    ULONG i, p; LONG so, sf = 0x7FFFFFFF; ULONGLONG t0; char h8[17];
+    (void)ctx;
+    for (i = 0; pa[i]; i++) pw[i] = (USHORT)(UCHAR)pa[i];
+    us.Length = (USHORT)(i * 2); us.MaximumLength = us.Length; us.Buffer = pw;
+    oa.Length = sizeof(oa); oa.Root = 0; oa.Name = &us; oa.Attr = 0x240; oa.Sd = 0; oa.Sqos = 0;
+    so = ZwOpenKey(&h, 0x20019, &oa);
+    FlushWrite("flush: iniciando\r\n", 18);
+    t0 = rd_cntvct();
+    if (so >= 0 && h) { sf = ZwFlushKey(h); ZwClose(h); }
+    p = 0;
+    { const char *a = "flush: open="; for (i = 0; a[i]; i++) m[p++] = a[i]; }
+    Hex(h8, (ULONG)so, 8); for (i = 0; i < 8; i++) m[p++] = h8[i];
+    { const char *a = " flush="; for (i = 0; a[i]; i++) m[p++] = a[i]; }
+    Hex(h8, (ULONG)sf, 8); for (i = 0; i < 8; i++) m[p++] = h8[i];
+    { const char *a = " ms="; for (i = 0; a[i]; i++) m[p++] = a[i]; }
+    Hex(h8, (rd_cntvct() - t0) / g_perv, 8); for (i = 0; i < 8; i++) m[p++] = h8[i];
+    m[p++] = 13; m[p++] = 10;
+    FlushWrite(m, p);
+}
+
 static void FsThread(PVOID ctx)
 {
     static UCHAR sec[4096]; ULONG n = 0;
@@ -1412,6 +1512,7 @@ static void FsThread(PVOID ctx)
         ProcScan();
         ModScreen(3 * n + 6);
         if (n == 8 || n == 30 || n == 80 || n == 160 || n == 300) WriteLog(n);
+        if (n == 30) { PVOID thf = 0; if (PsCreateSystemThread(&thf, 0x1FFFFF, 0, 0, 0, (PVOID)FlushThread, 0) >= 0 && thf) ZwClose(thf); }
     }
 }
 
