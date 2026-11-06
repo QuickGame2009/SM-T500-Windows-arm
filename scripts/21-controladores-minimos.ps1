@@ -1,6 +1,6 @@
 ﻿# Como 5-preparar (y 14), pero con parche de partmgr.sys;  SIN dejar que Windows reescriba la GPT: el cambio de tipo de las particiones ESP/Windows
 # se hace directamente en la tabla (con disco offline), y despues Windows solo monta los volumenes y copia archivos.
-param([int]$Esp = 76, [int]$Win = 80, [switch]$Restaurar)
+param([int]$Esp = 76, [int]$Win = 80, [switch]$Restaurar, [string]$Archivo = 'SYSTEM.minimos')
 $ErrorActionPreference = 'Continue'
 $kit = Split-Path -Parent $PSScriptRoot
 $out = Join-Path $kit 'diag-minimos.txt'
@@ -216,27 +216,26 @@ if ($lw) {
 $hvp = "${lw}:\Windows\System32\config\SYSTEM"
 $hvo = "${lw}:\Windows\System32\config\SYSTEM.original-min"
 $hash0 = '7FEA6BC95CE17A87A86796AC2BC042F35F4B841DA54F44F63AD5A6A33292580B'
-$hash1 = 'CC6D5DCB72B6CAFF255F86C4FCB6F268591AB544DD7C8DDC33597CE8EB347D89'
 if ($lw -and (Test-Path $hvp)) {
     $cur = (Get-FileHash $hvp -Algorithm SHA256).Hash
     Write-Host ("SYSTEM actual: " + $cur)
     if ($Restaurar) {
         if (Test-Path $hvo) { Copy-Item $hvo $hvp -Force; Write-Host "SYSTEM original restaurado." -ForegroundColor Green }
         else { Write-Host "No hay copia SYSTEM.original-min; no se restaura nada." -ForegroundColor Yellow }
-    } elseif ($cur -eq $hash1) {
-        Write-Host "SYSTEM ya tiene el parche de controladores minimos." -ForegroundColor Yellow
-    } elseif ($cur -eq $hash0) {
-        $nuevo = Join-Path $kit 'SYSTEM.minimos'
-        if (-not (Test-Path $nuevo) -or (Get-FileHash $nuevo -Algorithm SHA256).Hash -ne $hash1) { Write-Host "Falta SYSTEM.minimos (o no es el correcto) en la carpeta del kit." -ForegroundColor Red }
+    } else {
+        $nuevo = Join-Path $kit $Archivo
+        $baseOk = $false
+        if (Test-Path $hvo) { $baseOk = ((Get-FileHash $hvo -Algorithm SHA256).Hash -eq $hash0) }
+        elseif ($cur -eq $hash0) { Copy-Item $hvp $hvo -Force; $baseOk = $true }
+        if (-not $baseOk) { Write-Host "No tengo el SYSTEM original (hash esperado) como base. No se toca nada." -ForegroundColor Red }
+        elseif (-not (Test-Path $nuevo)) { Write-Host "Falta $Archivo en la carpeta del kit." -ForegroundColor Red }
         else {
-            Copy-Item $hvp $hvo -Force
+            $h1 = (Get-FileHash $nuevo -Algorithm SHA256).Hash
             Copy-Item $nuevo $hvp -Force
             $chk = (Get-FileHash $hvp -Algorithm SHA256).Hash
-            if ($chk -eq $hash1) { Write-Host "OK: SYSTEM con controladores minimos instalado (copia del original en SYSTEM.original-min)." -ForegroundColor Green }
+            if ($chk -eq $h1) { Write-Host "OK: SYSTEM = $Archivo instalado (original en SYSTEM.original-min)." -ForegroundColor Green }
             else { Write-Host "ERROR: la copia no coincide; restaurando original." -ForegroundColor Red; Copy-Item $hvo $hvp -Force }
         }
-    } else {
-        Write-Host "El SYSTEM del tablet no es el esperado (hash distinto). No se toca nada." -ForegroundColor Red
     }
 }
 if ($le) {
