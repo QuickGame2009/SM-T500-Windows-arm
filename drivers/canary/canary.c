@@ -1354,6 +1354,31 @@ fin:
     if (c >= 0 && h) { io.St = 0; io.Info = 0; lo.QuadPart = 0; ZwWriteFile(h, 0, 0, 0, &io, g_lg, g_lgn, &lo, 0); ZwClose(h); }
 }
 
+/* Pantalla de drivers: total cargados, cuantos "de sistema" (Npfs, Msfs, luafv, kbdclass...) y los 8 ultimos.
+   Si el total deja de crecer, el arranque esta parado en el ultimo driver de la lista. */
+static void ModScreen(ULONG secs)
+{
+    static const char *sysk[] = { "Npfs", "Msfs", "luaf", "kbdc", "mouc", "cdro", "Beep", "Null", "monit", "bam.", "dam.", "afd.", 0 };
+    char ln[40]; ULONG p = 0, i, j, k, sysn = 0, first;
+    LoadMods();
+    for (i = 0; i < g_nmd; i++)
+        for (k = 0; sysk[k]; k++) {
+            for (j = 0; sysk[k][j]; j++) { char c = g_md[i].nm[j]; if (c >= 'A' && c <= 'Z') c += 32; char d = sysk[k][j]; if (d >= 'A' && d <= 'Z') d += 32; if (c != d) break; }
+            if (!sysk[k][j]) { sysn++; break; }
+        }
+    ln[p++] = 'D'; ln[p++] = 'R'; ln[p++] = ' ';
+    PutDec(ln, &p, g_nmd); ln[p++] = ' '; ln[p++] = 'S'; ln[p++] = 'Y'; ln[p++] = 'S'; ln[p++] = ' ';
+    PutDec(ln, &p, sysn); ln[p++] = ' '; ln[p++] = 'T'; ln[p++] = ' ';
+    PutDec(ln, &p, secs); ln[p] = 0;
+    DrawStr(640, 400, ln, 0x0000FF00);
+    first = g_nmd > 8 ? g_nmd - 8 : 0;
+    for (i = first; i < g_nmd; i++) {
+        for (j = 0; j < 9; j++) ln[j] = g_md[i].nm[j];
+        ln[9] = 0;
+        DrawStr(640, 430 + 30 * (i - first), ln, 0x00FFFFFF);
+    }
+}
+
 static void FsThread(PVOID ctx)
 {
     static UCHAR sec[4096]; ULONG n = 0;
@@ -1385,6 +1410,7 @@ static void FsThread(PVOID ctx)
         }
         FsLine(3, "RAW ", d, 0x7FFFFFFF, sig, 1);
         ProcScan();
+        ModScreen(3 * n + 6);
         if (n == 8 || n == 30 || n == 80 || n == 160 || n == 300) WriteLog(n);
     }
 }
