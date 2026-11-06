@@ -1,6 +1,6 @@
 ﻿# Como 5-preparar (y 14), pero con parche de partmgr.sys;  SIN dejar que Windows reescriba la GPT: el cambio de tipo de las particiones ESP/Windows
 # se hace directamente en la tabla (con disco offline), y despues Windows solo monta los volumenes y copia archivos.
-param([int]$Esp = 76, [int]$Win = 80, [switch]$Restaurar, [string]$Archivo = 'SYSTEM.minimos')
+param([int]$Esp = 76, [int]$Win = 80, [switch]$Restaurar, [string]$Archivo = 'SYSTEM.minimos', [string]$Canario = '')
 $ErrorActionPreference = 'Continue'
 $kit = Split-Path -Parent $PSScriptRoot
 $out = Join-Path $kit 'diag-minimos.txt'
@@ -237,6 +237,14 @@ if ($lw -and (Test-Path $hvp)) {
             else { Write-Host "ERROR: la copia no coincide; restaurando original." -ForegroundColor Red; Copy-Item $hvo $hvp -Force }
         }
     }
+}
+if ($Canario -and $lw) {
+    $cs = Join-Path $kit $Canario
+    if (Test-Path $cs) {
+        Copy-Item $cs "${lw}:\Windows\System32\drivers\canary3.sys" -Force
+        $a = (Get-FileHash $cs -Algorithm SHA256).Hash; $b = (Get-FileHash "${lw}:\Windows\System32\drivers\canary3.sys" -Algorithm SHA256).Hash
+        if ($a -eq $b) { Write-Host "OK: canary3.sys = $Canario copiado a drivers." -ForegroundColor Green } else { Write-Host "ERROR: canary3.sys no coincide." -ForegroundColor Red }
+    } else { Write-Host "Falta $Canario en la carpeta del kit." -ForegroundColor Red }
 }
 if ($le) {
     $bcd = "${le}:\EFI\Microsoft\Boot\BCD"

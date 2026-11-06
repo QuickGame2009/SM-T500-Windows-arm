@@ -217,6 +217,8 @@ __declspec(dllimport) LONG ZwReadFile(PVOID H, PVOID Ev, PVOID Apc, PVOID Ctx, I
 __declspec(dllimport) LONG ZwDeviceIoControlFile(PVOID H, PVOID Ev, PVOID Apc, PVOID Ctx, IOSB *Io, ULONG Code, PVOID In, ULONG InLen, PVOID Out, ULONG OutLen);
 __declspec(dllimport) void IoInvalidateDeviceRelations(PVOID Pdo, int Type);
 static volatile ULONG g_kn, g_kst, g_kms, g_fsStarted;
+void IoRegisterBootDriverReinitialization(PVOID DriverObject, PVOID Routine, PVOID Context);
+static volatile ULONG g_reinit, g_reinitMs, g_reinitReg;   /* testigo: callback de reinicializacion de drivers de arranque */
 static volatile ULONGLONG g_kdo, g_kpdo;
 static void KickPnp(void)
 {
@@ -1349,6 +1351,7 @@ static void WriteLog(ULONG n)
     LgS("canary log n="); LgH(n, 4); LgS(" t_ms="); LgH((rd_cntvct() - g_t0v) / g_perv, 8); LgS("\r\n");
     LgProcs();
     LgEnv();
+    LgS("R reinit_registrado="); LgH(g_reinitReg, 8); LgS(" reinit_ejecutado="); LgH(g_reinit, 8); LgS(" t_ms="); LgH(g_reinitMs, 8); LgS("\r\n");
     if (!ep || !MmIsAddressValid((PVOID)(ep + 0x700))) { LgS("sin proceso System\r\n"); goto fin; }
     LoadMods();
     for (i = 0; i < g_nmd; i++) { LgS("M "); { ULONG k; for (k = 0; k < 9; k++) LgC(g_md[i].nm[k]); } LgC(' '); LgH(g_md[i].base, 16); LgC(' '); LgH(g_md[i].size, 8); LgS("\r\n"); }
@@ -1757,13 +1760,25 @@ static void MonThread(PVOID ctx)
     }
 }
 
+#if SLOT == 3
+/* Testigo: IoRegisterBootDriverReinitialization (API publica de wdm.h). El kernel llama a este callback
+   cuando termina de inicializar los drivers de arranque. Si se ejecuta: cuadrado blanco abajo a la derecha. */
+static void ReinitCb(PVOID DriverObject, PVOID Context, ULONG Count)
+{
+    (void)DriverObject; (void)Context; (void)Count;
+    g_reinit++;
+    g_reinitMs = (ULONG)((rd_cntvct() - g_t0v) / g_perv);
+    if (g_fb) FillRect(COL_X, 130, 100, 40, 0x00FFFFFF);
+}
+#endif
+
 NTSTATUS DriverEntry(PVOID DriverObject, PUNICODE_STRING RegistryPath)
 {
     PHYSICAL_ADDRESS pa;
     LARGE_INTEGER due;
     ULONGLONG t0, freq, wait;
     ULONG k0, k1, i;
-    (void)DriverObject; (void)RegistryPath;
+    (void)RegistryPath;
 
     pa.QuadPart = (LONGLONG)FB_PHYS;
     g_fb = (volatile ULONG *)MmMapIoSpace(pa, FB_BYTES, MmWriteCombined);
@@ -1822,6 +1837,7 @@ NTSTATUS DriverEntry(PVOID DriverObject, PUNICODE_STRING RegistryPath)
 #if SLOT == 3
     g_bcbuf[0] = 0;
     KeRegisterBugCheckCallback(g_bcrec, (PVOID)BugCheckCb, g_bcbuf, sizeof(g_bcbuf), (UCHAR *)"CANARY");
+    IoRegisterBootDriverReinitialization(DriverObject, (PVOID)ReinitCb, 0); g_reinitReg = 1;
     DrawAddr(740, "SELF", (ULONGLONG)(PVOID)DriverEntry, 0x00FFFFFF);   /* autotest: debe mostrar canary3.sys */
     /* Hilo monitor (prioridad minima): sigue dibujando aunque DriverEntry ya haya vuelto.
        Si la pantalla se sigue actualizando tras el cuelgue, el kernel NO esta girando en un
