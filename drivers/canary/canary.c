@@ -1174,12 +1174,45 @@ static char g_lg[90000]; static ULONG g_lgn; static ULONGLONG g_kso = 0x58;
 static void LgC(char c) { if (g_lgn < sizeof(g_lg) - 1) g_lg[g_lgn++] = c; }
 static void LgS(const char *s) { while (*s) LgC(*s++); }
 static void LgH(ULONGLONG v, int d) { char h[17]; ULONG i; Hex(h, v, d); for (i = 0; h[i]; i++) LgC(h[i]); }
+
+/* Procesos del sistema (nombre de imagen) al fichero de registro. */
+static void LgProcs(void)
+{
+    ULONGLONG ep = (ULONGLONG)PsInitialSystemProcess, ho, lh = 0, e, nmo = 0, o; ULONG cnt = 0, i;
+    if (!ep || !MmIsAddressValid((PVOID)(ep + 0x700))) { LgS("procesos: sin System\r\n"); return; }
+    for (o = 0x100; o < 0x700; o++) {
+        UCHAR *s = (UCHAR *)(ep + o);
+        if (s[0]=='S' && s[1]=='y' && s[2]=='s' && s[3]=='t' && s[4]=='e' && s[5]=='m' && s[6]==0) { nmo = o; break; }
+    }
+    for (ho = 0x100; nmo && ho <= nmo && !lh; ho += 8) {
+        ULONGLONG hd = ep + ho, f, b2; UCHAR *nm;
+        f = *(ULONGLONG *)hd; b2 = *(ULONGLONG *)(hd + 8);
+        if (f == hd || f < 0xFFFF000000000000ULL || b2 < 0xFFFF000000000000ULL) continue;
+        if (!MmIsAddressValid((PVOID)(f + 8)) || !MmIsAddressValid((PVOID)b2)) continue;
+        if (*(ULONGLONG *)(f + 8) != hd || *(ULONGLONG *)b2 != hd) continue;
+        if (!MmIsAddressValid((PVOID)(f - ho + nmo + 16))) continue;
+        nm = (UCHAR *)(f - ho + nmo);
+        if (nm[0] < 'A' || nm[0] > 'z' || nm[1] < 32 || nm[1] > 126) continue;
+        lh = hd;
+    }
+    if (!lh) { LgS("procesos: lista no encontrada\r\n"); return; }
+    ho = lh - ep; e = *(ULONGLONG *)lh;
+    while (e != lh && cnt < 300 && e > 0xFFFF000000000000ULL && MmIsAddressValid((PVOID)e) && MmIsAddressValid((PVOID)(e - ho + nmo + 16))) {
+        UCHAR *pr = (UCHAR *)(e - ho + nmo);
+        LgS("P ");
+        for (i = 0; i < 15 && pr[i]; i++) LgC((pr[i] >= 32 && pr[i] < 127) ? (char)pr[i] : '?');
+        LgS("\r\n"); cnt++; e = *(ULONGLONG *)e;
+    }
+    LgS("procesos "); LgH(cnt, 4); LgS("\r\n");
+}
+
 static void WriteLog(ULONG n)
 {
     ULONGLONG ep = (ULONGLONG)PsInitialSystemProcess, lh = 0, first, e, off = 0, o, ho;
     ULONG i, tot = 0; PVOID h = 0; LONG c; IOSB io; LARGE_INTEGER lo;
     g_lgn = 0;
     LgS("canary log n="); LgH(n, 4); LgS("\r\n");
+    LgProcs();
     if (!ep || !MmIsAddressValid((PVOID)(ep + 0x700))) { LgS("sin proceso System\r\n"); goto fin; }
     LoadMods();
     for (i = 0; i < g_nmd; i++) { LgS("M "); { ULONG k; for (k = 0; k < 9; k++) LgC(g_md[i].nm[k]); } LgC(' '); LgH(g_md[i].base, 16); LgC(' '); LgH(g_md[i].size, 8); LgS("\r\n"); }
