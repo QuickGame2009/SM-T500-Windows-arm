@@ -188,6 +188,28 @@ if ($lw) {
         else { Write-Host ("No existe " + $f) }
     }
     Get-ChildItem "${lw}:\Windows\System32\drivers" -Filter *.sys | Sort-Object LastWriteTime -Descending | Select-Object -First 5 | ForEach-Object { Write-Host ("drivers: " + $_.Name + " " + $_.LastWriteTime) }
+
+    # --- Comprobacion de archivos basicos para lanzar el primer proceso (solo lectura) ---
+    Write-Host "=== CHEQUEO smss ===" -ForegroundColor Cyan
+    foreach ($f in @("Windows\System32\smss.exe","Windows\System32\ntdll.dll","Windows\System32\autochk.exe","Windows\System32\csrss.exe","Windows\System32\wininit.exe","Windows\System32\winlogon.exe","Windows\System32\config\SYSTEM","Windows\System32\config\SOFTWARE","Windows\System32\config\SAM","Windows\System32\config\DEFAULT","Windows\System32\config\SECURITY","Windows\System32\config\SYSTEM.LOG1","Windows\System32\config\SYSTEM.LOG2")) {
+        $p = "${lw}:\$f"
+        if (Test-Path $p) { $i = Get-Item $p; Write-Host ("OK  {0}  {1} bytes  {2}" -f $f, $i.Length, $i.LastWriteTime) }
+        else { Write-Host ("FALTA  " + $f) -ForegroundColor Red }
+    }
+    $hv = "${lw}:\Windows\System32\config\SYSTEM"
+    if (Test-Path $hv) {
+        & reg.exe load HKLM\TSYS $hv 2>&1 | Out-Host
+        if (Test-Path HKLM:\TSYS) {
+            & reg.exe query HKLM\TSYS\Select 2>&1 | Out-Host
+            & reg.exe query "HKLM\TSYS\ControlSet001\Control\Session Manager" 2>&1 | Out-Host
+            & reg.exe query "HKLM\TSYS\ControlSet001\Control\Session Manager\SubSystems" 2>&1 | Out-Host
+            & reg.exe query "HKLM\TSYS\ControlSet001\Control" /v SystemStartOptions 2>&1 | Out-Host
+            & reg.exe query "HKLM\TSYS\Setup" 2>&1 | Out-Host
+            [gc]::Collect(); Start-Sleep 1
+            & reg.exe unload HKLM\TSYS 2>&1 | Out-Host
+        }
+    }
+    Write-Host "=== FIN CHEQUEO ===" -ForegroundColor Cyan
 }
 if ($le) {
     $bcd = "${le}:\EFI\Microsoft\Boot\BCD"
