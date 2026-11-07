@@ -41,7 +41,7 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <WppEnabled>false</WppEnabled>
-      <PreprocessorDefinitions>_KERNEL_MODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <!-- El driver es "HID source" de VHF: necesita vhf.h y VhfKm.lib -->
     </ClCompile>

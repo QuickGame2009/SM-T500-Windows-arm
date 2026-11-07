@@ -5,7 +5,7 @@
 /* GET_FEATURE: responder al Contact Count Maximum. */
 static EVT_VHF_ASYNC_OPERATION EvtVhfGetFeature;
 
-static VOID EvtVhfGetFeature(VHFHANDLE VhfHandle, PVOID VhfClientContext,
+static VOID EvtVhfGetFeature(PVOID VhfClientContext,
                              VHFOPERATIONHANDLE VhfOperationHandle,
                              PVOID VhfOperationContext, PHID_XFER_PACKET HidTransferPacket)
 {
