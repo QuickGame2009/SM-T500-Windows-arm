@@ -10,7 +10,7 @@ Son los mismos pasos que los `.cmd` / `.ps1` de Windows, pero para hacerlos desd
    ```
 2. Descarga el repositorio:
    ```
-   cd ~ && git clone https://github.com/QuickGame2009/SM-T500-Windows-arm sm-t500-repo
+   cd ~ && git clone -b memmap-lime-verbose https://github.com/QuickGame2009/SM-T500-Windows-arm sm-t500-repo
    cd ~/sm-t500-repo/scripts/steamos
    ```
 3. Instala las herramientas (adb y un contenedor con `hivex` para editar el registro de Windows). No toca SteamOS:
