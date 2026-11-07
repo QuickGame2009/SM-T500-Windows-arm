@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  TOOLCHAIN_KEY: toolchain-vs2022-arm64-wdk22621-v1
+  TOOLCHAIN_KEY: toolchain-vs2022-arm64-wdk22621-v2
 
 jobs:
   build:
@@ -38,9 +38,11 @@ jobs:
           $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
           $kits = "${env:ProgramFiles(x86)}\Windows Kits\10"
           function Snap($roots) {
-            $set = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
-            foreach ($r in $roots) { foreach ($f in [System.IO.Directory]::EnumerateFiles($r, '*', 'AllDirectories')) { [void]$set.Add($f) } }
-            return $set
+            $d = @{}
+            foreach ($r in $roots) { foreach ($f in [System.IO.Directory]::EnumerateFiles($r, '*', 'AllDirectories')) {
+              try { $i = [System.IO.FileInfo]::new($f); $d[$f.ToLowerInvariant()] = "$($i.Length)|$($i.LastWriteTimeUtc.Ticks)" } catch {}
+            } }
+            return $d
           }
           $before = Snap @($vsPath, $kits)
 
@@ -56,8 +58,8 @@ jobs:
 
           # Guardar solo los archivos nuevos (rutas relativas a C:\)
           $after = Snap @($vsPath, $kits)
-          $new = $after | Where-Object { -not $before.Contains($_) } | ForEach-Object { $_.Substring(3) }
-          Write-Host "Archivos nuevos: $($new.Count)"
+          $new = $after.Keys | Where-Object { $before[$_] -ne $after[$_] } | ForEach-Object { $_.Substring(3) }
+          Write-Host "Archivos nuevos o modificados: $($new.Count)"
           New-Item -ItemType Directory -Force C:\toolchain-cache | Out-Null
           $new | Set-Content C:\toolchain-cache\files.txt -Encoding utf8
           tar -C C:\ -cf C:\toolchain-cache\toolchain.tar -T C:\toolchain-cache\files.txt
