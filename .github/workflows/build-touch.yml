@@ -97,4 +97,5 @@ jobs:
             drivers/HimaxSpiTouch/**/ARM64/Debug/**/*.inf
             drivers/HimaxSpiTouch/**/ARM64/Debug/**/*.pdb
             drivers/HimaxSpiTouch/**/ARM64/Debug/**/*.cat
+            drivers/HimaxSpiTouch/**/ARM64/Debug/**/*.cer
           if-no-files-found: warn
