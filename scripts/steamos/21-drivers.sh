@@ -15,10 +15,12 @@ for s in USBXHCI UrsSynopsys UrsCx01000 USBHUB3 usbhub USBHUB HidUsb kbdhid mouh
 done
 echo; echo "== Ficheros en System32\\drivers"
 for f in USBXHCI.sys UrsSynopsys.sys UrsCx01000.sys UsbHub3.sys usbhub.sys HidUsb.sys kbdhid.sys mouhid.sys keepalive.sys partmgr.sys volmgr.sys; do
-  p="$W/System32/drivers/$f"; [ -f "$p" ] && echo "SI  $f $(stat -c %s "$p") bytes $(date -r "$p" '+%d/%m/%Y')" || echo "NO  $f"
+  p=$(find "$W/System32/drivers" -maxdepth 1 -iname "$f" | head -1); [ -n "$p" ] \
+    && echo "SI  ${p##*/} $(stat -c %s "$p") bytes $(date -r "$p" '+%d/%m/%Y')" || echo "NO  $f"
 done
 echo; echo "== Dispositivos USB que Windows ha enumerado (Enum\\USB)"
-caja hivexsh -f <(printf 'cd \\ControlSet001\\Enum\\USB\nls\n') "$S" 2>&1 | head -30 || true
+printf 'cd \\ControlSet001\\Enum\\USB\nls\n' > "$T/usb.hsh"; caja hivexsh -f "$T/usb.hsh" "$S" 2>&1 | head -30
+echo; echo "== urssynopsys en DriverStore"; find "$W/System32/DriverStore/FileRepository" -iname "urssynopsys*" | head
 echo; echo "== Drivers instalados de terceros (DriverStore)"
 ls "$W/System32/DriverStore/FileRepository" | grep -i "usb\|urs\|hid\|himax\|keepalive" | head -20
 verde "Listo: $KIT/diag-drivers.txt"
