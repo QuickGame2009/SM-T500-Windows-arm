@@ -6,30 +6,73 @@ on:
   pull_request:
   workflow_dispatch:
 
+env:
+  TOOLCHAIN_KEY: toolchain-vs2022-arm64-wdk22621-v1
+
 jobs:
   build:
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
 
-      - name: Instalar componentes ARM64 de Visual Studio
-        shell: pwsh
-        run: |
-          $vs = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
-          $path = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
-          Start-Process -Wait -FilePath $vs -ArgumentList "modify --installPath `"$path`" --add Microsoft.VisualStudio.Component.VC.Tools.ARM64 --add Microsoft.VisualStudio.Component.VC.Tools.ARM64EC --quiet --norestart --noUpdateInstaller"
+      # Caja de herramientas (compilador ARM64 de VS + WDK) guardada en caché
+      - name: Restaurar caché de herramientas
+        id: tc
+        uses: actions/cache/restore@v4
+        with:
+          path: C:\toolchain-cache
+          key: ${{ env.TOOLCHAIN_KEY }}
 
-      - name: Instalar WDK (Windows 11 22H2, 22621)
+      - name: Extraer herramientas de la caché
+        if: steps.tc.outputs.cache-hit == 'true'
         shell: pwsh
         run: |
+          tar -C C:\ -xf C:\toolchain-cache\toolchain.tar
+          reg import C:\toolchain-cache\kits.reg
+          Write-Host "Herramientas restauradas desde la caché."
+
+      - name: Instalar ARM64 + WDK (solo si no hay caché)
+        if: steps.tc.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+          $kits = "${env:ProgramFiles(x86)}\Windows Kits\10"
+          function Snap($roots) {
+            $set = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+            foreach ($r in $roots) { foreach ($f in [System.IO.Directory]::EnumerateFiles($r, '*', 'AllDirectories')) { [void]$set.Add($f) } }
+            return $set
+          }
+          $before = Snap @($vsPath, $kits)
+
+          Start-Process -Wait -FilePath "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe" -ArgumentList "modify --installPath `"$vsPath`" --add Microsoft.VisualStudio.Component.VC.Tools.ARM64 --add Microsoft.VisualStudio.Component.VC.Tools.ARM64EC --quiet --norestart --noUpdateInstaller"
+
           Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2196230" -OutFile wdksetup.exe
           Start-Process -Wait -FilePath .\wdksetup.exe -ArgumentList "/quiet /norestart"
-          # Extension de Visual Studio del WDK (plantillas y toolset de drivers)
-          $vsix = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\Vsix\VS2022" -Filter *.vsix -ErrorAction SilentlyContinue | Select-Object -First 1
+          $vsix = Get-ChildItem "$kits\Vsix\VS2022" -Filter *.vsix -ErrorAction SilentlyContinue | Select-Object -First 1
           if ($vsix) {
             $vsixInstaller = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -find "Common7\IDE\VSIXInstaller.exe"
             Start-Process -Wait -FilePath $vsixInstaller -ArgumentList "/quiet /admin `"$($vsix.FullName)`""
           }
+
+          # Guardar solo los archivos nuevos (rutas relativas a C:\)
+          $after = Snap @($vsPath, $kits)
+          $new = $after | Where-Object { -not $before.Contains($_) } | ForEach-Object { $_.Substring(3) }
+          Write-Host "Archivos nuevos: $($new.Count)"
+          New-Item -ItemType Directory -Force C:\toolchain-cache | Out-Null
+          $new | Set-Content C:\toolchain-cache\files.txt -Encoding utf8
+          tar -C C:\ -cf C:\toolchain-cache\toolchain.tar -T C:\toolchain-cache\files.txt
+          reg export "HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows Kits" C:\toolchain-cache\kits.reg /y
+          if (-not (Test-Path "$kits\Include\wdf\kmdf\1.33\wdf.h") -and -not (Get-ChildItem "$kits\Include\wdf\kmdf" -ErrorAction SilentlyContinue)) { throw "WDK no instalado correctamente" }
+          if (-not (Get-ChildItem "$vsPath\VC\Tools\MSVC\*\bin\Hostx64\arm64\cl.exe" -ErrorAction SilentlyContinue)) { throw "Compilador ARM64 no instalado" }
+          Get-Item C:\toolchain-cache\toolchain.tar | ForEach-Object { Write-Host ("Tamaño caché: {0:N0} MB" -f ($_.Length/1MB)) }
+
+      # Se guarda justo tras instalar (ya verificado), sin esperar a que compile el código
+      - name: Guardar caché de herramientas
+        if: steps.tc.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: C:\toolchain-cache
+          key: ${{ env.TOOLCHAIN_KEY }}
 
       - uses: microsoft/setup-msbuild@v2
 
