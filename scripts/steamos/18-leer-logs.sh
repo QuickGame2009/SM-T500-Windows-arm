@@ -6,7 +6,8 @@ DISCO=$(buscar_disco) || morir "No encuentro el disco de la tablet (03-massstora
 montar "$WIN" "$MNT/win" ntfs; trap desmontar_todo EXIT
 D="$KIT/logs-tablet-$(date +%H%M%S)"; mkdir -p "$D"
 for f in canary-log.txt ntbtlog.txt Panther/setupact.log Panther/setuperr.log Panther/UnattendGC/setupact.log \
-         System32/Sysprep/Panther/setupact.log INF/setupapi.dev.log INF/setupapi.setup.log Minidump MEMORY.DMP LiveKernelReports; do
+         System32/Sysprep/Panther/setupact.log INF/setupapi.dev.log INF/setupapi.setup.log Minidump MEMORY.DMP LiveKernelReports \
+         System32/winevt/Logs/System.evtx System32/winevt/Logs/Application.evtx System32/winevt/Logs/Microsoft-Windows-Kernel-PnP%4Configuration.evtx; do
   p="$MNT/win/Windows/$f"
   if [ -e "$p" ]; then cp -r "$p" "$D/" && echo "Copiado $f ($(date -r "$p" '+%d/%m %H:%M'))"; else echo "No existe $f"; fi
 done
