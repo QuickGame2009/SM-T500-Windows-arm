@@ -1,6 +1,6 @@
 ﻿# Como 5-preparar (y 14), pero con parche de partmgr.sys;  SIN dejar que Windows reescriba la GPT: el cambio de tipo de las particiones ESP/Windows
 # se hace directamente en la tabla (con disco offline), y despues Windows solo monta los volumenes y copia archivos.
-param([int]$Esp = 76, [int]$Win = 80)
+param([int]$Esp = 76, [int]$Win = 80, [switch]$SinVolmgr, [string[]]$Desactivar = @('dam'), [int]$Numproc = -1, [string[]]$Activar = @(), [int]$Keepalive = -1, [switch]$ArreglarSetup, [switch]$ArreglarLogon, [switch]$Consola, [switch]$QuitarConsola)
 $ErrorActionPreference = 'Continue'
 $kit = Split-Path -Parent $PSScriptRoot
 $out = Join-Path $kit 'diag-partmgr-patch.txt'
@@ -209,6 +209,141 @@ if ($lw) {
             Write-Host ("partmgr.sys parcheado y firmado. SHA256: " + (Get-FileHash $pm -Algorithm SHA256).Hash)
         }
     } else { Write-Host "No encuentro $pm" -ForegroundColor Red }
+}
+# --- Parche de volmgr.sys: reconoce el tipo de particion de Samsung (userdata 1b81e7e6-...) como volumen normal ---
+# Sin esto, la particion de Windows (tipo de fabrica de Samsung) no se registra en mountmgr y el arranque se queda
+# esperando en IopMarkBootPartition. Con -SinVolmgr se vuelve a poner el original.
+if ($lw) {
+    $vm = "${lw}:\Windows\System32\drivers\volmgr.sys"
+    if (Test-Path $vm) {
+        & takeown.exe /f $vm | Out-Null
+        & icacls.exe $vm /grant "*S-1-5-32-544:F" | Out-Null
+        if (-not (Test-Path "$vm.orig")) { Copy-Item $vm "$vm.orig" -Force; Write-Host "Copia original: $vm.orig" }
+        $hv = (Get-FileHash "$vm.orig" -Algorithm SHA256).Hash
+        Write-Host "SHA256 volmgr.sys.orig: $hv"
+        $vpat = @("$kit\volmgr-parcheado.sys", "$kit\scripts\volmgr-parcheado.sys") | Where-Object { Test-Path $_ } | Select-Object -First 1
+        if ($SinVolmgr) {
+            Copy-Item "$vm.orig" $vm -Force
+            Write-Host "volmgr.sys original restaurado." -ForegroundColor Yellow
+        } elseif ($hv -ne '0769135F1C9E8A3020E23DCAB52D69F590B0716916BD627117F48F9633B1A8AB') {
+            Write-Host "ERROR: volmgr.sys.orig no es la version esperada; no se toca" -ForegroundColor Red
+        } elseif (-not $vpat) {
+            Write-Host "AVISO: falta volmgr-parcheado.sys en la carpeta del kit; volmgr sin parchear" -ForegroundColor Yellow
+        } else {
+            Copy-Item $vpat $vm -Force
+            Write-Host ("volmgr.sys parcheado y firmado. SHA256: " + (Get-FileHash $vm -Algorithm SHA256).Hash)
+        }
+    } else { Write-Host "No encuentro $vm" -ForegroundColor Red }
+}
+# --- Servicios que se desactivan (Start=4) en el registro de Windows. Por defecto: dam (pantalla azul 0xCE en dam.sys) ---
+# Para no desactivar ninguno: -Desactivar @()
+$Desactivar = @($Desactivar | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+if ($lw -and ($Desactivar.Count -gt 0 -or $Activar.Count -gt 0 -or $Keepalive -ne -1)) {
+    $hive = "${lw}:\Windows\System32\config\SYSTEM"
+    & reg.exe load 'HKLM\TSYS17' $hive | Out-Null
+    if ($LASTEXITCODE -eq 0) {
+        foreach ($svc in $Desactivar) {
+            $k = "HKLM\TSYS17\ControlSet001\Services\$svc"
+            & reg.exe query $k /v Start 2>$null | Out-Null
+            if ($LASTEXITCODE -eq 0) {
+                & reg.exe add $k /v Start /t REG_DWORD /d 4 /f | Out-Null
+                Write-Host "Servicio $svc desactivado (Start=4)"
+            } else { Write-Host "Servicio $svc no existe en el registro" -ForegroundColor Yellow }
+        }
+        $Activar = @($Activar | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+        foreach ($svc in $Activar) {
+            $k = "HKLM\TSYS17\ControlSet001\Services\$svc"
+            & reg.exe query $k /v Start 2>$null | Out-Null
+            if ($LASTEXITCODE -eq 0) { & reg.exe add $k /v Start /t REG_DWORD /d 0 /f | Out-Null; Write-Host "Servicio $svc activado (Start=0, arranque)" }
+            else { Write-Host "Servicio $svc no existe en el registro" -ForegroundColor Yellow }
+        }
+        # keepalive.sys: -Keepalive 0 (temporizador + hilo), 1 (solo temporizador), 2 (solo hilo), -2 (desactivar)
+        if ($Keepalive -ge 0) {
+            $ksrc = @("$kit\keepalive.sys", "$kit\scripts\keepalive.sys") | Where-Object { Test-Path $_ } | Select-Object -First 1
+            if ($ksrc) {
+                Copy-Item $ksrc "${lw}:\Windows\System32\drivers\keepalive.sys" -Force
+                $k = 'HKLM\TSYS17\ControlSet001\Services\keepalive'
+                & reg.exe add $k /v Type /t REG_DWORD /d 1 /f | Out-Null
+                & reg.exe add $k /v Start /t REG_DWORD /d 0 /f | Out-Null
+                & reg.exe add $k /v ErrorControl /t REG_DWORD /d 0 /f | Out-Null
+                & reg.exe add $k /v Group /t REG_SZ /d 'Boot Bus Extender' /f | Out-Null
+                & reg.exe add $k /v ImagePath /t REG_EXPAND_SZ /d 'System32\drivers\keepalive.sys' /f | Out-Null
+                & reg.exe add $k /v Modo /t REG_DWORD /d $Keepalive /f | Out-Null
+                Write-Host "keepalive.sys instalado (Modo=$Keepalive)"
+            } else { Write-Host "ERROR: falta keepalive.sys en la carpeta del kit" -ForegroundColor Red }
+        } elseif ($Keepalive -eq -2) {
+            & reg.exe add 'HKLM\TSYS17\ControlSet001\Services\keepalive' /v Start /t REG_DWORD /d 4 /f | Out-Null
+            Write-Host "keepalive desactivado"
+        }
+        # "El equipo se reinicio de manera inesperada...": marcar setup.exe como completado (ChildCompletion = 3)
+        if ($ArreglarSetup) {
+            & reg.exe query 'HKLM\TSYS17\Setup\Status\ChildCompletion' 2>&1 | Out-Host
+            & reg.exe add 'HKLM\TSYS17\Setup\Status\ChildCompletion' /v setup.exe /t REG_DWORD /d 3 /f | Out-Null
+            Write-Host "Setup\Status\ChildCompletion\setup.exe = 3"
+        }
+        [gc]::Collect()
+        & reg.exe unload 'HKLM\TSYS17' | Out-Null
+    } else { Write-Host "ERROR: no se pudo cargar $hive" -ForegroundColor Red }
+}
+# --- Evitar la pantalla "Recovery / Your PC couldn't start properly" tras varios arranques fallidos ---
+if ($le) {
+    $bcd0 = "${le}:\EFI\Microsoft\Boot\BCD"
+    & bcdedit.exe /store $bcd0 /set "{default}" bootstatuspolicy IgnoreAllFailures | Out-Null
+    & bcdedit.exe /store $bcd0 /set "{default}" recoveryenabled No | Out-Null
+    Write-Host "BCD: bootstatuspolicy = IgnoreAllFailures"
+}
+if ($lw) {
+    foreach ($bs in @("${lw}:\Windows\bootstat.dat", "${le}:\EFI\Microsoft\Boot\bootstat.dat")) {
+        if (Test-Path $bs) { Remove-Item $bs -Force -ErrorAction SilentlyContinue; Write-Host "Borrado $bs" }
+    }
+}
+# --- Inicio de sesion automatico: "El dominio especificado no existe" -> DefaultDomainName = nombre del equipo local (".") ---
+if ($lw -and $ArreglarLogon) {
+    $sw = "${lw}:\Windows\System32\config\SOFTWARE"
+    & reg.exe load 'HKLM\TSW17' $sw | Out-Null
+    if ($LASTEXITCODE -eq 0) {
+        $k = 'HKLM\TSW17\Microsoft\Windows NT\CurrentVersion\Winlogon'
+        & reg.exe query $k /v AutoAdminLogon 2>&1 | Out-Host
+        & reg.exe query $k /v DefaultUserName 2>&1 | Out-Host
+        & reg.exe query $k /v DefaultDomainName 2>&1 | Out-Host
+        $cn = $null
+        & reg.exe load 'HKLM\TSYS18' "${lw}:\Windows\System32\config\SYSTEM" | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            $cn = (Get-ItemProperty 'HKLM:\TSYS18\ControlSet001\Control\ComputerName\ComputerName' -ErrorAction SilentlyContinue).ComputerName
+            [gc]::Collect(); & reg.exe unload 'HKLM\TSYS18' | Out-Null
+        }
+        if (-not $cn) { $cn = 'DESKTOP-DJPRG0N' }
+        & reg.exe add $k /v DefaultDomainName /t REG_SZ /d $cn /f | Out-Null
+        & reg.exe add $k /v AltDefaultDomainName /t REG_SZ /d $cn /f | Out-Null
+        & reg.exe add $k /v AutoAdminLogon /t REG_SZ /d '1' /f | Out-Null
+        & reg.exe add $k /v ForceAutoLogon /t REG_SZ /d '1' /f | Out-Null
+        & reg.exe add $k /v DefaultUserName /t REG_SZ /d 'tablet' /f | Out-Null
+        & reg.exe add $k /v DefaultPassword /t REG_SZ /d 'Cambiar123' /f | Out-Null
+        & reg.exe delete $k /v AutoLogonCount /f 2>&1 | Out-Null
+        Write-Host "Winlogon: dominio = $cn, usuario = tablet, contrasena en claro, AutoAdminLogon = 1"
+        [gc]::Collect()
+        & reg.exe unload 'HKLM\TSW17' | Out-Null
+    } else { Write-Host "ERROR: no se pudo cargar $sw" -ForegroundColor Red }
+}
+# --- Consola de rescate: el boton de Accesibilidad de la pantalla de inicio abre un cmd como SYSTEM ---
+if ($lw -and ($Consola -or $QuitarConsola)) {
+    $u = "${lw}:\Windows\System32\Utilman.exe"; $uo = "$u.orig"
+    & takeown.exe /f $u /a 2>&1 | Out-Null
+    & icacls.exe $u /grant '*S-1-5-32-544:F' 2>&1 | Out-Null
+    if ($Consola) {
+        if (-not (Test-Path $uo)) { Copy-Item $u $uo -Force }
+        Copy-Item "${lw}:\Windows\System32\cmd.exe" $u -Force
+        Write-Host "Consola: Utilman.exe = cmd.exe (copia original en Utilman.exe.orig)"
+    } elseif (Test-Path $uo) {
+        Copy-Item $uo $u -Force; Write-Host "Consola quitada: Utilman.exe restaurado"
+    }
+    Get-FileHash $u, "${lw}:\Windows\System32\cmd.exe" | Format-Table -AutoSize | Out-Host
+}
+# --- Numero de nucleos (numproc en el BCD). -Numproc 0 = todos los nucleos; -Numproc N = solo N; sin el parametro no se toca ---
+if ($le -and $Numproc -ge 0) {
+    $bcd = "${le}:\EFI\Microsoft\Boot\BCD"
+    if ($Numproc -eq 0) { & bcdedit.exe /store $bcd /deletevalue "{default}" numproc | Out-Host; Write-Host "numproc quitado: Windows usara todos los nucleos" }
+    else { & bcdedit.exe /store $bcd /set "{default}" numproc $Numproc | Out-Host; Write-Host "numproc = $Numproc" }
 }
 Set-Location $kit
 if ($lw) { Write-VolumeCache -DriveLetter $lw }

@@ -41,3 +41,5 @@ ZwCreateFile
 ZwWriteFile
 ZwFlushKey
 IoRegisterBootDriverReinitialization
+PsLookupThreadByThreadId
+PsGetThreadProcessId

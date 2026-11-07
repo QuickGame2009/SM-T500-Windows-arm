@@ -62,6 +62,8 @@ __declspec(dllimport) PVOID KeGetCurrentThread(void);
 __declspec(dllimport) LONG  ObReferenceObjectByName(PUNICODE_STRING Name, ULONG Attr, PVOID AccessState, ULONG Access, PVOID Type, UCHAR Mode, PVOID Ctx, PVOID *Obj);
 __declspec(dllimport) ULONGLONG ObfDereferenceObject(PVOID Obj);
 __declspec(dllimport) extern PVOID *IoDriverObjectType;
+__declspec(dllimport) LONG PsLookupThreadByThreadId(PVOID Tid, PVOID *Thread);
+__declspec(dllimport) PVOID PsGetThreadProcessId(PVOID Thread);
 typedef struct _OBJ_ATTR { ULONG Length; PVOID Root; PUNICODE_STRING Name; ULONG Attr; PVOID Sd; PVOID Sqos; } OBJ_ATTR;
 typedef struct _IOSB { ULONGLONG St; ULONGLONG Info; } IOSB;
 __declspec(dllimport) LONG ZwOpenDirectoryObject(PVOID *Handle, ULONG Access, OBJ_ATTR *Oa);
@@ -1279,6 +1281,119 @@ static void LgUser(ULONGLONG ep0, ULONGLONG tho, ULONGLONG toff)
 
 
 /* ---- Estado del sistema (funciones publicas): registro vivo, objetos y directorios ---- */
+/* v62: pilas reales. Hilos por PsLookupThreadByThreadId (KTHREAD: InitialStack +0x28, StackLimit +0x30,
+   offsets confirmados en IoGetInitialStack/PsGetCurrentThreadStackLimit). Solo direcciones de retorno
+   reales: la instruccion anterior debe ser BL o BLR. De la cima hacia abajo. */
+static void LgStk(void)
+{
+    ULONG tid, nth = 0;
+    LgS("--- pilas v62 ---\r\n");
+    for (tid = 4; tid < 0x3000 && nth < 120; tid += 4) {
+        PVOID t = 0; ULONGLONG th, ini, lim, q, lastpg = 0, prev = 0; ULONG nf = 0, idx; int okpg = 0;
+        if (PsLookupThreadByThreadId((PVOID)(ULONGLONG)tid, &t) < 0 || !t) continue;
+        th = (ULONGLONG)t; nth++;
+        ini = *(ULONGLONG *)(th + 0x28); lim = *(ULONGLONG *)(th + 0x30);
+        LgS("S "); LgH(tid, 4); LgS(" p="); LgH((ULONGLONG)PsGetThreadProcessId(t), 4);
+        LgS(" sz="); LgH(ini - lim, 5); LgS(" :");
+        if (ini > lim && ini - lim <= 0x100000) {
+            for (q = (ini - 8) & ~7ULL; q >= lim && nf < 45; q -= 8) {
+                ULONGLONG v; ULONG w;
+                if ((q & ~0xFFFULL) != lastpg) { lastpg = q & ~0xFFFULL; okpg = MmIsAddressValid((PVOID)q) ? 1 : 0; }
+                if (!okpg) continue;
+                v = *(ULONGLONG *)q;
+                if (v < 0xFFFF000000000000ULL || (v & 3) || v == prev) continue;
+                if (!ModOf(v, &idx) || !MmIsAddressValid((PVOID)(v - 4))) continue;
+                w = *(ULONG *)(v - 4);
+                if ((w & 0xFC000000) != 0x94000000 && (w & 0xFFFFFC1F) != 0xD63F0000) continue;
+                prev = v; LgC(' ');
+                { ULONG k; for (k = 0; k < 9 && g_md[idx].nm[k] != ' '; k++) LgC(g_md[idx].nm[k]); }
+                LgC('+'); LgH(v - g_md[idx].base, 6); nf++;
+            }
+        }
+        LgS("\r\n");
+        ObfDereferenceObject(t);
+    }
+    LgS("pilas "); LgH(nth, 4); LgS("\r\n");
+}
+/* v63: estado de la asignacion de letra de arranque.
+   El hilo de fase 1 espera en mountmgr (IOCTL_MOUNTMGR_BOOT_DL_ASSIGNMENT, enviado por IopMarkBootPartition):
+   mountmgr espera a conocer un volumen cuya base tenga DO_SYSTEM_BOOT_PARTITION (0x100). */
+static void LgFlush(void)
+{
+    PVOID h = 0; IOSB io; LARGE_INTEGER lo; LONG c;
+    c = FsOpen("\\SystemRoot\\canary-log.txt", 0x40100000, 5, &h);
+    if (c >= 0 && h) { io.St = 0; io.Info = 0; lo.QuadPart = 0; ZwWriteFile(h, 0, 0, 0, &io, g_lg, g_lgn, &lo, 0); ZwClose(h); }
+}
+static void LgUs(const USHORT *w, ULONG nb) { ULONG i; for (i = 0; i < nb / 2 && i < 100; i++) LgC((w[i] >= 32 && w[i] < 127) ? (char)w[i] : '?'); }
+static void LgDevFlags(const char *nm)
+{
+    static USHORT b[80]; UNICODE_STRING us; PVOID fo = 0, dev = 0, bs; ULONG n = 0; LONG st;
+    while (nm[n] && n < 79) { b[n] = (USHORT)(UCHAR)nm[n]; n++; }
+    us.Length = (USHORT)(n * 2); us.MaximumLength = us.Length; us.Buffer = b;
+    LgS("DEV "); LgS(nm);
+    st = IoGetDeviceObjectPointer(&us, 0x80, &fo, &dev);
+    LgS(" st="); LgH((ULONG)st, 8);
+    if (st >= 0 && dev) {
+        LgS(" flags="); LgH(*(ULONG *)((UCHAR *)dev + 0x30), 8);
+        LgS(" fodev_flags="); LgH(fo ? *(ULONG *)(*(UCHAR **)((UCHAR *)fo + 8) + 0x30) : 0, 8);
+        bs = IoGetDeviceAttachmentBaseRef(dev);
+        if (bs) { LgS(" base_flags="); LgH(*(ULONG *)((UCHAR *)bs + 0x30), 8); LgS(" base_drv="); LgH((ULONGLONG)*(PVOID *)((UCHAR *)bs + 8), 16); ObfDereferenceObject(bs); }
+        if (fo) ObfDereferenceObject(fo);
+    }
+    LgS("\r\n");
+}
+static UCHAR g_mmb[0x10000];
+static void LgMm(void)
+{
+    LARGE_INTEGER to; UCHAR *irp, *sl; LONG st; ULONG i, nmp;
+    static USHORT b[40]; UNICODE_STRING us; PVOID fo = 0, dev = 0; const char *a = "\\Device\\MountPointManager"; ULONG n = 0;
+    LgS("--- v63 arranque/mountmgr ---\r\n");
+    NmClear(); NmA("\\ArcName\\multi(0)disk(0)rdisk(0)partition(80)");
+    LgS("ARC p80 -> "); if (NmTarget()) LgS(g_tgt); else LgS("(no existe)"); LgS("\r\n");
+    LgFlush();
+    LgDevFlags("\\Device\\HarddiskVolume80");
+    LgDevFlags("\\Device\\Harddisk0\\Partition80");
+    LgFlush();
+    while (a[n]) { b[n] = (USHORT)(UCHAR)a[n]; n++; }
+    us.Length = (USHORT)(n * 2); us.MaximumLength = us.Length; us.Buffer = b;
+    st = IoGetDeviceObjectPointer(&us, 0x80, &fo, &dev);
+    LgS("MM open st="); LgH((ULONG)st, 8); LgS("\r\n");
+    if (st < 0 || !dev) return;
+    irp = (UCHAR *)IoAllocateIrp(*(signed char *)((UCHAR *)dev + 0x4C) + 1, 0);
+    if (!irp) return;
+    for (i = 0; i < sizeof(g_mmb); i++) g_mmb[i] = 0;
+    KeInitializeEvent(g_pev, 0, 0);
+    *(LONG *)(irp + 0x30) = (LONG)0xC00000BB; *(ULONGLONG *)(irp + 0x38) = 0;
+    *(PVOID *)(irp + 0x18) = g_mmb;                       /* AssociatedIrp.SystemBuffer */
+    sl = *(UCHAR **)(irp + 0xB8) - 0x48;
+    sl[0] = 0x0E;                                         /* IRP_MJ_DEVICE_CONTROL */
+    sl[3] = 0xE0;
+    *(ULONG *)(sl + 0x08) = sizeof(g_mmb);                /* OutputBufferLength */
+    *(ULONG *)(sl + 0x10) = 0x18;                         /* InputBufferLength (MOUNTMGR_MOUNT_POINT vacio) */
+    *(ULONG *)(sl + 0x18) = 0x006D0008;                   /* IOCTL_MOUNTMGR_QUERY_POINTS */
+    *(PVOID *)(sl + 0x30) = fo;                           /* FileObject */
+    *(PVOID *)(sl + 0x38) = (PVOID)PrCompl; *(PVOID *)(sl + 0x40) = g_pev;
+    LgS("MM query enviada\r\n"); LgFlush();
+    IofCallDriver(dev, irp);
+    to.QuadPart = -50000000LL;
+    if (KeWaitForSingleObject(g_pev, 0, 0, 0, &to) != 0) { LgS("MM query TIMEOUT\r\n"); return; }
+    st = *(LONG *)(irp + 0x30);
+    LgS("MM query st="); LgH((ULONG)st, 8); LgS(" info="); LgH(*(ULONGLONG *)(irp + 0x38), 8);
+    nmp = *(ULONG *)(g_mmb + 4);
+    LgS(" n="); LgH(nmp, 4); LgS("\r\n");
+    if (st >= 0) {
+        for (i = 0; i < nmp && i < 300; i++) {
+            UCHAR *e = g_mmb + 8 + i * 0x18; ULONG so = *(ULONG *)e, sn = *(USHORT *)(e + 4), uo = *(ULONG *)(e + 8), un = *(USHORT *)(e + 12), dO = *(ULONG *)(e + 16), dn = *(USHORT *)(e + 20), k;
+            if (so + sn > sizeof(g_mmb) || uo + un > sizeof(g_mmb) || dO + dn > sizeof(g_mmb)) break;
+            LgS("MP "); LgUs((USHORT *)(g_mmb + dO), dn); LgS(" | "); LgUs((USHORT *)(g_mmb + so), sn);
+            LgS(" | uid"); LgH(un, 2); LgC(':');
+            for (k = 0; k < un && k < 28; k++) LgH(g_mmb[uo + k], 2);
+            LgS("\r\n");
+        }
+    }
+    IoFreeIrp(irp);
+    if (fo) ObfDereferenceObject(fo);
+}
 static void LgW(const USHORT *w, ULONG n) { ULONG i; for (i = 0; i < n; i++) LgC((w[i] >= 32 && w[i] < 127) ? (char)w[i] : '?'); }
 static void LgDir(const char *path, ULONG maxn)
 {
@@ -1355,6 +1470,16 @@ static void WriteLog(ULONG n)
     if (!ep || !MmIsAddressValid((PVOID)(ep + 0x700))) { LgS("sin proceso System\r\n"); goto fin; }
     LoadMods();
     for (i = 0; i < g_nmd; i++) { LgS("M "); { ULONG k; for (k = 0; k < 9; k++) LgC(g_md[i].nm[k]); } LgC(' '); LgH(g_md[i].base, 16); LgC(' '); LgH(g_md[i].size, 8); LgS("\r\n"); }
+    if (g_nmd && g_md[0].size == 0x103D000) {   /* v61: marcadores de Phase1Initialization (ntoskrnl 22621.x ARM64, RVAs fijos) */
+        ULONGLONG nb = g_md[0].base;
+        LgS("FASE fin1="); LgH(*(volatile UCHAR *)(nb + 0xC3CD36), 2);          /* =1 al volver Phase1Initialization (tras lanzar smss) */
+        LgS(" init="); LgH(MmIsAddressValid((PVOID)(nb + 0xA25588)) ? 1 : 0, 1); /* 0 = seccion INIT ya liberada */
+        LgS(" failio="); LgH(*(volatile ULONG *)(nb + 0xD12F60), 8);             /* IopInitFailCode */
+        LgS("\r\n");
+    } else LgS("FASE ntoskrnl distinto\r\n");
+    LgStk();
+    LgFlush();
+    LgMm();
     for (ho = 0x18; ho <= 0x80 && !lh; ho += 8) {
         ULONGLONG hd = ep + ho, f, b;
         f = *(ULONGLONG *)hd; b = *(ULONGLONG *)(hd + 8);
@@ -1514,7 +1639,7 @@ static void FsThread(PVOID ctx)
         FsLine(3, "RAW ", d, 0x7FFFFFFF, sig, 1);
         ProcScan();
         ModScreen(3 * n + 6);
-        if (n == 8 || n == 30 || n == 80 || n == 160 || n == 300) WriteLog(n);
+        if (n == 8 || (n >= 10 && n % 5 == 0)) WriteLog(n);   /* v64: cada ~15 s, el ultimo sobrescribe */
         if (n == 30) { PVOID thf = 0; if (PsCreateSystemThread(&thf, 0x1FFFFF, 0, 0, 0, (PVOID)FlushThread, 0) >= 0 && thf) ZwClose(thf); }
     }
 }

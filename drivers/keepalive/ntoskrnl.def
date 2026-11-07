@@ -1,0 +1,14 @@
+LIBRARY ntoskrnl.exe
+EXPORTS
+KeInitializeTimerEx
+KeInitializeDpc
+KeSetTimerEx
+PsCreateSystemThread
+ZwClose
+KeSetPriorityThread
+KeGetCurrentThread
+ZwOpenKey
+ZwQueryValueKey
+ZwCreateFile
+ZwReadFile
+MmMapIoSpace
