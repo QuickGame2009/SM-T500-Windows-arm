@@ -20,15 +20,8 @@ for v in PolAcDmN PolAcDmS PolPrDmN PolPrDmS PolDnDDN PolDnDmG PolDnTrN PolMod; 
   echo "-- $v"; caja hivexregedit --export --prefix SEC "$CP/SECURITY" "\\Policy\\$v" 2>&1 | head -12
 done
 echo; echo "== SAM\\SAM\\Domains"
-caja hivexsh -f /dev/stdin "$CP/SAM" <<'S' 2>&1 | head -40
-cd \SAM\Domains
-ls
-cd Account
-ls
-lsval
-cd Users\Names
-ls
-S
+printf 'cd \\SAM\\Domains\nls\ncd Account\nls\ncd Users\nls\ncd Names\nls\n' > "$CP/sam.hsh"
+caja hivexsh -f "$CP/sam.hsh" "$CP/SAM" 2>&1 | head -40
 echo; echo "== SAM\\SAM\\Domains\\Account\\F y V (cabecera)"
 caja hivexregedit --export --prefix SAM "$CP/SAM" "\\SAM\\Domains\\Account" 2>&1 | head -20
 echo; echo "== SYSTEM: ComputerName, Select, servicios clave"
@@ -38,8 +31,6 @@ for s in SamSs EventLog LSM lanmanworkstation; do
   echo "-- $s"; caja hivexregedit --export --prefix SYS "$CP/SYSTEM" "\\ControlSet001\\Services\\$s" 2>&1 | grep -v '^$' | head -20
 done
 echo; echo "== SECURITY\\Policy\\Accounts (SIDs con derechos, solo nombres)"
-caja hivexsh -f /dev/stdin "$CP/SECURITY" <<'S' 2>&1 | head -30
-cd \Policy\Accounts
-ls
-S
+printf 'cd \\Policy\nls\ncd Accounts\nls\n' > "$CP/sec.hsh"
+caja hivexsh -f "$CP/sec.hsh" "$CP/SECURITY" 2>&1 | head -40
 verde "Listo: $KIT/diag-sam.txt"
