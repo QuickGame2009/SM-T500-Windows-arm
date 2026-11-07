@@ -18,7 +18,9 @@ fi
 rm -rf "$D"; mkdir -p "$D"
 {
   printf '@echo off\r\ncd /d C:\\DiagWin\r\n'
-  printf 'for %%%%s in (0 1 2) do (\r\n  timeout /t 60 /nobreak >nul\r\n  set /a n=%%%%s\r\n'
+  printf 'powercfg /change monitor-timeout-ac 0\r\npowercfg /change monitor-timeout-dc 0\r\npowercfg /change standby-timeout-ac 0\r\npowercfg /change standby-timeout-dc 0\r\npowercfg /h off\r\n'
+  printf 'echo inicio > inicio.txt\r\ntasklist /v /fo list > tasklist-0.txt 2>&1\r\npnputil /enum-devices /problem > problemas.txt 2>&1\r\nquery session > sesiones-0.txt 2>&1\r\n'
+  printf 'for %%%%s in (0 1 2) do (\r\n  timeout /t 20 /nobreak >nul\r\n  set /a n=%%%%s\r\n'
   printf '  tasklist /v /fo list > tasklist-%%%%s.txt 2>&1\r\n  query session > sesiones-%%%%s.txt 2>&1\r\n)\r\n'
   printf 'pnputil /enum-devices /problem > problemas.txt 2>&1\r\n'
   printf 'pnputil /enum-devices /class Display > pantalla.txt 2>&1\r\n'
