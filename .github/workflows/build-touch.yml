@@ -35,7 +35,7 @@ jobs:
 
       - name: Compilar (Debug|ARM64)
         shell: pwsh
-        run: msbuild drivers/HimaxSpiTouch/HimaxSpiTouch.sln /p:Configuration=Debug /p:Platform=ARM64 /m /v:m
+        run: msbuild drivers/HimaxSpiTouch/HimaxSpiTouch.sln /p:Configuration=Debug /p:Platform=ARM64 /p:WindowsTargetPlatformVersion=10.0.22621.0 /m /v:m
 
       - name: Subir resultado
         if: always()
