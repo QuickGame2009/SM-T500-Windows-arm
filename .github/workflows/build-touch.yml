@@ -1,0 +1,50 @@
+name: Build HimaxSpiTouch (ARM64)
+
+on:
+  push:
+    paths: ["drivers/HimaxSpiTouch/**", ".github/workflows/build-touch.yml"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar componentes ARM64 de Visual Studio
+        shell: pwsh
+        run: |
+          $vs = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
+          $path = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+          Start-Process -Wait -FilePath $vs -ArgumentList "modify --installPath `"$path`" --add Microsoft.VisualStudio.Component.VC.Tools.ARM64 --add Microsoft.VisualStudio.Component.VC.Tools.ARM64EC --quiet --norestart --noUpdateInstaller"
+
+      - name: Instalar WDK (Windows 11 22H2, 22621)
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2196230" -OutFile wdksetup.exe
+          Start-Process -Wait -FilePath .\wdksetup.exe -ArgumentList "/quiet /norestart"
+          # Extension de Visual Studio del WDK (plantillas y toolset de drivers)
+          $vsix = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\Vsix\VS2022" -Filter *.vsix -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($vsix) {
+            $vsixInstaller = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -find "Common7\IDE\VSIXInstaller.exe"
+            Start-Process -Wait -FilePath $vsixInstaller -ArgumentList "/quiet /admin `"$($vsix.FullName)`""
+          }
+
+      - uses: microsoft/setup-msbuild@v2
+
+      - name: Compilar (Debug|ARM64)
+        shell: pwsh
+        run: msbuild drivers/HimaxSpiTouch/HimaxSpiTouch.sln /p:Configuration=Debug /p:Platform=ARM64 /m /v:m
+
+      - name: Subir resultado
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: HimaxSpiTouch-ARM64
+          path: |
+            drivers/HimaxSpiTouch/**/ARM64/Debug/**/*.sys
+            drivers/HimaxSpiTouch/**/ARM64/Debug/**/*.inf
+            drivers/HimaxSpiTouch/**/ARM64/Debug/**/*.pdb
+            drivers/HimaxSpiTouch/**/ARM64/Debug/**/*.cat
+          if-no-files-found: warn

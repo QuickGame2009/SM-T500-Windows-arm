@@ -1,0 +1,66 @@
+; HimaxSpiTouch.inf — driver táctil Himax HX83102E por SPI (SM-T500 WoA).
+; SIN PROBAR. Repasar contra un INF KMDF real del WDK antes de usar.
+; El driver es "HID source" de VHF: crea el HID virtual con VhfCreate; no hace
+; falta poner "vhf" como LowerFilter. Sí hay que incluir el coinstalador de VHF.
+
+[Version]
+Signature   = "$WINDOWS NT$"
+Class       = HIDClass
+ClassGuid   = {745a17a0-74d3-11d0-b6fe-00a0c90f57da}
+Provider    = %Prov%
+CatalogFile = HimaxSpiTouch.cat
+DriverVer   = 11/07/2026,0.0.0.1
+PnpLockdown = 1
+
+[DestinationDirs]
+DefaultDestDir = 13   ; carpeta del driver
+
+[SourceDisksNames]
+1 = %Disk%
+
+[SourceDisksFiles]
+HimaxSpiTouch.sys = 1
+Himax_firmware_lide_hsd.bin = 1
+
+[Manufacturer]
+%Prov% = Std, NTarm64
+
+[Std.NTarm64]
+%DevDesc% = Touch_Inst, ACPI\HMXT8310   ; igual que el _HID del SSDT
+
+[Touch_Inst.NT]
+CopyFiles = Touch_Files, Touch_Fw
+
+[Touch_Files]
+HimaxSpiTouch.sys
+
+[Touch_Fw]
+Himax_firmware_lide_hsd.bin
+
+[Touch_Inst.NT.HW]
+AddReg = Touch_HW_AddReg
+
+[Touch_HW_AddReg]
+; Ruta del firmware que lee FwReadFileFromRegistry (clave de hardware).
+HKR,,"FirmwarePath",0x00000000,"\SystemRoot\System32\drivers\Himax_firmware_lide_hsd.bin"
+
+[Touch_Inst.NT.Services]
+AddService = HimaxSpiTouch, 0x00000002, Touch_Service
+
+[Touch_Service]
+ServiceType   = 1   ; SERVICE_KERNEL_DRIVER
+StartType     = 3   ; DEMAND_START al principio (no colgar el arranque)
+ErrorControl  = 1
+ServiceBinary = %13%\HimaxSpiTouch.sys
+
+; --- WDF / VHF coinstalador ---
+[Touch_Inst.NT.Wdf]
+KmdfService = HimaxSpiTouch, Touch_wdfsect
+
+[Touch_wdfsect]
+KmdfLibraryVersion = 1.33   ; TODO: la del WDK que uses
+
+[Strings]
+Prov    = "SM-T500 WoA"
+DevDesc = "Himax HX83102E SPI Touch"
+Disk    = "HimaxSpiTouch Installation Disk"

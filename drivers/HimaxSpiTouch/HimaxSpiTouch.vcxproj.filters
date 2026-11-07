@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>c;cpp</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h</Extensions>
+    </Filter>
+    <Filter Include="Driver Files">
+      <UniqueIdentifier>{8E41214B-6785-4CFE-B992-037D68949A14}</UniqueIdentifier>
+      <Extensions>inf</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\driver.c"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\clocks.c"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\geni_spi.c"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\tlmm.c"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\himax.c"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\fwload.c"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\fileio.c"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\report.c"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\vhf.c"><Filter>Source Files</Filter></ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\device.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="src\util.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="src\clocks.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="src\geni_spi.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="src\tlmm.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="src\himax.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="src\fwload.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="src\fileio.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="src\report.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="src\hid_desc.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="src\vhfdev.h"><Filter>Header Files</Filter></ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Inf Include="inf\HimaxSpiTouch.inf"><Filter>Driver Files</Filter></Inf>
+  </ItemGroup>
+</Project>

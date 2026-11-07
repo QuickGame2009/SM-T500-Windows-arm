@@ -1,0 +1,27 @@
+Cómo compilar (notas, no es un proyecto de VS listo)
+=====================================================
+
+Falta crear un proyecto KMDF en Visual Studio + WDK (ARM64). Archivos a incluir:
+  driver.c clocks.c geni_spi.c tlmm.c himax.c fwload.c fileio.c report.c vhf.c
+Cabeceras: device.h util.h clocks.h geni_spi.h tlmm.h himax.h fwload.h fileio.h
+           report.h hid_desc.h vhfdev.h
+
+Bibliotecas: $(DDK_LIB_PATH)\VhfKm.lib  (más las de KMDF que pone la plantilla)
+Incluir: vhf.h  (viene en el WDK)
+
+Configuración del proyecto:
+  - Target OS >= Windows 10, plataforma ARM64
+  - Type: KMDF driver
+  - Habilitar firma de prueba en la tablet (ya lo haces para el resto del port)
+
+Estado de los módulos:
+  clocks.c   implementado (GCC SM6115, votación + DFS)
+  tlmm.c     implementado (GPIO 80/31 por MMIO)
+  himax.c    implementado (protocolo HX83102E)
+  fwload.c   implementado (carga sin flash + CRC)
+  fileio.c   implementado (lee el .bin del registro)
+  report.c   implementado (paquete 56B -> HID)
+  hid_desc.h implementado (descriptor táctil 10 dedos)
+  vhf.c      implementado (HID virtual)
+  driver.c   implementado (PnP + hilo de arranque/sondeo)
+  geni_spi.c implementado (FIFO por sondeo, defensivo; lo mas lento es la carga de FW)
