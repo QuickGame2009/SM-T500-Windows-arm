@@ -1,0 +1,1385 @@
+﻿
+========== HKLM:\TabletSYSTEM\ControlSet001\Enum\ACPI ==========
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\HMXT8310
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\HMXT8310\1
+HardwareID   : ACPI\VEN_HMXT&DEV_8310; ACPI\HMXT8310; *HMXT8310
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\HMXT8310\1\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\HMXT8310\1\LogConf
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\QCOM0497
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\QCOM0497\0
+HardwareID   : ACPI\VEN_QCOM&DEV_0497&SUBSYS_IDP06115; ACPI\QCOM0497; *QCOM0497
+CompatibleID : ACPI\VEN_QCOM&DEV_0497; ACPI\PNP0CA1; PNP0CA1; ACPI\QCOMFFE1; QCOMFFE1
+Service      : UrsSynopsys
+Class        : 
+Driver       : {36fc9e60-c465-11cf-8056-444553540000}\0000
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\QCOM0497\0\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\QCOM0497\0\Device Parameters\WDF
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\QCOM0497\0\LogConf
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\QCOM24BF
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\QCOM24BF\0
+HardwareID   : ACPI\VEN_QCOM&DEV_24BF&SUBSYS_IDP06115; ACPI\QCOM24BF; *QCOM24BF
+CompatibleID : ACPI\VEN_QCOM&DEV_24BF; ACPI\ACPIQCOM24BF; ACPIQCOM24BF
+Service      : sdbus
+Class        : 
+Driver       : {a0a588a4-c46f-4b37-b7ea-c82fe89870c6}\0000
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\QCOM24BF\0\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\QCOM24BF\0\Device Parameters\Interrupt Management
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\QCOM24BF\0\Device Parameters\Interrupt 
+               Management\Affinity Policy
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\QCOM24BF\0\LogConf
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\0
+HardwareID   : ACPI\VEN_ACPI&DEV_0007; ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revision_A04; 
+               *Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revision_A04; ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8; 
+               *Qualcomm_-_ARMv8_(64-bit)_Family_8; ACPI\Qualcomm_-_ARMv8_(64-bit); *Qualcomm_-_ARMv8_(64-bit)
+CompatibleID : ACPI\Processor
+Service      : FxPPM
+Class        : 
+Driver       : {50127dc3-0f36-415e-a6cc-4cb3be910b65}\0000
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\0\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\0\Device Parameters\WDF
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\1
+HardwareID   : ACPI\VEN_ACPI&DEV_0007; ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revision_A04; 
+               *Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revision_A04; ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8; 
+               *Qualcomm_-_ARMv8_(64-bit)_Family_8; ACPI\Qualcomm_-_ARMv8_(64-bit); *Qualcomm_-_ARMv8_(64-bit)
+CompatibleID : ACPI\Processor
+Service      : FxPPM
+Class        : 
+Driver       : {50127dc3-0f36-415e-a6cc-4cb3be910b65}\0001
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\1\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\1\Device Parameters\WDF
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\2
+HardwareID   : ACPI\VEN_ACPI&DEV_0007; ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revision_A04; 
+               *Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revision_A04; ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8; 
+               *Qualcomm_-_ARMv8_(64-bit)_Family_8; ACPI\Qualcomm_-_ARMv8_(64-bit); *Qualcomm_-_ARMv8_(64-bit)
+CompatibleID : ACPI\Processor
+Service      : FxPPM
+Class        : 
+Driver       : {50127dc3-0f36-415e-a6cc-4cb3be910b65}\0002
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\2\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\2\Device Parameters\WDF
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\3
+HardwareID   : ACPI\VEN_ACPI&DEV_0007; ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revision_A04; 
+               *Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revision_A04; ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8; 
+               *Qualcomm_-_ARMv8_(64-bit)_Family_8; ACPI\Qualcomm_-_ARMv8_(64-bit); *Qualcomm_-_ARMv8_(64-bit)
+CompatibleID : ACPI\Processor
+Service      : FxPPM
+Class        : 
+Driver       : {50127dc3-0f36-415e-a6cc-4cb3be910b65}\0003
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\3\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\3\Device Parameters\WDF
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\4
+HardwareID   : ACPI\VEN_ACPI&DEV_0007; ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revision_A04; 
+               *Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revision_A04; ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8; 
+               *Qualcomm_-_ARMv8_(64-bit)_Family_8; ACPI\Qualcomm_-_ARMv8_(64-bit); *Qualcomm_-_ARMv8_(64-bit)
+CompatibleID : ACPI\Processor
+Service      : FxPPM
+Class        : 
+Driver       : {50127dc3-0f36-415e-a6cc-4cb3be910b65}\0004
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\4\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\4\Device Parameters\WDF
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\5
+HardwareID   : ACPI\VEN_ACPI&DEV_0007; ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revision_A04; 
+               *Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revision_A04; ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8; 
+               *Qualcomm_-_ARMv8_(64-bit)_Family_8; ACPI\Qualcomm_-_ARMv8_(64-bit); *Qualcomm_-_ARMv8_(64-bit)
+CompatibleID : ACPI\Processor
+Service      : FxPPM
+Class        : 
+Driver       : {50127dc3-0f36-415e-a6cc-4cb3be910b65}\0005
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\5\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\5\Device Parameters\WDF
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\6
+HardwareID   : ACPI\VEN_ACPI&DEV_0007; ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revision_A04; 
+               *Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revision_A04; ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8; 
+               *Qualcomm_-_ARMv8_(64-bit)_Family_8; ACPI\Qualcomm_-_ARMv8_(64-bit); *Qualcomm_-_ARMv8_(64-bit)
+CompatibleID : ACPI\Processor
+Service      : FxPPM
+Class        : 
+Driver       : {50127dc3-0f36-415e-a6cc-4cb3be910b65}\0006
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\6\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\6\Device Parameters\WDF
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\7
+HardwareID   : ACPI\VEN_ACPI&DEV_0007; ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revision_A04; 
+               *Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revision_A04; ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8; 
+               *Qualcomm_-_ARMv8_(64-bit)_Family_8; ACPI\Qualcomm_-_ARMv8_(64-bit); *Qualcomm_-_ARMv8_(64-bit)
+CompatibleID : ACPI\Processor
+Service      : FxPPM
+Class        : 
+Driver       : {50127dc3-0f36-415e-a6cc-4cb3be910b65}\0007
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\7\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\Qualcomm_-_ARMv8_(64-bit)_Family_8_Model_801_Revi
+               sion_A04\7\Device Parameters\WDF
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\SSDE
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\SSDE\2&daba3ff&0
+HardwareID   : ACPI\SSDE; *SSDE
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ACPI\SSDE\2&daba3ff&0\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+========== HKLM:\TabletSYSTEM\ControlSet001\Enum\PCI ==========
+
+========== HKLM:\TabletSYSTEM\ControlSet001\Enum\USB ==========
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\USB\ROOT_HUB30
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\USB\ROOT_HUB30\4&11003813&0&0
+HardwareID   : USB\ROOT_HUB30&VIDQCOM&PID0497&REV0000; USB\ROOT_HUB30&VIDQCOM&PID0497; USB\ROOT_HUB30
+CompatibleID : 
+Service      : USBHUB3
+Class        : 
+Driver       : {36fc9e60-c465-11cf-8056-444553540000}\0002
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\USB\ROOT_HUB30\4&11003813&0&0\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\USB\ROOT_HUB30\4&11003813&0&0\Device Parameters\uxd
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\USB\ROOT_HUB30\4&11003813&0&0\Device Parameters\WDF
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\USB\VID_258A&PID_0049
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\USB\VID_258A&PID_0049\5&3a21a9de&0&1
+HardwareID   : USB\VID_258A&PID_0049&REV_0105; USB\VID_258A&PID_0049
+CompatibleID : USB\COMPAT_VID_258A&DevClass_00&SubClass_00&Prot00; USB\COMPAT_VID_258A&DevClass_00&SubClass_00; 
+               USB\COMPAT_VID_258A&DevClass_00; USB\DevClass_00&SubClass_00&Prot_00; USB\DevClass_00&SubClass_00; 
+               USB\DevClass_00; USB\COMPOSITE
+Service      : usbccgp
+Class        : 
+Driver       : {36fc9e60-c465-11cf-8056-444553540000}\0003
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\USB\VID_258A&PID_0049\5&3a21a9de&0&1\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\USB\VID_258A&PID_0049\5&3a21a9de&0&1\Device 
+               Parameters\Ceip
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\USB\VID_258A&PID_0049&MI_00
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\USB\VID_258A&PID_0049&MI_00\6&f95bbec&0&0000
+HardwareID   : USB\VID_258A&PID_0049&REV_0105&MI_00; USB\VID_258A&PID_0049&MI_00
+CompatibleID : USB\COMPAT_VID_258a&Class_03&SubClass_01&Prot_01; USB\COMPAT_VID_258a&Class_03&SubClass_01; 
+               USB\COMPAT_VID_258a&Class_03; USB\Class_03&SubClass_01&Prot_01; USB\Class_03&SubClass_01; USB\Class_03
+Service      : HidUsb
+Class        : 
+Driver       : {745a17a0-74d3-11d0-b6fe-00a0c90f57da}\0000
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\USB\VID_258A&PID_0049&MI_00\6&f95bbec&0&0000\Device 
+               Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\USB\VID_258A&PID_0049&MI_00\6&f95bbec&0&0000\Device 
+               Parameters\e5b3b5ac-9725-4f78-963f-03dfb1d828c7
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\USB\VID_258A&PID_0049&MI_01
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\USB\VID_258A&PID_0049&MI_01\6&f95bbec&0&0001
+HardwareID   : USB\VID_258A&PID_0049&REV_0105&MI_01; USB\VID_258A&PID_0049&MI_01
+CompatibleID : USB\COMPAT_VID_258a&Class_03&SubClass_00&Prot_00; USB\COMPAT_VID_258a&Class_03&SubClass_00; 
+               USB\COMPAT_VID_258a&Class_03; USB\Class_03&SubClass_00&Prot_00; USB\Class_03&SubClass_00; USB\Class_03
+Service      : HidUsb
+Class        : 
+Driver       : {745a17a0-74d3-11d0-b6fe-00a0c90f57da}\0001
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\USB\VID_258A&PID_0049&MI_01\6&f95bbec&0&0001\Device 
+               Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\USB\VID_258A&PID_0049&MI_01\6&f95bbec&0&0001\Device 
+               Parameters\e5b3b5ac-9725-4f78-963f-03dfb1d828c7
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+========== HKLM:\TabletSYSTEM\ControlSet001\Enum\SD ==========
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\SD\DISK&Samsung&DP68MB&0.2
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\SD\DISK&Samsung&DP68MB&0.2\4&22291ac&0&d26a9076&0
+HardwareID   : SD\GenDisk; GenDisk
+CompatibleID : GenDisk
+Service      : disk
+Class        : 
+Driver       : {4d36e967-e325-11ce-bfc1-08002be10318}\0000
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\SD\DISK&Samsung&DP68MB&0.2\4&22291ac&0&d26a9076&0\Devi
+               ce Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\SD\DISK&Samsung&DP68MB&0.2\4&22291ac&0&d26a9076&0\Devi
+               ce Parameters\Partmgr
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\SD\VID_15&OID_0000&PID_DP68MB&REV_0.2
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\SD\VID_15&OID_0000&PID_DP68MB&REV_0.2\3&176e02af&0&0
+HardwareID   : SD\VID_15&OID_0000&PID_DP68MB&REV_0.2; SD\VID_15&OID_0000&PID_DP68MB
+CompatibleID : SD\CLASS_MMC
+Service      : sdstor
+Class        : 
+Driver       : {4d36e97b-e325-11ce-bfc1-08002be10318}\0001
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\SD\VID_15&OID_0000&PID_DP68MB&REV_0.2\3&176e02af&0&0\D
+               evice Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+========== HKLM:\TabletSYSTEM\ControlSet001\Enum\ROOT ==========
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\ARM64_HAL
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\ARM64_HAL\0000
+HardwareID   : ACPIARM64
+CompatibleID : DETECTEDInternal\ARM64_HAL; DETECTED\ARM64_HAL
+Service      : \Driver\ARM64_HAL
+Class        : 
+Driver       : {4d36e966-e325-11ce-bfc1-08002be10318}\0000
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\BasicDisplay
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\BasicDisplay\0000
+HardwareID   : ROOT\BasicDisplay
+CompatibleID : 
+Service      : BasicDisplay
+Class        : 
+Driver       : {4d36e97d-e325-11ce-bfc1-08002be10318}\0008
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\BasicDisplay\0000\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\BasicRender
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\BasicRender\0000
+HardwareID   : ROOT\BasicRender
+CompatibleID : 
+Service      : BasicRender
+Class        : 
+Driver       : {4d36e97d-e325-11ce-bfc1-08002be10318}\0009
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\BasicRender\0000\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\CompositeBus
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\CompositeBus\0000
+HardwareID   : ROOT\CompositeBus
+CompatibleID : 
+Service      : CompositeBus
+Class        : 
+Driver       : {4d36e97d-e325-11ce-bfc1-08002be10318}\0001
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\CompositeBus\0000\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\CompositeBus\0000\Device Parameters\WDF
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\KDNIC
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\KDNIC\0000
+HardwareID   : root\kdnic
+CompatibleID : 
+Service      : kdnic
+Class        : 
+Driver       : {4d36e972-e325-11ce-bfc1-08002be10318}\0000
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\KDNIC\0000\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\mssmbios
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\mssmbios\0000
+HardwareID   : ROOT\mssmbios
+CompatibleID : 
+Service      : mssmbios
+Class        : 
+Driver       : {4d36e97d-e325-11ce-bfc1-08002be10318}\0010
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\NdisVirtualBus
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\NdisVirtualBus\0000
+HardwareID   : ROOT\NdisVirtualBus
+CompatibleID : 
+Service      : NdisVirtualBus
+Class        : 
+Driver       : {4d36e97d-e325-11ce-bfc1-08002be10318}\0003
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\NdisVirtualBus\0000\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\NdisVirtualBus\0000\Device Parameters\WDF
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\RDPBUS
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\RDPBUS\0000
+HardwareID   : ROOT\RDPBUS
+CompatibleID : 
+Service      : rdpbus
+Class        : 
+Driver       : {4d36e97d-e325-11ce-bfc1-08002be10318}\0005
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\spaceport
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\spaceport\0000
+HardwareID   : Root\Spaceport
+CompatibleID : DETECTEDInternal\spaceport; DETECTED\spaceport
+Service      : spaceport
+Class        : 
+Driver       : {4d36e97b-e325-11ce-bfc1-08002be10318}\0000
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\SYSTEM
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\SYSTEM\0000
+HardwareID   : ROOT\SWENUM
+CompatibleID : 
+Service      : swenum
+Class        : 
+Driver       : {4d36e97d-e325-11ce-bfc1-08002be10318}\0004
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\UMBUS
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\UMBUS\0000
+HardwareID   : root\umbus
+CompatibleID : 
+Service      : umbus
+Class        : 
+Driver       : {4d36e97d-e325-11ce-bfc1-08002be10318}\0002
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\UMBUS\0000\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\UMBUS\0000\Device Parameters\WDF
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\vdrvroot
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\vdrvroot\0000
+HardwareID   : ROOT\vdrvroot
+CompatibleID : 
+Service      : vdrvroot
+Class        : 
+Driver       : {4d36e97d-e325-11ce-bfc1-08002be10318}\0007
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\vdrvroot\0000\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\vdrvroot\0000\Device 
+               Parameters\VirtualDriveSupport
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\vdrvroot\0000\Device Parameters\WDF
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\VID
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\VID\0000
+HardwareID   : ROOT\VID
+CompatibleID : 
+Service      : Vid
+Class        : 
+Driver       : {4d36e97d-e325-11ce-bfc1-08002be10318}\0000
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\VID\0000\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\VID\0000\Device Parameters\WDF
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\VOLMGR
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\VOLMGR\0000
+HardwareID   : ROOT\VOLMGR
+CompatibleID : 
+Service      : volmgr
+Class        : System
+Driver       : 
+
+
+
+
+
+
+Ruta         : HKEY_LOCAL_MACHINE\TabletSYSTEM\ControlSet001\Enum\ROOT\VOLMGR\0000\Device Parameters
+HardwareID   : 
+CompatibleID : 
+Service      : 
+Class        : 
+Driver       : 
+
+
+
+

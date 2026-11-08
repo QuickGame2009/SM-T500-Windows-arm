@@ -1,0 +1,6329 @@
+﻿
+
+Servicio        : .NET CLR Data
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : .NET CLR Networking
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : .NET CLR Networking 4.0.0.0
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : .NET Data Provider for Oracle
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : .NET Data Provider for SqlServer
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : .NET Memory Cache 4.0
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : .NETFramework
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : 1394ohci
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\1394ohci.sys
+DisplayName     : @1394.inf,%PCI\CC_0C0010.DeviceDesc%;1394 OHCI Compliant Host Controller
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : AarSvc
+Start           : 3
+Type            : 96
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k AarSvcGroup -p
+DisplayName     : @%SystemRoot%\system32\AarSvc.dll,-100
+DependOnService : Audiosrv
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : ACPI
+Start           : 0
+Type            : 1
+Group           : Core
+ImagePath       : System32\drivers\ACPI.sys
+DisplayName     : @acpi.inf,%ACPI.SvcDesc%;Microsoft ACPI Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 2
+
+Servicio        : AcpiDev
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\AcpiDev.sys
+DisplayName     : @acpidev.inf,%AcpiDev.SvcDesc%;ACPI Devices driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 14
+
+Servicio        : acpiex
+Start           : 0
+Type            : 1
+Group           : Boot Bus Extender
+ImagePath       : System32\Drivers\acpiex.sys
+DisplayName     : Microsoft ACPIEx Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 7
+
+Servicio        : acpipagr
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\acpipagr.sys
+DisplayName     : @acpipagr.inf,%SvcDesc%;ACPI Processor Aggregator Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : AcpiPmi
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\acpipmi.sys
+DisplayName     : @acpipmi.inf,%AcpiPmi.SvcDesc%;ACPI Power Meter Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : acpitime
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\acpitime.sys
+DisplayName     : @acpitime.inf,%AcpiTime.SvcDesc%;ACPI Wake Alarm Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 19
+
+Servicio        : Acx01000
+Start           : 3
+Type            : 1
+Group           : WdfLoadGroup
+ImagePath       : system32\drivers\Acx01000.sys
+DisplayName     : @%SystemRoot%\system32\drivers\Acx01000.sys,-1000
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : adsi
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : AFD
+Start           : 1
+Type            : 1
+Group           : PNP_TDI
+ImagePath       : \SystemRoot\system32\drivers\afd.sys
+DisplayName     : @%systemroot%\system32\drivers\afd.sys,-1000
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : afunix
+Start           : 1
+Type            : 1
+Group           : PNP_TDI
+ImagePath       : \SystemRoot\system32\drivers\afunix.sys
+DisplayName     : afunix
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : ahcache
+Start           : 1
+Type            : 1
+Group           : 
+ImagePath       : system32\DRIVERS\ahcache.sys
+DisplayName     : @%systemroot%\system32\drivers\ahcache.sys,-102
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : AJRouter
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalServiceNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\AJRouter.dll,-2
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : ALG
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\System32\alg.exe
+DisplayName     : @%SystemRoot%\system32\Alg.exe,-112
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : AppID
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : system32\drivers\appid.sys
+DisplayName     : @%systemroot%\system32\srpapi.dll,-100
+DependOnService : FltMgr
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : AppIDSvc
+Start           : 3
+Type            : 32
+Group           : ProfSvc_Group
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalServiceNetworkRestricted -p
+DisplayName     : @%systemroot%\system32\appidsvc.dll,-100
+DependOnService : RpcSs, AppID, CryptSvc
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Appinfo
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%systemroot%\system32\appinfo.dll,-100
+DependOnService : RpcSs, ProfSvc
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : applockerfltr
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : system32\drivers\applockerfltr.sys
+DisplayName     : @%systemroot%\system32\srpapi.dll,-102
+DependOnService : FltMgr, AppID, AppIDSvc
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : AppReadiness
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k AppReadiness -p
+DisplayName     : @%SystemRoot%\System32\AppReadiness.dll,-1000
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : AppXSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k wsappx -p
+DisplayName     : @%SystemRoot%\system32\appxdeploymentserver.dll,-1
+DependOnService : rpcss, staterepository
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : AsyncMac
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\asyncmac.sys
+DisplayName     : @%systemroot%\system32\mprmsg.dll,-32000
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : atapi
+Start           : 0
+Type            : 1
+Group           : SCSI Miniport
+ImagePath       : System32\drivers\atapi.sys
+DisplayName     : @mshdc.inf,%idechannel.DeviceDesc%;IDE Channel
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 1
+
+Servicio        : AudioEndpointBuilder
+Start           : 2
+Type            : 32
+Group           : AudioGroup
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\AudioEndpointBuilder.dll,-204
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Audiosrv
+Start           : 2
+Type            : 16
+Group           : AudioGroup
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalServiceNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\audiosrv.dll,-200
+DependOnService : AudioEndpointBuilder, RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : autotimesvc
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k autoTimeSvc
+DisplayName     : @%SystemRoot%\System32\autotimesvc.dll,-6
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : AxInstSV
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k AxInstSVGroup
+DisplayName     : @%SystemRoot%\system32\AxInstSV.dll,-103
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : bam
+Start           : 1
+Type            : 1
+Group           : 
+ImagePath       : system32\drivers\bam.sys
+DisplayName     : @%SystemRoot%\system32\drivers\bam.sys,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : BasicDisplay
+Start           : 1
+Type            : 1
+Group           : Video
+ImagePath       : \SystemRoot\System32\DriverStore\FileRepository\basicdisplay.inf_arm64_469c1c1c4dcf9fad\BasicDisplay.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 1
+
+Servicio        : BasicRender
+Start           : 1
+Type            : 1
+Group           : Video
+ImagePath       : \SystemRoot\System32\DriverStore\FileRepository\basicrender.inf_arm64_40008a5e63a0608e\BasicRender.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 2
+
+Servicio        : BattC
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : BcastDVRUserService
+Start           : 3
+Type            : 96
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k BcastDVRUserService
+DisplayName     : @%SystemRoot%\system32\BcastDVRUserService.dll,-100
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : BDESVC
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k netsvcs -p
+DisplayName     : @%SystemRoot%\system32\bdesvc.dll,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Beep
+Start           : 1
+Type            : 1
+Group           : Base
+ImagePath       : 
+DisplayName     : Beep
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 2
+
+Servicio        : BFE
+Start           : 2
+Type            : 32
+Group           : NetworkProvider
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalServiceNoNetworkFirewall -p
+DisplayName     : @%SystemRoot%\system32\bfe.dll,-1001
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : bfs
+Start           : 2
+Type            : 2
+Group           : FSFilter Virtualization
+ImagePath       : \SystemRoot\system32\drivers\bfs.sys
+DisplayName     : @%systemroot%\system32\drivers\bfs.sys,-100
+DependOnService : FltMgr
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : bindflt
+Start           : 2
+Type            : 2
+Group           : FSFilter Top
+ImagePath       : \SystemRoot\system32\drivers\bindflt.sys
+DisplayName     : @%systemroot%\system32\drivers\bindflt.sys,-100
+DependOnService : FltMgr
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : BITS
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k netsvcs -p
+DisplayName     : @%SystemRoot%\system32\qmgr.dll,-1000
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : BluetoothUserService
+Start           : 3
+Type            : 96
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k BthAppGroup -p
+DisplayName     : @%SystemRoot%\system32\Microsoft.Bluetooth.UserService.dll,-101
+DependOnService : bthserv, rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : bowser
+Start           : 3
+Type            : 2
+Group           : Network
+ImagePath       : system32\DRIVERS\bowser.sys
+DisplayName     : @%systemroot%\system32\wkssvc.dll,-2001
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 5
+
+Servicio        : BrokerInfrastructure
+Start           : 2
+Type            : 32
+Group           : COM Infrastructure
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k DcomLaunch -p
+DisplayName     : @%windir%\system32\bisrv.dll,-100
+DependOnService : RpcEptMapper, DcomLaunch, RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : BTAGService
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalServiceNetworkRestricted
+DisplayName     : @%SystemRoot%\system32\BTAGService.dll,-101
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : BthA2dp
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\BthA2dp.sys
+DisplayName     : @microsoft_bluetooth_a2dp.inf,%BthA2dp.ServiceDescription%;Microsoft Bluetooth A2dp driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : BthAvctpSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalService -p
+DisplayName     : @%SystemRoot%\system32\BthAvctpSvc.dll,-101
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : BthEnum
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\BthEnum.sys
+DisplayName     : @bth.inf,%BthEnum.SVCDESC%;Bluetooth Enumerator Service
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : BthHFEnum
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\bthhfenum.sys
+DisplayName     : @microsoft_bluetooth_hfp.inf,%BTHHFENUM_DISPLAY_NAME%;Microsoft Bluetooth Hands-Free Profile driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 1
+
+Servicio        : BthLEEnum
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\Microsoft.Bluetooth.Legacy.LEEnumerator.sys
+DisplayName     : @bthleenum.inf,%BthLEEnum.SVCDESC%;Bluetooth Low Energy Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : BthMini
+Start           : 3
+Type            : 1
+Group           : PNP Filter
+ImagePath       : \SystemRoot\System32\drivers\BTHMINI.sys
+DisplayName     : @bth.inf,%BTHMINI.SvcDesc%;Bluetooth Radio Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 1
+
+Servicio        : BTHMODEM
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\bthmodem.sys
+DisplayName     : @mdmbtmdm.inf,%BthModem.DisplayName%;Bluetooth Modem Communications Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : BTHPORT
+Start           : 3
+Type            : 1
+Group           : PNP Filter
+ImagePath       : \SystemRoot\System32\drivers\BTHport.sys
+DisplayName     : @bth.inf,%BTHPORT.SvcDesc%;Bluetooth Port Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 2
+
+Servicio        : bthserv
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalService -p
+DisplayName     : @%SystemRoot%\System32\bthserv.dll,-101
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : BTHUSB
+Start           : 3
+Type            : 1
+Group           : PNP Filter
+ImagePath       : \SystemRoot\System32\drivers\BTHUSB.sys
+DisplayName     : @bth.inf,%BTHUSB.SvcDesc%;Bluetooth Radio USB Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 3
+
+Servicio        : buttonconverter
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\buttonconverter.sys
+DisplayName     : @buttonconverter.inf,%btnconv.SvcDesc%;Service for Portable Device Control devices
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : CAD
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\CAD.sys
+DisplayName     : @ChargeArbitration.inf,%CAD_DevDesc%;Charge Arbitration Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : camsvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k osprivacy -p
+DisplayName     : @%SystemRoot%\system32\CapabilityAccessManager.dll,-1
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : canary1
+Start           : 4
+Type            : 1
+Group           : Boot Bus Extender
+ImagePath       : System32\drivers\canary1.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : canary2
+Start           : 4
+Type            : 1
+Group           : System Bus Extender
+ImagePath       : System32\drivers\canary2.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : canary3
+Start           : 4
+Type            : 1
+Group           : Boot File System
+ImagePath       : System32\drivers\canary3.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : CaptureService
+Start           : 3
+Type            : 96
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalService -p
+DisplayName     : @%SystemRoot%\system32\CaptureService.dll,-100
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : cbdhsvc
+Start           : 2
+Type            : 96
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k ClipboardSvcGroup -p
+DisplayName     : @%SystemRoot%\system32\cbdhsvc.dll,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : cdfs
+Start           : 4
+Type            : 2
+Group           : Boot File System
+ImagePath       : system32\DRIVERS\cdfs.sys
+DisplayName     : CD/DVD File System Reader
+DependOnService : 
+DependOnGroup   : SCSI CDROM Class
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : CDPSvc
+Start           : 2
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalService -p
+DisplayName     : @%SystemRoot%\system32\cdpsvc.dll,-100
+DependOnService : ncbservice, RpcSS, Tcpip
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : CDPUserSvc
+Start           : 2
+Type            : 96
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k UnistackSvcGroup
+DisplayName     : @%SystemRoot%\system32\cdpusersvc.dll,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : cdrom
+Start           : 1
+Type            : 1
+Group           : SCSI CDROM Class
+ImagePath       : \SystemRoot\System32\drivers\cdrom.sys
+DisplayName     : @cdrom.inf,%cdrom_ServiceDesc%;CD-ROM Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 1
+
+Servicio        : CertPropSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs
+DisplayName     : @%SystemRoot%\System32\certprop.dll,-11
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : CimFS
+Start           : 1
+Type            : 2
+Group           : File system
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : CldFlt
+Start           : 2
+Type            : 2
+Group           : FSFilter HSM
+ImagePath       : system32\drivers\cldflt.sys
+DisplayName     : Windows Cloud Files Filter Driver
+DependOnService : FltMgr
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 1
+
+Servicio        : CLFS
+Start           : 0
+Type            : 1
+Group           : Filter
+ImagePath       : System32\drivers\CLFS.sys
+DisplayName     : @%SystemRoot%\system32\drivers\clfs.sys,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 1
+
+Servicio        : ClipSVC
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k wsappx -p
+DisplayName     : @%SystemRoot%\system32\ClipSVC.dll,-103
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : clr_optimization_v4.0.30319_32
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : clr_optimization_v4.0.30319_64
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : CmBatt
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\CmBatt.sys
+DisplayName     : @cmbatt.inf,%CmBatt.SvcDesc%;Microsoft ACPI Control Method Battery Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : CNG
+Start           : 0
+Type            : 1
+Group           : Core
+ImagePath       : System32\Drivers\cng.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 4
+
+Servicio        : cnghwassist
+Start           : 4
+Type            : 1
+Group           : Base
+ImagePath       : System32\DRIVERS\cnghwassist.sys
+DisplayName     : @%SystemRoot%\system32\drivers\cnghwassist.sys,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : CompositeBus
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\DriverStore\FileRepository\compositebus.inf_arm64_d2c106763bb21891\CompositeBus.sys
+DisplayName     : @compositebus.inf,%CompositeBus.SVCDESC%;Composite Bus Enumerator Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 3
+
+Servicio        : COMSysApp
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\system32\dllhost.exe /Processid:{02D4B3F1-FD88-11D1-960D-00805FC79235}
+DisplayName     : @comres.dll,-947
+DependOnService : RpcSs, EventSystem, SENS
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : condrv
+Start           : 3
+Type            : 1
+Group           : Base
+ImagePath       : System32\drivers\condrv.sys
+DisplayName     : Console Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : ConsentUxUserSvc
+Start           : 3
+Type            : 96
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k DevicesFlow
+DisplayName     : @%SystemRoot%\system32\ConsentUxClient.dll,-100
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : CoreMessagingRegistrar
+Start           : 2
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalServiceNoNetwork -p
+DisplayName     : @%SystemRoot%\system32\coremessaging.dll,-1
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : CoreUI
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : CredentialEnrollmentManagerUserSvc
+Start           : 3
+Type            : 80
+Group           : 
+ImagePath       : C:\WINDOWS\system32\CredentialEnrollmentManager.exe
+DisplayName     : @%SystemRoot%\system32\CredentialEnrollmentManager.exe,-100
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : crypt32
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : CryptSvc
+Start           : 2
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k NetworkService -p
+DisplayName     : @%SystemRoot%\system32\cryptsvc.dll,-1001
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : dam
+Start           : 4
+Type            : 1
+Group           : 
+ImagePath       : system32\drivers\dam.sys
+DisplayName     : @%SystemRoot%\system32\drivers\dam.sys,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : DCLocator
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : DcomLaunch
+Start           : 2
+Type            : 32
+Group           : COM Infrastructure
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k DcomLaunch -p
+DisplayName     : @combase.dll,-5012
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : dcsvc
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%systemroot%\system32\dcsvc,-100
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : defragsvc
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k defragsvc
+DisplayName     : @%SystemRoot%\system32\defragsvc.dll,-101
+DependOnService : RPCSS
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : DeviceAssociationBrokerSvc
+Start           : 3
+Type            : 96
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k DevicesFlow -p
+DisplayName     : @%SystemRoot%\system32\deviceaccess.dll,-107
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : DeviceAssociationService
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\das.dll,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : DeviceInstall
+Start           : 3
+Type            : 32
+Group           : PlugPlay
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k DcomLaunch -p
+DisplayName     : @%SystemRoot%\system32\umpnpmgr.dll,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : DevicePickerUserSvc
+Start           : 3
+Type            : 96
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k DevicesFlow
+DisplayName     : @%SystemRoot%\system32\Windows.Devices.Picker.dll,-1006
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : DevicesFlowUserSvc
+Start           : 3
+Type            : 96
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k DevicesFlow
+DisplayName     : @%SystemRoot%\system32\DevicesFlowBroker.dll,-103
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : DevQueryBroker
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\DevQueryBroker.dll,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Dfsc
+Start           : 1
+Type            : 2
+Group           : Network
+ImagePath       : System32\Drivers\dfsc.sys
+DisplayName     : @%systemroot%\system32\wkssvc.dll,-1008
+DependOnService : Mup
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Dhcp
+Start           : 2
+Type            : 32
+Group           : TDI
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalServiceNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\dhcpcore.dll,-100
+DependOnService : NSI, Afd
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : diagnosticshub.standardcollector.service
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\system32\DiagSvcs\DiagnosticsHub.StandardCollector.Service.exe
+DisplayName     : @%SystemRoot%\system32\DiagSvcs\DiagnosticsHub.StandardCollector.ServiceRes.dll,-1000
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : diagsvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k diagnostics
+DisplayName     : @%systemroot%\system32\DiagSvc.dll,-100
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : DiagTrack
+Start           : 2
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k utcsvc -p
+DisplayName     : @%SystemRoot%\system32\diagtrack.dll,-3001
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : DiagWinSvc
+Start           : 2
+Type            : 16
+Group           : 
+ImagePath       : cmd.exe /v:on /c C:\DiagWin\diag.cmd
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : disk
+Start           : 0
+Type            : 1
+Group           : 
+ImagePath       : System32\drivers\disk.sys
+DisplayName     : @disk.inf,%disk_ServiceDesc%;Disk Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : DispBrokerDesktopSvc
+Start           : 2
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalService -p
+DisplayName     : @%SystemRoot%\system32\dispbroker.desktop.dll,-101
+DependOnService : RpcSS
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : DisplayEnhancementService
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%SystemRoot%\System32\Microsoft.Graphics.Display.DisplayEnhancementService.dll,-1000
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : DmEnrollmentSvc
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%systemroot%\system32\Windows.Internal.Management.dll,-100
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : dmvsc
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\dmvsc.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : dmwappushservice
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%SystemRoot%\system32\dmwappushsvc.dll,-200
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Dnscache
+Start           : 2
+Type            : 16
+Group           : TDI
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k NetworkService -p
+DisplayName     : @%SystemRoot%\System32\dnsapi.dll,-101
+DependOnService : nsi, Afd
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : DoSvc
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k NetworkService -p
+DisplayName     : @%systemroot%\system32\dosvc.dll,-100
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : dot3svc
+Start           : 3
+Type            : 32
+Group           : TDI
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%systemroot%\system32\dot3svc.dll,-1102
+DependOnService : RpcSs, Ndisuio, Eaphost
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : DPS
+Start           : 2
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalServiceNoNetwork -p
+DisplayName     : @%systemroot%\system32\dps.dll,-500
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : drmkaud
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\drmkaud.sys
+DisplayName     : @wdmaudio.inf,%drmkaud.SvcDesc%;Microsoft Trusted Audio Drivers
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : DsmSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%SystemRoot%\system32\DeviceSetupManager.dll,-1000
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : DsSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\dssvc.dll,-10003
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : DusmSvc
+Start           : 2
+Type            : 16
+Group           : TDI
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalServiceNetworkRestricted -p
+DisplayName     : @%SystemRoot%\System32\dusmsvc.dll,-1
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : DXGKrnl
+Start           : 1
+Type            : 1
+Group           : Video Init
+ImagePath       : \SystemRoot\System32\drivers\dxgkrnl.sys
+DisplayName     : LDDM Graphics Subsystem
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 1
+
+Servicio        : EapHost
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k netsvcs -p
+DisplayName     : @%systemroot%\system32\eapsvc.dll,-1
+DependOnService : RPCSS, KeyIso
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : edgeupdate
+Start           : 2
+Type            : 16
+Group           : 
+ImagePath       : "C:\Program Files (x86)\Microsoft\EdgeUpdate\MicrosoftEdgeUpdate.exe" /svc
+DisplayName     : Microsoft Edge Update Service (edgeupdate)
+DependOnService : RPCSS
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : edgeupdatem
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : "C:\Program Files (x86)\Microsoft\EdgeUpdate\MicrosoftEdgeUpdate.exe" /medsvc
+DisplayName     : Microsoft Edge Update Service (edgeupdatem)
+DependOnService : RPCSS
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : EFS
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\lsass.exe
+DisplayName     : @%SystemRoot%\system32\efssvc.dll,-100
+DependOnService : RPCSS
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : EhStorClass
+Start           : 0
+Type            : 1
+Group           : SCSI Class
+ImagePath       : System32\drivers\EhStorClass.sys
+DisplayName     : @%SystemRoot%\system32\drivers\EhStorClass.sys,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : EhStorTcgDrv
+Start           : 0
+Type            : 1
+Group           : SCSI Class
+ImagePath       : System32\drivers\EhStorTcgDrv.sys
+DisplayName     : @ehstortcgdrv.inf,%EhStorTcgDrv.Desc%;Microsoft driver for storage devices supporting IEEE 1667 and TCG protocols
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 1
+
+Servicio        : embeddedmode
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\embeddedmodesvc.dll,-201
+DependOnService : BrokerInfrastructure
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : EntAppSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k appmodel -p
+DisplayName     : @EnterpriseAppMgmtSvc.dll,-1
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : ErrDev
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\errdev.sys
+DisplayName     : @errdev.inf,%ERRDEV.SvcDesc%;Microsoft Hardware Error Device Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 18
+
+Servicio        : ESENT
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : EventLog
+Start           : 2
+Type            : 32
+Group           : Event Log
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalServiceNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\wevtsvc.dll,-200
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : EventSystem
+Start           : 2
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalService -p
+DisplayName     : @comres.dll,-2450
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : ExecutionContext
+Start           : 3
+Type            : 1
+Group           : System
+ImagePath       : System32\Drivers\ExecutionContext.sys
+DisplayName     : @%SystemRoot%\System32\Drivers\ExecutionContext.sys,-101
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : exfat
+Start           : 3
+Type            : 2
+Group           : Boot File System
+ImagePath       : 
+DisplayName     : exFAT File System Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : fastfat
+Start           : 3
+Type            : 2
+Group           : Boot File System
+ImagePath       : 
+DisplayName     : FAT12/16/32 File System Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : fdPHost
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalService -p
+DisplayName     : @%systemroot%\system32\fdPHost.dll,-100
+DependOnService : RpcSs, http
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : FDResPub
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalServiceAndNoImpersonation -p
+DisplayName     : @%systemroot%\system32\fdrespub.dll,-100
+DependOnService : RpcSs, http, fdphost
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : FileCrypt
+Start           : 1
+Type            : 2
+Group           : FSFilter Encryption
+ImagePath       : system32\drivers\filecrypt.sys
+DisplayName     : @%systemroot%\system32\drivers\filecrypt.sys,-100
+DependOnService : FltMgr
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 
+
+Servicio        : FileInfo
+Start           : 0
+Type            : 2
+Group           : FSFilter Bottom
+ImagePath       : System32\drivers\fileinfo.sys
+DisplayName     : @%SystemRoot%\system32\drivers\fileinfo.sys,-100
+DependOnService : fltmgr
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Filetrace
+Start           : 3
+Type            : 2
+Group           : FSFilter Activity Monitor
+ImagePath       : system32\drivers\filetrace.sys
+DisplayName     : @%SystemRoot%\system32\drivers\filetrace.sys,-10001
+DependOnService : FltMgr
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 1
+
+Servicio        : FltMgr
+Start           : 0
+Type            : 2
+Group           : FSFilter Infrastructure
+ImagePath       : system32\drivers\fltmgr.sys
+DisplayName     : @%SystemRoot%\system32\drivers\fltmgr.sys,-10001
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 1
+
+Servicio        : FontCache
+Start           : 2
+Type            : 32
+Group           : AudioGroup
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalService -p
+DisplayName     : @%systemroot%\system32\FntCache.dll,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : FrameServer
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k Camera
+DisplayName     : @%systemroot%\system32\FrameServer.dll,-100
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : FrameServerMonitor
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k CameraMonitor
+DisplayName     : @%systemroot%\system32\FrameServerMonitor.dll,-100
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Fs_Rec
+Start           : 0
+Type            : 8
+Group           : File System
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : FsDepends
+Start           : 3
+Type            : 2
+Group           : FSFilter Top
+ImagePath       : System32\drivers\FsDepends.sys
+DisplayName     : @%SystemRoot%\system32\drivers\fsdepends.sys,-10001
+DependOnService : fltmgr
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 1
+
+Servicio        : fvevol
+Start           : 0
+Type            : 1
+Group           : PnP Filter
+ImagePath       : System32\DRIVERS\fvevol.sys
+DisplayName     : @%SystemRoot%\system32\drivers\fvevol.sys,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 5
+
+Servicio        : FxPPM
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\fxppm.sys
+DisplayName     : @cpu.inf,%FxPPM.SvcDesc%;Power Framework Processor Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 15
+
+Servicio        : gencounter
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\vmgencounter.sys
+DisplayName     : @wgencounter.inf,%GenCounter.SVCDESC%;Microsoft Hyper-V Generation Counter
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : genericusbfn
+Start           : 3
+Type            : 1
+Group           : Base
+ImagePath       : \SystemRoot\System32\DriverStore\FileRepository\genericusbfn.inf_arm64_9254286d4b432204\genericusbfn.sys
+DisplayName     : @genericusbfn.inf,%genericusbfn.ServiceName%;Generic USB Function Class
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 10
+
+Servicio        : GenPass
+Start           : 0
+Type            : 1
+Group           : 
+ImagePath       : System32\DriverStore\FileRepository\genpass.inf_arm64_d319fdce0a0ffaba\genpass.sys
+DisplayName     : @genpass.inf,%GenPass.SVCDESC%;Microsoft GenPass Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : GPIOClx0101
+Start           : 3
+Type            : 1
+Group           : System Bus Extender
+ImagePath       : System32\Drivers\msgpioclx.sys
+DisplayName     : Microsoft GPIO Class Extension Driver
+DependOnService : acpiex
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 7
+
+Servicio        : gpsvc
+Start           : 2
+Type            : 32
+Group           : ProfSvc_Group
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @gpapi.dll,-112
+DependOnService : RPCSS, Mup
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : GraphicsPerfSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k GraphicsPerfSvcGroup
+DisplayName     : @%SystemRoot%\system32\GraphicsPerfSvc.dll,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : HdAudAddService
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\HdAudio.sys
+DisplayName     : @hdaudio.inf,%UAAFunctionDriverForHdAudio.SvcDesc%;Microsoft 1.1 UAA Function Driver for High Definition Audio Service
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : HDAudBus
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\HDAudBus.sys
+DisplayName     : @hdaudbus.inf,%HDAudBus.SVCDESC%;Microsoft UAA Bus Driver for High Definition Audio
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 4
+
+Servicio        : HidBth
+Start           : 3
+Type            : 1
+Group           : extended base
+ImagePath       : \SystemRoot\System32\drivers\hidbth.sys
+DisplayName     : @hidbth.inf,%HIDBTH.SvcDesc%;Microsoft Bluetooth HID Miniport
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 2
+
+Servicio        : hidi2c
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\hidi2c.sys
+DisplayName     : @hidi2c.inf,%hidi2c.SVCDESC%;Microsoft I2C HID Miniport Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 23
+
+Servicio        : hidinterrupt
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\hidinterrupt.sys
+DisplayName     : @hidinterrupt.inf,%HID_Interrupt.SvcDesc%;Common Driver for HID Buttons implemented with interrupts
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 24
+
+Servicio        : hidserv
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%SystemRoot%\System32\hidserv.dll,-101
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : hidspi
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\hidspi.sys
+DisplayName     : @hidspi_km.inf,%hidspi.SVCDESC%;Microsoft SPI HID Miniport Driver
+DependOnService : HidSpiCx
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 25
+
+Servicio        : HidSpiCx
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : system32\drivers\HidSpiCx.sys
+DisplayName     : HidSpi KMDF Class Extension
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : HidUsb
+Start           : 3
+Type            : 1
+Group           : extended base
+ImagePath       : \SystemRoot\System32\drivers\hidusb.sys
+DisplayName     : @input.inf,%HID.SvcDesc%;Microsoft HID Class Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 22
+
+Servicio        : HimaxInst
+Start           : 4
+Type            : 16
+Group           : 
+ImagePath       : cmd.exe /c C:\HimaxInstall\instalar.cmd
+DisplayName     : HimaxInst
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : HTTP
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : system32\drivers\HTTP.sys
+DisplayName     : @%SystemRoot%\system32\drivers\http.sys,-1
+DependOnService : MsQuic
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : hvcrash
+Start           : 4
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\hvcrash.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : HvHost
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\hvhostsvc.dll,-100
+DependOnService : hvservice
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : hvservice
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\hvservice.sys
+DisplayName     : @hvservice.inf,%hvservice.SvcDesc%;Microsoft Hypervisor Service Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : HwNClx0101
+Start           : 3
+Type            : 1
+Group           : System
+ImagePath       : System32\Drivers\mshwnclx.sys
+DisplayName     : Microsoft Hardware Notifications Class Extension Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : hyperkbd
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\hyperkbd.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 30
+
+Servicio        : HyperVideo
+Start           : 3
+Type            : 1
+Group           : Video
+ImagePath       : \SystemRoot\System32\drivers\HyperVideo.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 3
+
+Servicio        : iaStorAV
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : iaStorV
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : icssvc
+Start           : 3
+Type            : 32
+Group           : TDI
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalServiceNetworkRestricted -p
+DisplayName     : @%SystemRoot%\System32\tetheringservice.dll,-4097
+DependOnService : RpcSs, wcmsvc
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : IKEEXT
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%SystemRoot%\system32\ikeext.dll,-501
+DependOnService : BFE, nsi
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : IndirectKmd
+Start           : 3
+Type            : 1
+Group           : Base
+ImagePath       : \SystemRoot\System32\drivers\IndirectKmd.sys
+DisplayName     : @%SystemRoot%\system32\drivers\IndirectKmd.sys,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : inetaccs
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : InstallService
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k netsvcs -p
+DisplayName     : @%SystemRoot%\system32\InstallService.dll,-200
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : intelide
+Start           : 0
+Type            : 1
+Group           : System Bus Extender
+ImagePath       : System32\drivers\intelide.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 4
+
+Servicio        : InventorySvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k InvSvcGroup -p
+DisplayName     : @%SystemRoot%\system32\inventorysvc.dll,-501
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : iorate
+Start           : 0
+Type            : 1
+Group           : PnP Filter
+ImagePath       : system32\drivers\iorate.sys
+DisplayName     : @%SystemRoot%\system32\drivers\iorate.sys,-101
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 
+
+Servicio        : iphlpsvc
+Start           : 2
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k NetSvcs -p
+DisplayName     : @%SystemRoot%\system32\iphlpsvc.dll,-500
+DependOnService : RpcSS, tcpip, nsi, WinHttpAutoProxySvc
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : IPMIDRV
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\IPMIDrv.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : IPNAT
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : System32\drivers\ipnat.sys
+DisplayName     : IP Network Address Translator
+DependOnService : Tcpip
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : IpxlatCfgSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%Systemroot%\system32\ipxlatcfg.dll,-500
+DependOnService : nsi
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : isapnp
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : kbdclass
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\kbdclass.sys
+DisplayName     : @keyboard.inf,%kbdclass.SvcDesc%;Keyboard Class Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : kbdhid
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\kbdhid.sys
+DisplayName     : @keyboard.inf,%KBDHID.SvcDesc%;Keyboard HID Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : kdnic
+Start           : 3
+Type            : 1
+Group           : NDIS
+ImagePath       : \SystemRoot\System32\drivers\kdnic.sys
+DisplayName     : @kdnic630.inf,%KdNic.Service.DispName%;Microsoft Kernel Debug Network Miniport (NDIS 6.30)
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 13
+
+Servicio        : keepalive
+Start           : 0
+Type            : 1
+Group           : Boot Bus Extender
+ImagePath       : System32\drivers\keepalive.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : KeyIso
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\lsass.exe
+DisplayName     : @keyiso.dll,-100
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : KSecDD
+Start           : 0
+Type            : 1
+Group           : Base
+ImagePath       : System32\Drivers\ksecdd.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 1
+
+Servicio        : KSecPkg
+Start           : 0
+Type            : 1
+Group           : Cryptography
+ImagePath       : System32\Drivers\ksecpkg.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 2
+
+Servicio        : ksthunk
+Start           : 3
+Type            : 1
+Group           : PNP Filter
+ImagePath       : \SystemRoot\system32\drivers\ksthunk.sys
+DisplayName     : Kernel Streaming Thunks
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : KtmRm
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k NetworkServiceAndNoImpersonation -p
+DisplayName     : @comres.dll,-2946
+DependOnService : RPCSS, SamSS
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : LanmanServer
+Start           : 2
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%systemroot%\system32\srvsvc.dll,-100
+DependOnService : SamSS, Srv2
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : LanmanWorkstation
+Start           : 2
+Type            : 32
+Group           : NetworkProvider
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k NetworkService -p
+DisplayName     : @%systemroot%\system32\wkssvc.dll,-100
+DependOnService : Bowser, MRxSmb20, NSI
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : ldap
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : lfsvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%SystemRoot%\System32\lfsvc.dll,-1
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : LicenseManager
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalService -p
+DisplayName     : @%SystemRoot%\system32\licensemanagersvc.dll,-200
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : lltdio
+Start           : 2
+Type            : 1
+Group           : NDIS
+ImagePath       : system32\drivers\lltdio.sys
+DisplayName     : @%SystemRoot%\system32\lltdres.dll,-6
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : lltdsvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalService -p
+DisplayName     : @%SystemRoot%\system32\lltdres.dll,-1
+DependOnService : rpcss, lltdio
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : lmhosts
+Start           : 3
+Type            : 32
+Group           : TDI
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalServiceNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\lmhsvc.dll,-101
+DependOnService : Afd
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : LSM
+Start           : 2
+Type            : 32
+Group           : COM Infrastructure
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k DcomLaunch -p
+DisplayName     : @%windir%\system32\lsm.dll,-1001
+DependOnService : RpcEptMapper, DcomLaunch, RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : luafv
+Start           : 2
+Type            : 2
+Group           : FSFilter Virtualization
+ImagePath       : \SystemRoot\system32\drivers\luafv.sys
+DisplayName     : @%systemroot%\system32\drivers\luafv.sys,-100
+DependOnService : FltMgr
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : LxpSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs
+DisplayName     : @%SystemRoot%\system32\LanguageOverlayServer.dll,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : MapsBroker
+Start           : 2
+Type            : 16
+Group           : NetworkService
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k NetworkService -p
+DisplayName     : @%SystemRoot%\System32\moshost.dll,-100
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : mausbhost
+Start           : 3
+Type            : 1
+Group           : Base
+ImagePath       : \SystemRoot\System32\drivers\mausbhost.sys
+DisplayName     : @mausbhost.inf,%MAUSBHost.ServiceName%;MA-USB Host Controller Driver
+DependOnService : Ucx01000
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 6
+
+Servicio        : mausbip
+Start           : 3
+Type            : 1
+Group           : Base
+ImagePath       : \SystemRoot\System32\drivers\mausbip.sys
+DisplayName     : @mausbhost.inf,%MAUSBIP.ServiceName%;MA-USB IP Filter Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 7
+
+Servicio        : MbbCx
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : system32\drivers\MbbCx.sys
+DisplayName     : MBB Network Adapter Class Extension
+DependOnService : NetAdapterCx
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : McpManagementService
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k McpManagementServiceGroup
+DisplayName     : @%SystemRoot%\system32\McpManagementService.dll,-100
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : MessagingService
+Start           : 3
+Type            : 96
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k UnistackSvcGroup
+DisplayName     : @%SystemRoot%\system32\MessagingService.dll,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : Microsoft_Bluetooth_AvrcpTransport
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\Microsoft.Bluetooth.AvrcpTransport.sys
+DisplayName     : @microsoft_bluetooth_avrcptransport.inf,%Microsoft_Bluetooth_AvrcpTransport.ServiceDescription%;Microsoft Bluetooth Avrcp Transport Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : MicrosoftEdgeElevationService
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : "C:\Program Files (x86)\Microsoft\Edge\Application\100.0.1185.36\elevation_service.exe"
+DisplayName     : Microsoft Edge Elevation Service (MicrosoftEdgeElevationService)
+DependOnService : RPCSS
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : MMCSS
+Start           : 2
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\system32\drivers\mmcss.sys
+DisplayName     : @%systemroot%\system32\drivers\mmcss.sys,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Modem
+Start           : 3
+Type            : 1
+Group           : Extended base
+ImagePath       : system32\drivers\modem.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 4
+
+Servicio        : monitor
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\monitor.sys
+DisplayName     : @monitor.inf,%Monitor.SVCDESC%;Microsoft Monitor Class Function Driver Service
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : mouclass
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\mouclass.sys
+DisplayName     : @msmouse.inf,%mouclass.SvcDesc%;Mouse Class Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : mouhid
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\mouhid.sys
+DisplayName     : @msmouse.inf,%MOUHID.SvcDesc%;Mouse HID Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : mountmgr
+Start           : 0
+Type            : 1
+Group           : System Bus Extender
+ImagePath       : System32\drivers\mountmgr.sys
+DisplayName     : @%SystemRoot%\system32\drivers\mountmgr.sys,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 
+
+Servicio        : mpsdrv
+Start           : 3
+Type            : 1
+Group           : network
+ImagePath       : System32\drivers\mpsdrv.sys
+DisplayName     : @%SystemRoot%\system32\drivers\mpsdrv.sys,-23092
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : mpssvc
+Start           : 2
+Type            : 32
+Group           : NetworkProvider
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalServiceNoNetworkFirewall -p
+DisplayName     : @%SystemRoot%\system32\FirewallAPI.dll,-23090
+DependOnService : mpsdrv, bfe, nsi
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : MRxDAV
+Start           : 3
+Type            : 2
+Group           : 
+ImagePath       : \SystemRoot\system32\drivers\mrxdav.sys
+DisplayName     : @%systemroot%\system32\webclnt.dll,-104
+DependOnService : rdbss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : mrxsmb
+Start           : 3
+Type            : 2
+Group           : Network
+ImagePath       : system32\DRIVERS\mrxsmb.sys
+DisplayName     : @%systemroot%\system32\wkssvc.dll,-1002
+DependOnService : rdbss, msquic
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 5
+
+Servicio        : mrxsmb20
+Start           : 3
+Type            : 2
+Group           : Network
+ImagePath       : system32\DRIVERS\mrxsmb20.sys
+DisplayName     : @%systemroot%\system32\wkssvc.dll,-1006
+DependOnService : mrxsmb
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 7
+
+Servicio        : MsBridge
+Start           : 3
+Type            : 1
+Group           : NDIS
+ImagePath       : System32\drivers\bridge.sys
+DisplayName     : @%SystemRoot%\system32\bridgeres.dll,-1
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : MSDTC
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\System32\msdtc.exe
+DisplayName     : @comres.dll,-2797
+DependOnService : RPCSS, SamSS
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : MSDTC Bridge 4.0.0.0
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : Msfs
+Start           : 1
+Type            : 2
+Group           : File system
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : msgpiowin32
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\msgpiowin32.sys
+DisplayName     : @msgpiowin32.inf,%GPIO.SvcDesc%;Common Driver for Buttons, DockMode and Laptop/Slate Indicator
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 26
+
+Servicio        : mshidkmdf
+Start           : 3
+Type            : 1
+Group           : Base
+ImagePath       : \SystemRoot\System32\drivers\mshidkmdf.sys
+DisplayName     : @%SystemRoot%\system32\drivers\mshidkmdf.sys,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : mshidumdf
+Start           : 3
+Type            : 1
+Group           : Base
+ImagePath       : \SystemRoot\System32\drivers\mshidumdf.sys
+DisplayName     : @%SystemRoot%\system32\drivers\mshidumdf.sys,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 3
+
+Servicio        : msisadrv
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : msiserver
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\system32\msiexec.exe /V
+DisplayName     : @%SystemRoot%\system32\msimsg.dll,-27
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : MSKSSRV
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\MSKSSRV.sys
+DisplayName     : @ksfilter.inf,%MSKSSRV.DeviceDesc%;Microsoft Streaming Service Proxy
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 8
+
+Servicio        : MsLldp
+Start           : 2
+Type            : 1
+Group           : NDIS
+ImagePath       : system32\drivers\mslldp.sys
+DisplayName     : @%SystemRoot%\system32\drivers\mslldp.sys,-200
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : MSPCLOCK
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\MSPCLOCK.sys
+DisplayName     : @ksfilter.inf,%MSPCLOCK.DeviceDesc%;Microsoft Streaming Clock Proxy
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 6
+
+Servicio        : MSPQM
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\MSPQM.sys
+DisplayName     : @ksfilter.inf,%MSPQM.DeviceDesc%;Microsoft Streaming Quality Manager Proxy
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 7
+
+Servicio        : MsQuic
+Start           : 3
+Type            : 1
+Group           : Network
+ImagePath       : system32\drivers\msquic.sys
+DisplayName     : @%SystemRoot%\system32\drivers\msquic.sys,-200
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : MsRPC
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 1
+
+Servicio        : mssmbios
+Start           : 1
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\mssmbios.sys
+DisplayName     : @mssmbios.inf,%mssmbios_svcdesc%;Microsoft System Management BIOS Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : MSTEE
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\MSTEE.sys
+DisplayName     : @ksfilter.inf,%MSTEE.DeviceDesc%;Microsoft Streaming Tee/Sink-to-Sink Converter
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 9
+
+Servicio        : MTConfig
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\MTConfig.sys
+DisplayName     : @mtconfig.inf,%MTConfig.SVCDESC%;Microsoft Input Configuration Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 16
+
+Servicio        : Mup
+Start           : 0
+Type            : 2
+Group           : Network
+ImagePath       : System32\Drivers\mup.sys
+DisplayName     : @%systemroot%\system32\drivers\mup.sys,-101
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : napagent
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : NativeWifiP
+Start           : 3
+Type            : 1
+Group           : NDIS
+ImagePath       : system32\DRIVERS\nwifi.sys
+DisplayName     : @%SystemRoot%\System32\drivers\nwifi.sys,-101
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : NaturalAuthentication
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%systemroot%\system32\NaturalAuth.dll,-100
+DependOnService : RpcSs, ProfSvc, Schedule
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : NcaSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k NetSvcs -p
+DisplayName     : @%SystemRoot%\system32\ncasvc.dll,-3009
+DependOnService : BFE, dnscache, NSI, iphlpsvc
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : NcbService
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\ncbservice.dll,-500
+DependOnService : RpcSS, tcpip, BrokerInfrastructure
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : NcdAutoSetup
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalServiceNoNetwork -p
+DisplayName     : @%SystemRoot%\system32\NcdAutoSetup.dll,-100
+DependOnService : netprofm
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : NDIS
+Start           : 0
+Type            : 1
+Group           : NDIS Wrapper
+ImagePath       : system32\drivers\ndis.sys
+DisplayName     : @%SystemRoot%\system32\drivers\ndis.sys,-200
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 
+
+Servicio        : NdisCap
+Start           : 1
+Type            : 1
+Group           : NDIS
+ImagePath       : System32\drivers\ndiscap.sys
+DisplayName     : @%SystemRoot%\System32\drivers\ndiscap.sys,-5000
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : NdisImPlatform
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : System32\drivers\NdisImPlatform.sys
+DisplayName     : @%SystemRoot%\System32\drivers\ndisimplatform.sys,-501
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : NdisTapi
+Start           : 3
+Type            : 1
+Group           : NDIS
+ImagePath       : System32\DRIVERS\ndistapi.sys
+DisplayName     : @%systemroot%\system32\mprmsg.dll,-32001
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Ndisuio
+Start           : 3
+Type            : 1
+Group           : NDIS
+ImagePath       : system32\drivers\ndisuio.sys
+DisplayName     : NDIS Usermode I/O Protocol
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : NdisVirtualBus
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\NdisVirtualBus.sys
+DisplayName     : @%SystemRoot%\System32\drivers\NdisVirtualBus.sys,-200
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : NdisWan
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\ndiswan.sys
+DisplayName     : @%systemroot%\system32\mprmsg.dll,-32002
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : ndiswanlegacy
+Start           : 3
+Type            : 1
+Group           : NDIS
+ImagePath       : System32\DRIVERS\ndiswan.sys
+DisplayName     : @%systemroot%\system32\mprmsg.dll,-32014
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : ndproxy
+Start           : 3
+Type            : 1
+Group           : PNP_TDI
+ImagePath       : System32\DRIVERS\NDProxy.sys
+DisplayName     : @%SystemRoot%\system32\drivers\ndproxy.sys,-6000
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Ndu
+Start           : 2
+Type            : 1
+Group           : 
+ImagePath       : system32\drivers\Ndu.sys
+DisplayName     : @%SystemRoot%\system32\drivers\Ndu.sys,-10001
+DependOnService : tcpip
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : NetAdapterCx
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : system32\drivers\NetAdapterCx.sys
+DisplayName     : Network Adapter Wdf Class Extension Library
+DependOnService : ndis
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : NetBIOS
+Start           : 1
+Type            : 2
+Group           : NetBIOSGroup
+ImagePath       : system32\drivers\netbios.sys
+DisplayName     : @%windir%\system32\drivers\netbios.sys,-503
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : NetbiosSmb
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : NetBT
+Start           : 1
+Type            : 1
+Group           : PNP_TDI
+ImagePath       : System32\DRIVERS\netbt.sys
+DisplayName     : @%SystemRoot%\system32\drivers\netbt.sys,-2
+DependOnService : Tdx, tcpip
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Netlogon
+Start           : 3
+Type            : 32
+Group           : MS_WindowsRemoteValidation
+ImagePath       : C:\WINDOWS\system32\lsass.exe
+DisplayName     : @%SystemRoot%\System32\netlogon.dll,-102
+DependOnService : LanmanWorkstation
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Netman
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\netman.dll,-109
+DependOnService : RpcSs, nsi
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : netprofm
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k netprofm -p
+DisplayName     : @%SystemRoot%\system32\netprofmsvc.dll,-202
+DependOnService : NSI, RpcSs, TcpIp
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : NetSetupSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k netsvcs -p
+DisplayName     : @%SystemRoot%\system32\NetSetupSvc.dll,-3
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : NetTcpPortSharing
+Start           : 4
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\Microsoft.NET\Framework64\v4.0.30319\SMSvcHost.exe
+DisplayName     : @%systemroot%\Microsoft.NET\Framework64\v4.0.30319\ServiceModelInstallRC.dll,-8201
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : netvsc
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\netvsc.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 31
+
+Servicio        : NgcCtnrSvc
+Start           : 3
+Type            : 32
+Group           : Cryptography
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalServiceNetworkRestricted -p
+DisplayName     : @%SystemRoot%\System32\NgcCtnrSvc.dll,-1
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : NgcSvc
+Start           : 3
+Type            : 32
+Group           : Cryptography
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%SystemRoot%\System32\ngcsvc.dll,-100
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : NlaSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k netprofm -p
+DisplayName     : @%SystemRoot%\system32\netprofmsvc.dll,-208
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Npfs
+Start           : 1
+Type            : 2
+Group           : File system
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : NPSMSvc
+Start           : 3
+Type            : 96
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalService -p
+DisplayName     : @%SystemRoot%\system32\npsm.dll,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : npsvctrig
+Start           : 1
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\npsvctrig.sys
+DisplayName     : @npsvctrig.inf,%NPSVCTRIG.SvcDisplayName%;Named pipe service trigger provider
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 2
+Tag             : 
+
+Servicio        : nsi
+Start           : 2
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalService -p
+DisplayName     : @%SystemRoot%\system32\nsisvc.dll,-200
+DependOnService : rpcss, nsiproxy
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : nsiproxy
+Start           : 1
+Type            : 1
+Group           : 
+ImagePath       : system32\drivers\nsiproxy.sys
+DisplayName     : @%SystemRoot%\system32\drivers\nsiproxy.sys,-2
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : NTDS
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : Ntfs
+Start           : 3
+Type            : 2
+Group           : Boot File System
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Null
+Start           : 1
+Type            : 1
+Group           : Base
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 1
+
+Servicio        : nvdimm
+Start           : 0
+Type            : 1
+Group           : Primary Disk
+ImagePath       : System32\drivers\nvdimm.sys
+DisplayName     : @nvdimm.inf,%nvdimm.SvcDesc%;Microsoft NVDIMM device driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 1
+
+Servicio        : nvmedisk
+Start           : 0
+Type            : 1
+Group           : 
+ImagePath       : System32\drivers\nvmedisk.sys
+DisplayName     : @nvmedisk.inf,%nvmedisk.SvcDesc%;Microsoft NVMe disk driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : OneSyncSvc
+Start           : 2
+Type            : 96
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k UnistackSvcGroup
+DisplayName     : @%SystemRoot%\system32\APHostRes.dll,-10002
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : p2pimsvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalServicePeerNet
+DisplayName     : @%SystemRoot%\system32\pnrpsvc.dll,-8004
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : p2psvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalServicePeerNet
+DisplayName     : @%SystemRoot%\system32\p2psvc.dll,-8006
+DependOnService : p2pimsvc, PNRPSvc
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : P9NP
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : @C:\WINDOWS\system32\p9np.dll,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : P9Rdr
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : System32\drivers\p9rdr.sys
+DisplayName     : @%SystemRoot%\System32\drivers\p9rdr.sys,-100
+DependOnService : RDBSS
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : P9RdrService
+Start           : 3
+Type            : 96
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k P9RdrService -p
+DisplayName     : @%systemroot%\system32\p9rdrservice.dll,-102
+DependOnService : P9Rdr, RPCSS
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : partmgr
+Start           : 0
+Type            : 1
+Group           : Boot Bus Extender
+ImagePath       : System32\drivers\partmgr.sys
+DisplayName     : @%SystemRoot%\system32\drivers\partmgr.sys,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 
+
+Servicio        : PcaSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\pcasvc.dll,-1
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : pci
+Start           : 0
+Type            : 1
+Group           : Boot Bus Extender
+ImagePath       : System32\drivers\pci.sys
+DisplayName     : @pci.inf,%pci_svcdesc%;PCI Bus Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 3
+
+Servicio        : pciide
+Start           : 0
+Type            : 1
+Group           : System Bus Extender
+ImagePath       : System32\drivers\pciide.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 3
+
+Servicio        : pcw
+Start           : 0
+Type            : 1
+Group           : System Reserved
+ImagePath       : System32\drivers\pcw.sys
+DisplayName     : Performance Counters for Windows Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : pdc
+Start           : 4
+Type            : 1
+Group           : Boot Bus Extender
+ImagePath       : system32\drivers\pdc.sys
+DisplayName     : @%SystemRoot%\system32\drivers\pdc.sys,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 
+
+Servicio        : PEAUTH
+Start           : 2
+Type            : 1
+Group           : 
+ImagePath       : system32\drivers\peauth.sys
+DisplayName     : PEAUTH
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : PenService
+Start           : 3
+Type            : 96
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k PenService
+DisplayName     : @%SystemRoot%\system32\PenService.dll,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : PerfDisk
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : PerfHost
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\SysWow64\perfhost.exe
+DisplayName     : @%systemroot%\sysWow64\perfhost.exe,-2
+DependOnService : RPCSS
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : PerfNet
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : PerfOS
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : PerfProc
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : PhoneSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalService -p
+DisplayName     : @%SystemRoot%\system32\PhoneserviceRes.dll,-10000
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : PimIndexMaintenanceSvc
+Start           : 3
+Type            : 96
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k UnistackSvcGroup
+DisplayName     : @%SystemRoot%\system32\UserDataAccessRes.dll,-15001
+DependOnService : UnistoreSvc
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : PktMon
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : system32\drivers\PktMon.sys
+DisplayName     : Packet Monitor Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : pl050prt
+Start           : 3
+Type            : 1
+Group           : Keyboard Port
+ImagePath       : \SystemRoot\System32\drivers\pl050prt.sys
+DisplayName     : @pl050mou.inf,%pl050.Service.DispName%;PL050 Keyboard and Mouse Port Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 1
+
+Servicio        : pl061gpio
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\pl061gpio.sys
+DisplayName     : @pl061gpio.inf,%GPIO.SvcDesc%;Microsoft PL061 GPIO Client Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : pla
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalServiceNoNetwork -p
+DisplayName     : @%systemroot%\system32\pla.dll,-500
+DependOnService : RPCSS
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : pmem
+Start           : 0
+Type            : 1
+Group           : 
+ImagePath       : System32\drivers\pmem.sys
+DisplayName     : @pmem.inf,%pmem.SvcDesc%;Microsoft persistent memory disk driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : PNRPAutoReg
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalServicePeerNet
+DisplayName     : @%SystemRoot%\system32\pnrpauto.dll,-8002
+DependOnService : pnrpsvc
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : PNRPsvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalServicePeerNet
+DisplayName     : @%SystemRoot%\system32\pnrpsvc.dll,-8000
+DependOnService : p2pimsvc
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : PolicyAgent
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k NetworkServiceNetworkRestricted -p
+DisplayName     : @%SystemRoot%\System32\polstore.dll,-5010
+DependOnService : Tcpip, bfe
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : portcfg
+Start           : 3
+Type            : 1
+Group           : PnP Filter
+ImagePath       : \SystemRoot\System32\drivers\portcfg.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : PortProxy
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : Power
+Start           : 2
+Type            : 32
+Group           : Plugplay
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k DcomLaunch -p
+DisplayName     : @%SystemRoot%\system32\umpo.dll,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : PptpMiniport
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\raspptp.sys
+DisplayName     : @%systemroot%\system32\mprmsg.dll,-32006
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : PrintNotify
+Start           : 3
+Type            : 288
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k print
+DisplayName     : @C:\Windows\System32\DriverStore\FileRepository\prnms003.inf_arm64_8ad5f0b594e92186\arm64\PrintConfig.dll,-1
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : PrintWorkflowUserSvc
+Start           : 3
+Type            : 96
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k PrintWorkflow
+DisplayName     : @%SystemRoot%\system32\PrintWorkflowService.dll,-100
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : PRM
+Start           : 4
+Type            : 1
+Group           : 
+ImagePath       : System32\DriverStore\FileRepository\prm.inf_arm64_02ac0fa92eecf9d8\PRM.sys
+DisplayName     : @prm.inf,%PRM.SvcDesc%;Microsoft PRM Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : ProfSvc
+Start           : 2
+Type            : 32
+Group           : profsvc_group
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k UserProfileService -p
+DisplayName     : @%systemroot%\system32\profsvc.dll,-300
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Psched
+Start           : 1
+Type            : 1
+Group           : NDIS
+ImagePath       : System32\drivers\pacer.sys
+DisplayName     : @%windir%\System32\drivers\pacer.sys,-101
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : PushToInstall
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k netsvcs -p
+DisplayName     : @%SystemRoot%\system32\pushtoinstall.dll,-200
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : QWAVE
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalServiceAndNoImpersonation -p
+DisplayName     : @%SystemRoot%\system32\qwave.dll,-1
+DependOnService : rpcss, psched, QWAVEdrv, LLTDIO
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : QWAVEdrv
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\system32\drivers\qwavedrv.sys
+DisplayName     : @%SystemRoot%\system32\drivers\qwavedrv.sys,-1
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : radarm
+Start           : 0
+Type            : 1
+Group           : Boot Bus Extender
+ImagePath       : System32\drivers\RADARM.sys
+DisplayName     : @radarm.inf,%Driver_Desc%;RAS Architecture Driver for Arm
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 1
+
+Servicio        : Ramdisk
+Start           : 0
+Type            : 1
+Group           : 
+ImagePath       : system32\DRIVERS\ramdisk.sys
+DisplayName     : Windows RAM Disk Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : RasAcd
+Start           : 3
+Type            : 1
+Group           : Streams Drivers
+ImagePath       : System32\DRIVERS\rasacd.sys
+DisplayName     : Remote Access Auto Connection Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 1
+
+Servicio        : RasAgileVpn
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\AgileVpn.sys
+DisplayName     : @netavpna.inf,%Svc-Mp-AgileVpn-DispName%;WAN Miniport (IKEv2)
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : RasAuto
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k netsvcs -p
+DisplayName     : @%Systemroot%\system32\rasauto.dll,-200
+DependOnService : RasAcd
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Rasl2tp
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\rasl2tp.sys
+DisplayName     : @%systemroot%\system32\mprmsg.dll,-32005
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : RasMan
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k netsvcs
+DisplayName     : @%Systemroot%\system32\rasmans.dll,-200
+DependOnService : SstpSvc, DnsCache
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : RasPppoe
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : System32\DRIVERS\raspppoe.sys
+DisplayName     : @%systemroot%\system32\mprmsg.dll,-32007
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : RasSstp
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\rassstp.sys
+DisplayName     : @%systemroot%\system32\sstpsvc.dll,-202
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : rdbss
+Start           : 1
+Type            : 2
+Group           : Network
+ImagePath       : system32\DRIVERS\rdbss.sys
+DisplayName     : @%systemroot%\system32\wkssvc.dll,-1000
+DependOnService : Mup
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 4
+
+Servicio        : RDMANDK
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : rdpbus
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\rdpbus.sys
+DisplayName     : @rdpbus.inf,%rdpbus_svcdesc%;Remote Desktop Device Redirector Bus Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : RDPDR
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : System32\drivers\rdpdr.sys
+DisplayName     : @%SystemRoot%\System32\DRIVERS\rdpdr.sys,-100
+DependOnService : RDBSS
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : RDPNP
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : @C:\WINDOWS\system32\drprov.dll,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : RDPUDD
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : RdpVideoMiniport
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : System32\drivers\rdpvideominiport.sys
+DisplayName     : Remote Desktop Video Miniport Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : rdyboost
+Start           : 0
+Type            : 1
+Group           : PnP Filter
+ImagePath       : System32\drivers\rdyboost.sys
+DisplayName     : ReadyBoost
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 
+
+Servicio        : ReFS
+Start           : 3
+Type            : 2
+Group           : Boot File System
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : RemoteAccess
+Start           : 4
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k netsvcs
+DisplayName     : @%Systemroot%\system32\mprdim.dll,-200
+DependOnService : RpcSS, Bfe, RasMan, Http
+DependOnGroup   : NetBIOSGroup
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : RemoteRegistry
+Start           : 4
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k localService -p
+DisplayName     : @regsvc.dll,-1
+DependOnService : RPCSS
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : RetailDemo
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k rdxgroup
+DisplayName     : @%SystemRoot%\System32\RDXService.dll,-256
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : RFCOMM
+Start           : 3
+Type            : 1
+Group           : PNP_TDI
+ImagePath       : \SystemRoot\System32\drivers\rfcomm.sys
+DisplayName     : @tdibth.inf,%RFCOMM.DisplayName%;Bluetooth Device (RFCOMM Protocol TDI)
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 1
+
+Servicio        : rhproxy
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\rhproxy.sys
+DisplayName     : @rhproxy.inf,%rhproxy.SVCDESC%;Resource Hub proxy driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 11
+
+Servicio        : RmSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalServiceNetworkRestricted
+DisplayName     : @%SystemRoot%\system32\RMapi.dll,-1001
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : RoutePolicy
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\RoutePolicy.sys
+DisplayName     : @routepolicy.inf,%RoutePolicy.SvcDesc%;Microsoft Route Policy Service
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : RpcEptMapper
+Start           : 2
+Type            : 32
+Group           : COM Infrastructure
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k RPCSS -p
+DisplayName     : @%windir%\system32\RpcEpMap.dll,-1001
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : RpcLocator
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\system32\locator.exe
+DisplayName     : @%systemroot%\system32\Locator.exe,-2
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : RpcSs
+Start           : 2
+Type            : 32
+Group           : COM Infrastructure
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k rpcss -p
+DisplayName     : @combase.dll,-5010
+DependOnService : RpcEptMapper, DcomLaunch
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : rspndr
+Start           : 2
+Type            : 1
+Group           : NDIS
+ImagePath       : system32\drivers\rspndr.sys
+DisplayName     : @%SystemRoot%\system32\lltdres.dll,-5
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : SamSs
+Start           : 2
+Type            : 32
+Group           : MS_WindowsLocalValidation
+ImagePath       : C:\WINDOWS\system32\lsass.exe
+DisplayName     : @%SystemRoot%\system32\samsrv.dll,-1
+DependOnService : RPCSS
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : sbp2port
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : SCardSvr
+Start           : 3
+Type            : 32
+Group           : SmartCardGroup
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalServiceAndNoImpersonation
+DisplayName     : @%SystemRoot%\System32\SCardSvr.dll,-1
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : ScDeviceEnum
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalSystemNetworkRestricted
+DisplayName     : @%SystemRoot%\System32\ScDeviceEnum.dll,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : scfilter
+Start           : 3
+Type            : 1
+Group           : PnP Filter
+ImagePath       : System32\DRIVERS\scfilter.sys
+DisplayName     : @%SystemRoot%\System32\drivers\scfilter.sys,-11
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Schedule
+Start           : 2
+Type            : 32
+Group           : SchedulerGroup
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%SystemRoot%\system32\schedsvc.dll,-100
+DependOnService : RPCSS, SystemEventsBroker
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : scmbus
+Start           : 0
+Type            : 1
+Group           : 
+ImagePath       : System32\drivers\scmbus.sys
+DisplayName     : @scmbus.inf,%scmbus.SvcDesc%;Microsoft Storage Class Memory Bus Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : SCPolicySvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs
+DisplayName     : @%SystemRoot%\System32\certprop.dll,-13
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : sdbus
+Start           : 0
+Type            : 1
+Group           : System Bus Extender
+ImagePath       : \SystemRoot\System32\drivers\sdbus.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 5
+
+Servicio        : SDRSVC
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k SDRSVC
+DisplayName     : @%SystemRoot%\system32\sdrsvc.dll,-107
+DependOnService : RPCSS
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : sdstor
+Start           : 0
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\sdstor.sys
+DisplayName     : @sdstor.inf,%sdstor_ServiceDesc%;SD Storage Port Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : seclogon
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%SystemRoot%\system32\seclogon.dll,-7001
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : SecurityHealthService
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\system32\SecurityHealthService.exe
+DisplayName     : @%systemroot%\system32\SecurityHealthAgent.dll,-1002
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : SEMgrSvc
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalService -p
+DisplayName     : @%SystemRoot%\System32\SEMgrSvc.dll,-1001
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : SENS
+Start           : 2
+Type            : 32
+Group           : ProfSvc_Group
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%SystemRoot%\system32\Sens.dll,-200
+DependOnService : EventSystem
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : SensorDataService
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\System32\SensorDataService.exe
+DisplayName     : @%SystemRoot%\system32\SensorDataService.exe,-101
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : SensorService
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%SystemRoot%\System32\sensorservice.dll,-1000
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : SensrSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalServiceAndNoImpersonation -p
+DisplayName     : @%SystemRoot%\System32\sensrsvc.dll,-1000
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : SerCx
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : system32\drivers\SerCx.sys
+DisplayName     : Serial UART Support Library
+DependOnService : acpiex
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : SerCx2
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : system32\drivers\SerCx2.sys
+DisplayName     : Serial UART Support Library
+DependOnService : acpiex
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : SerPL011
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\SerPL011.sys
+DisplayName     : @serpl011.inf,%SerPL011.SVCDESC%;ARM PL011 UART Device Driver
+DependOnService : SerCx2
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 12
+
+Servicio        : SessionEnv
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k netsvcs -p
+DisplayName     : @%SystemRoot%\System32\SessEnv.dll,-1026
+DependOnService : RPCSS, LanmanWorkstation
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : SharedAccess
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k netsvcs -p
+DisplayName     : @%SystemRoot%\system32\ipnathlp.dll,-106
+DependOnService : BFE
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : SharedRealitySvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalService -p
+DisplayName     : @%SystemRoot%\system32\SharedRealitySvc.dll,-100
+DependOnService : RpcSS
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : ShellHWDetection
+Start           : 2
+Type            : 32
+Group           : ShellSvcGroup
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k netsvcs -p
+DisplayName     : @%SystemRoot%\System32\shsvcs.dll,-12288
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : shpamsvc
+Start           : 4
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k netsvcs -p
+DisplayName     : @%SystemRoot%\System32\Windows.SharedPC.AccountManager.dll,-100
+DependOnService : RpcSs, ProfSvc
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : smphost
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k smphost
+DisplayName     : @%SystemRoot%\System32\smphost.dll,-102
+DependOnService : RPCSS
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : SmsRouter
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalServiceNetworkRestricted -p
+DisplayName     : @%SystemRoot%\System32\SmsRouterSvc.dll,-10001
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : SMSvcHost 4.0.0.0
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : SNMPTrap
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\System32\snmptrap.exe
+DisplayName     : @firewallapi.dll,-50323
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : spaceparser
+Start           : 3
+Type            : 1
+Group           : Hyper-V Parsers
+ImagePath       : system32\drivers\spaceparser.sys
+DisplayName     : @%systemroot%\system32\drivers\spaceparser.sys,-1001
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : spaceport
+Start           : 0
+Type            : 1
+Group           : System Bus Extender
+ImagePath       : System32\drivers\spaceport.sys
+DisplayName     : @spaceport.inf,%Spaceport_ServiceDesc%;Storage Spaces Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 8
+
+Servicio        : SpbCx
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : system32\drivers\SpbCx.sys
+DisplayName     : Simple Peripheral Bus Support Library
+DependOnService : acpiex
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : spectrum
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\system32\spectrum.exe
+DisplayName     : @%systemroot%\system32\spectrum.exe,-101
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Spooler
+Start           : 2
+Type            : 272
+Group           : SpoolerGroup
+ImagePath       : C:\WINDOWS\System32\spoolsv.exe
+DisplayName     : @%systemroot%\system32\spoolsv.exe,-1
+DependOnService : RPCSS, http
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : sppsvc
+Start           : 2
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\system32\sppsvc.exe
+DisplayName     : @%SystemRoot%\system32\sppsvc.exe,-101
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : srv2
+Start           : 3
+Type            : 2
+Group           : Network
+ImagePath       : System32\DRIVERS\srv2.sys
+DisplayName     : @%systemroot%\system32\srvsvc.dll,-104
+DependOnService : srvnet
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : srvnet
+Start           : 3
+Type            : 2
+Group           : Network
+ImagePath       : System32\DRIVERS\srvnet.sys
+DisplayName     : 
+DependOnService : msquic
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : SSDPSRV
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalServiceAndNoImpersonation -p
+DisplayName     : @%systemroot%\system32\ssdpsrv.dll,-100
+DependOnService : HTTP, NSI
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : ssh-agent
+Start           : 4
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\System32\OpenSSH\ssh-agent.exe
+DisplayName     : OpenSSH Authentication Agent
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : SstpSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalService -p
+DisplayName     : @%SystemRoot%\system32\sstpsvc.dll,-200
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : StateRepository
+Start           : 2
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k appmodel -p
+DisplayName     : @%SystemRoot%\system32\windows.staterepository.dll,-1
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : StiSvc
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k imgsvc
+DisplayName     : @%SystemRoot%\system32\wiaservc.dll,-9
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : storahci
+Start           : 0
+Type            : 1
+Group           : SCSI Miniport
+ImagePath       : System32\drivers\storahci.sys
+DisplayName     : @mshdc.inf,%storahci_ServiceDescription%;Microsoft Standard SATA AHCI Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 2
+
+Servicio        : stornvme
+Start           : 0
+Type            : 1
+Group           : SCSI Miniport
+ImagePath       : System32\drivers\stornvme.sys
+DisplayName     : @stornvme.inf,%StorNVMe_ServiceDesc%;Microsoft Standard NVM Express Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 3
+
+Servicio        : storqosflt
+Start           : 2
+Type            : 2
+Group           : FSFilter Quota Management
+ImagePath       : system32\drivers\storqosflt.sys
+DisplayName     : @%SystemRoot%\System32\drivers\storqosflt.sys,-101
+DependOnService : FltMgr
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : StorSvc
+Start           : 2
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%SystemRoot%\System32\StorSvc.dll,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : storufs
+Start           : 4
+Type            : 1
+Group           : 
+ImagePath       : System32\drivers\storufs.sys
+DisplayName     : @storufs.inf,%UfsServiceDesc%;Microsoft Universal Flash Storage (UFS) Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : storvsc
+Start           : 0
+Type            : 1
+Group           : Base
+ImagePath       : System32\drivers\storvsc.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 17
+
+Servicio        : svsvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\svsvc.dll,-101
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : swenum
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\DriverStore\FileRepository\swenum.inf_arm64_1c10506d71671f21\swenum.sys
+DisplayName     : @swenum.inf,%SWENUM.SVCDESC%;Software Bus Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 13
+
+Servicio        : swprv
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k swprv
+DisplayName     : @%SystemRoot%\System32\swprv.dll,-103
+DependOnService : RPCSS
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : SysMain
+Start           : 2
+Type            : 32
+Group           : profsvc_group
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\sysmain.dll,-1000
+DependOnService : rpcss, fileinfo
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : SystemEventsBroker
+Start           : 2
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k DcomLaunch -p
+DisplayName     : @%windir%\system32\SystemEventsBrokerServer.dll,-1001
+DependOnService : RpcEptMapper, RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : TapiSrv
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k NetworkService -p
+DisplayName     : @%SystemRoot%\system32\tapisrv.dll,-10100
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Tcpip
+Start           : 0
+Type            : 1
+Group           : PNP_TDI
+ImagePath       : System32\drivers\tcpip.sys
+DisplayName     : @%SystemRoot%\system32\drivers\tcpip.sys,-10001
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 3
+
+Servicio        : Tcpip6
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : System32\drivers\tcpip.sys
+DisplayName     : @todo.dll,-100;Microsoft IPv6 Protocol Driver
+DependOnService : Tcpip
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 3
+
+Servicio        : TCPIP6TUNNEL
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : tcpipreg
+Start           : 2
+Type            : 1
+Group           : 
+ImagePath       : System32\drivers\tcpipreg.sys
+DisplayName     : @%SystemRoot%\System32\drivers\tcpipreg.sys,-10110,
+DependOnService : tcpip
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : TCPIPTUNNEL
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : tdx
+Start           : 1
+Type            : 1
+Group           : PNP_TDI
+ImagePath       : \SystemRoot\system32\DRIVERS\tdx.sys
+DisplayName     : @%SystemRoot%\system32\tcpipcfg.dll,-50004
+DependOnService : tcpip
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 4
+
+Servicio        : terminpt
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\terminpt.sys
+DisplayName     : @termkbd.inf,%TermInpt.SVCDESC%;Microsoft Remote Desktop Input Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 28
+
+Servicio        : TermService
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k NetworkService
+DisplayName     : @%SystemRoot%\System32\termsrv.dll,-268
+DependOnService : RPCSS
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : TextInputManagementService
+Start           : 2
+Type            : 32
+Group           : PlugPlay
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\TabSvc.dll,-100
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Themes
+Start           : 2
+Type            : 32
+Group           : ProfSvc_Group
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k netsvcs -p
+DisplayName     : @%SystemRoot%\System32\themeservice.dll,-8192
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : TieringEngineService
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\system32\TieringEngineService.exe
+DisplayName     : @%SystemRoot%\system32\TieringEngineService.exe,-702
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : TimeBrokerSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalServiceNetworkRestricted -p
+DisplayName     : @%windir%\system32\TimeBrokerServer.dll,-1001
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : TokenBroker
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%systemroot%\system32\tokenbroker.dll,-100
+DependOnService : UserManager, BrokerInfrastructure
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : TPM
+Start           : 0
+Type            : 1
+Group           : Boot Bus Extender
+ImagePath       : System32\drivers\tpm.sys
+DisplayName     : @tpm.inf,%TPM%;TPM
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 4
+
+Servicio        : TrkWks
+Start           : 4
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\trkwks.dll,-1
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : TroubleshootingSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%SystemRoot%\system32\MitigationClient.dll,-103
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : TrustedInstaller
+Start           : 3
+Type            : 16
+Group           : ProfSvc_Group
+ImagePath       : C:\WINDOWS\servicing\TrustedInstaller.exe
+DisplayName     : @%SystemRoot%\servicing\TrustedInstaller.exe,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : TSDDD
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : TsUsbFlt
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : system32\drivers\tsusbflt.sys
+DisplayName     : @%SystemRoot%\system32\drivers\tsusbflt.sys,-1000
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : TsUsbGD
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\TsUsbGD.sys
+DisplayName     : @tsgenericusbdriver.inf,%TsUsbGD.DeviceDesc.Generic%;Remote Desktop Generic USB Device
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 21
+
+Servicio        : tunnel
+Start           : 3
+Type            : 1
+Group           : NDIS
+ImagePath       : System32\drivers\tunnel.sys
+DisplayName     : @%SystemRoot%\System32\drivers\tunnel.sys,-500
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 1
+
+Servicio        : tzautoupdate
+Start           : 4
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalService -p
+DisplayName     : @%SystemRoot%\system32\tzautoupdate.dll,-200
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : UASPStor
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\uaspstor.sys
+DisplayName     : @uaspstor.inf,%UASPortName%;USB Attached SCSI (UAS) Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : UcmCx0101
+Start           : 3
+Type            : 1
+Group           : System Bus Extender
+ImagePath       : System32\Drivers\UcmCx.sys
+DisplayName     : USB Connector Manager KMDF Class Extension
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : UcmTcpciCx0101
+Start           : 3
+Type            : 1
+Group           : System Bus Extender
+ImagePath       : System32\Drivers\UcmTcpciCx.sys
+DisplayName     : UCM-TCPCI KMDF Class Extension
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : UcmUcsiAcpiClient
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\UcmUcsiAcpiClient.sys
+DisplayName     : @UcmUcsiAcpiClient.inf,%UcmUcsiAcpiClient.ServiceName%;UCM-UCSI ACPI Client
+DependOnService : UcmUcsiCx
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : UcmUcsiCx0101
+Start           : 3
+Type            : 1
+Group           : System Bus Extender
+ImagePath       : System32\Drivers\UcmUcsiCx.sys
+DisplayName     : UCM-UCSI KMDF Class Extension
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Ucx01000
+Start           : 3
+Type            : 1
+Group           : Boot Bus Extender
+ImagePath       : system32\drivers\ucx01000.sys
+DisplayName     : USB Host Support Library
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : UdeCx
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : system32\drivers\udecx.sys
+DisplayName     : USB Device Emulation Support Library
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : udfs
+Start           : 4
+Type            : 2
+Group           : Boot File System
+ImagePath       : system32\DRIVERS\udfs.sys
+DisplayName     : udfs
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : UdkUserSvc
+Start           : 3
+Type            : 96
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k UdkSvcGroup
+DisplayName     : @%SystemRoot%\system32\windowsudkservices.shellcommon.dll,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : UEFI
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\DriverStore\FileRepository\uefi.inf_arm64_de9e0f9b585abc9f\UEFI.sys
+DisplayName     : @uefi.inf,%UEFI.SvcDesc%;Microsoft UEFI Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Ufx01000
+Start           : 4
+Type            : 1
+Group           : System Bus Extender
+ImagePath       : system32\drivers\ufx01000.sys
+DisplayName     : USB Function Class Extension
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : UfxChipidea
+Start           : 4
+Type            : 1
+Group           : Base
+ImagePath       : \SystemRoot\System32\DriverStore\FileRepository\ufxchipidea.inf_arm64_7424f6c1886d6fca\UfxChipidea.sys
+DisplayName     : @ufxchipidea.inf,%UfxChipidea.ServiceName%;USB Chipidea Controller
+DependOnService : ufx01000
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 11
+
+Servicio        : ufxsynopsys
+Start           : 4
+Type            : 1
+Group           : Base
+ImagePath       : \SystemRoot\System32\drivers\ufxsynopsys.sys
+DisplayName     : @ufxsynopsys.inf,%ufxsynopsys.ServiceName%;USB Synopsys Controller
+DependOnService : ufx01000
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 12
+
+Servicio        : UGatherer
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : UGTHRSVC
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : umbus
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\DriverStore\FileRepository\umbus.inf_arm64_9740c57bdcbca599\umbus.sys
+DisplayName     : @umbus.inf,%umbus.SVCDESC%;UMBus Enumerator Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 17
+
+Servicio        : UmPass
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\umpass.sys
+DisplayName     : @umpass.inf,%UmPass.SVCDESC%;Microsoft UMPass Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 5
+
+Servicio        : UmRdpService
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\umrdp.dll,-1000
+DependOnService : TermService, RDPDR
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : UnistoreSvc
+Start           : 3
+Type            : 96
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k UnistackSvcGroup
+DisplayName     : @%SystemRoot%\system32\UserDataAccessRes.dll,-10003
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : upnphost
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalServiceAndNoImpersonation -p
+DisplayName     : @%systemroot%\system32\upnphost.dll,-213
+DependOnService : SSDPSRV, HTTP
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : UrsChipidea
+Start           : 4
+Type            : 1
+Group           : Base
+ImagePath       : \SystemRoot\System32\DriverStore\FileRepository\urschipidea.inf_arm64_bdb6f2b4b335792e\urschipidea.sys
+DisplayName     : @urschipidea.inf,%UrsChipidea.ServiceName%;Chipidea USB Role-Switch Driver
+DependOnService : urscx01000
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 8
+
+Servicio        : UrsCx01000
+Start           : 0
+Type            : 1
+Group           : System Bus Extender
+ImagePath       : system32\drivers\urscx01000.sys
+DisplayName     : USB Role-Switch Support Library
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : UrsSynopsys
+Start           : 3
+Type            : 1
+Group           : Base
+ImagePath       : \SystemRoot\System32\DriverStore\FileRepository\urssynopsys.inf_arm64_114b489f864d8538\urssynopsys.sys
+DisplayName     : @urssynopsys.inf,%UrsSynopsys.ServiceName%;Synopsys USB Role-Switch Driver
+DependOnService : urscx01000
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 9
+
+Servicio        : Usb4DeviceRouter
+Start           : 3
+Type            : 1
+Group           : Base
+ImagePath       : \SystemRoot\System32\DriverStore\FileRepository\usb4devicerouter.inf_arm64_e99a6f8bd535f773\Usb4DeviceRouter.sys
+DisplayName     : @Usb4DeviceRouter.inf,%Usb4DeviceRouter.SVCDESC%;USB4 Device Router Service
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 14
+
+Servicio        : Usb4HostRouter
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\DriverStore\FileRepository\usb4hostrouter.inf_arm64_0bbb496202e28b11\Usb4HostRouter.sys
+DisplayName     : @Usb4HostRouter.inf,%Usb4HostRouter.SVCDESC%;USB4 Host Router Service
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : usbaudio
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\system32\drivers\usbaudio.sys
+DisplayName     : @wdma_usb.inf,%USBAudio.SvcDesc%;USB Audio Driver (WDM)
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : usbaudio2
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\usbaudio2.sys
+DisplayName     : @usbaudio2.inf,%usbaudio2.SVCDESC%;USB Audio 2.0 Service
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : usbccgp
+Start           : 3
+Type            : 1
+Group           : Base
+ImagePath       : \SystemRoot\System32\drivers\usbccgp.sys
+DisplayName     : @usb.inf,%GenericParent.SvcDesc%;Microsoft USB Generic Parent Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 4
+
+Servicio        : usbehci
+Start           : 3
+Type            : 1
+Group           : Base
+ImagePath       : \SystemRoot\System32\drivers\usbehci.sys
+DisplayName     : @usbport.inf,%EHCIMP.SvcDesc%;Microsoft USB 2.0 Enhanced Host Controller Miniport Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 16
+
+Servicio        : usbhub
+Start           : 3
+Type            : 1
+Group           : Base
+ImagePath       : \SystemRoot\System32\drivers\usbhub.sys
+DisplayName     : @usbport.inf,%ROOTHUB.SvcDesc%;Microsoft USB Standard Hub Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 13
+
+Servicio        : USBHUB3
+Start           : 0
+Type            : 1
+Group           : Base
+ImagePath       : \SystemRoot\System32\drivers\UsbHub3.sys
+DisplayName     : @usbhub3.inf,%UsbHub3.SVCDESC%;SuperSpeed Hub
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 15
+
+Servicio        : usbprint
+Start           : 3
+Type            : 1
+Group           : extended base
+ImagePath       : \SystemRoot\System32\drivers\usbprint.sys
+DisplayName     : @usbprint.inf,%USBPRINT.SvcDesc%;Microsoft USB PRINTER Class
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 10
+
+Servicio        : usbser
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\usbser.sys
+DisplayName     : @usbser.inf,%UsbSerial.DriverDesc%;Microsoft USB Serial Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : USBSTOR
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\USBSTOR.SYS
+DisplayName     : @usbstor.inf,%USBSTOR.SvcDesc%;USB Mass Storage Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : USBXHCI
+Start           : 0
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\USBXHCI.SYS
+DisplayName     : @usbxhci.inf,%PCI\CC_0C0330.DeviceDesc%;USB xHCI Compliant Host Controller
+DependOnService : Ucx01000
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : UserDataSvc
+Start           : 3
+Type            : 96
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k UnistackSvcGroup
+DisplayName     : @%SystemRoot%\system32\UserDataAccessRes.dll,-14001
+DependOnService : UnistoreSvc
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : UserManager
+Start           : 2
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%systemroot%\system32\usermgr.dll,-100
+DependOnService : RpcSs, ProfSvc
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : UsoSvc
+Start           : 2
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%systemroot%\system32\usosvc.dll,-101
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : VacSvc
+Start           : 3
+Type            : 16
+Group           : AudioGroup
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalServiceNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\vac.dll,-200
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : VaultSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\lsass.exe
+DisplayName     : @%SystemRoot%\system32\vaultsvc.dll,-1003
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : vdrvroot
+Start           : 0
+Type            : 1
+Group           : Boot Bus Extender
+ImagePath       : System32\drivers\vdrvroot.sys
+DisplayName     : @vdrvroot.inf,%vdrvroot_svcdesc%;Microsoft Virtual Drive Enumerator
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 3
+
+Servicio        : vds
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\System32\vds.exe
+DisplayName     : @%SystemRoot%\system32\vds.exe,-100
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : VerifierExt
+Start           : 3
+Type            : 1
+Group           : WdfLoadGroup
+ImagePath       : System32\drivers\VerifierExt.sys
+DisplayName     : @%SystemRoot%\System32\drivers\VerifierExt.sys,-1000
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : vhdmp
+Start           : 3
+Type            : 1
+Group           : SCSI miniport
+ImagePath       : \SystemRoot\System32\drivers\vhdmp.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 4
+
+Servicio        : vhf
+Start           : 3
+Type            : 1
+Group           : Base
+ImagePath       : \SystemRoot\System32\drivers\vhf.sys
+DisplayName     : @hidvhf.inf,%VhfService%;Virtual HID Framework (VHF) Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 5
+
+Servicio        : Vid
+Start           : 1
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\Vid.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 27
+
+Servicio        : VirtualRender
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\DriverStore\FileRepository\vrd.inf_arm64_a3f60bac56a24425\vrd.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : vmbus
+Start           : 0
+Type            : 1
+Group           : System Bus Extender
+ImagePath       : System32\drivers\vmbus.sys
+DisplayName     : @wvmbus.inf,%vmbus.SVCDESC%;Virtual Machine Bus
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 6
+
+Servicio        : VMBusHID
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\VMBusHID.sys
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 29
+
+Servicio        : vmgid
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\vmgid.sys
+DisplayName     : @wvmgid.inf,%VmGid.SVCDESC%;Microsoft Hyper-V Guest Infrastructure Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : vmicguestinterface
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%systemroot%\system32\icsvc.dll,-801
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : vmicheartbeat
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k ICService -p
+DisplayName     : @%systemroot%\system32\icsvc.dll,-101
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : vmickvpexchange
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%systemroot%\system32\icsvc.dll,-201
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : vmicshutdown
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%systemroot%\system32\icsvc.dll,-301
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : vmictimesync
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalServiceNetworkRestricted -p
+DisplayName     : @%systemroot%\system32\icsvc.dll,-401
+DependOnService : VmGid
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : vmicvmsession
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%systemroot%\system32\icsvc.dll,-901
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : vmicvss
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%systemroot%\system32\icsvcvss.dll,-101
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : volmgr
+Start           : 0
+Type            : 1
+Group           : System Bus Extender
+ImagePath       : System32\drivers\volmgr.sys
+DisplayName     : @volmgr.inf,%volmgr_svcdesc%;Volume Manager Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 9
+
+Servicio        : volmgrx
+Start           : 0
+Type            : 1
+Group           : System Bus Extender
+ImagePath       : System32\drivers\volmgrx.sys
+DisplayName     : @%SystemRoot%\system32\drivers\volmgrx.sys,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 10
+
+Servicio        : volsnap
+Start           : 0
+Type            : 1
+Group           : 
+ImagePath       : System32\drivers\volsnap.sys
+DisplayName     : @%SystemRoot%\system32\drivers\volsnap.sys,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 
+
+Servicio        : volume
+Start           : 0
+Type            : 1
+Group           : 
+ImagePath       : System32\drivers\volume.sys
+DisplayName     : @volume.inf,%VolumeServiceDesc%;Volume driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 
+
+Servicio        : vpci
+Start           : 0
+Type            : 1
+Group           : System Bus Extender
+ImagePath       : System32\drivers\vpci.sys
+DisplayName     : @wvpci.inf,%vpci.SVCDESC%;Microsoft Hyper-V Virtual PCI Bus
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 7
+
+Servicio        : VSS
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\system32\vssvc.exe
+DisplayName     : @%systemroot%\system32\vssvc.exe,-102
+DependOnService : RPCSS
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : vwifibus
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\vwifibus.sys
+DisplayName     : @%SystemRoot%\System32\drivers\vwifibus.sys,-257
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : vwififlt
+Start           : 1
+Type            : 1
+Group           : NDIS
+ImagePath       : System32\drivers\vwififlt.sys
+DisplayName     : @%SystemRoot%\System32\drivers\vwififlt.sys,-259
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : W32Time
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalService
+DisplayName     : @%SystemRoot%\system32\w32time.dll,-200
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WaaSMedicSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k wusvcs -p
+DisplayName     : @WaaSMedicSvcImpl.dll,-100
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WalletService
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k appmodel -p
+DisplayName     : @%SystemRoot%\System32\WalletService.dll,-1000
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : wanarp
+Start           : 2
+Type            : 1
+Group           : NDIS
+ImagePath       : System32\DRIVERS\wanarp.sys
+DisplayName     : @%systemroot%\system32\mprmsg.dll,-32011
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : wanarpv6
+Start           : 3
+Type            : 1
+Group           : NDIS
+ImagePath       : System32\DRIVERS\wanarp.sys
+DisplayName     : @%systemroot%\system32\mprmsg.dll,-32012
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WarpJITSvc
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalServiceNetworkRestricted
+DisplayName     : @%SystemRoot%\System32\Windows.WARP.JITService.dll,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : wbengine
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : "C:\WINDOWS\system32\wbengine.exe"
+DisplayName     : @%systemroot%\system32\wbengine.exe,-104
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WbioSrvc
+Start           : 3
+Type            : 32
+Group           : SmartCardGroup
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k WbioSvcGroup
+DisplayName     : @%systemroot%\system32\wbiosrvc.dll,-100
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : wcifs
+Start           : 2
+Type            : 2
+Group           : FSFilter Virtualization
+ImagePath       : \SystemRoot\system32\drivers\wcifs.sys
+DisplayName     : @%systemroot%\system32\drivers\wcifs.sys,-100
+DependOnService : FltMgr
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Wcmsvc
+Start           : 2
+Type            : 16
+Group           : TDI
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalServiceNetworkRestricted -p
+DisplayName     : @%SystemRoot%\System32\wcmsvc.dll,-4097
+DependOnService : RpcSs, NSI
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : wcncsvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalServiceAndNoImpersonation -p
+DisplayName     : @%SystemRoot%\system32\wcncsvc.dll,-3
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WdBoot
+Start           : 4
+Type            : 1
+Group           : Early-Launch
+ImagePath       : system32\drivers\WdBoot.sys
+DisplayName     : @%ProgramFiles%\Windows Defender\MpAsDesc.dll,-390
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Wdf01000
+Start           : 0
+Type            : 1
+Group           : WdfLoadGroup
+ImagePath       : system32\drivers\Wdf01000.sys
+DisplayName     : @%SystemRoot%\system32\drivers\Wdf01000.sys,-1000
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WdFilter
+Start           : 0
+Type            : 2
+Group           : FSFilter Anti-Virus
+ImagePath       : system32\drivers\WdFilter.sys
+DisplayName     : @%ProgramFiles%\Windows Defender\MpAsDesc.dll,-330
+DependOnService : FltMgr
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WdiServiceHost
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalService -p
+DisplayName     : @%systemroot%\system32\wdi.dll,-502
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WdiSystemHost
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%systemroot%\system32\wdi.dll,-500
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : wdiwifi
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : system32\DRIVERS\wdiwifi.sys
+DisplayName     : WDI Driver Framework
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WdmCompanionFilter
+Start           : 3
+Type            : 1
+Group           : base
+ImagePath       : system32\drivers\WdmCompanionFilter.sys
+DisplayName     : @%SystemRoot%\system32\drivers\WdmCompanionFilter.sys,-1000
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WdNisDrv
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : system32\Drivers\WdNisDrv.sys
+DisplayName     : @%ProgramFiles%\Windows Defender\MpAsDesc.dll,-370
+DependOnService : BFE
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WdNisSvc
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : "C:\Program Files\Windows Defender\NisSrv.exe"
+DisplayName     : @%ProgramFiles%\Windows Defender\MpAsDesc.dll,-320
+DependOnService : WdNisDrv
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WebClient
+Start           : 3
+Type            : 32
+Group           : NetworkProvider
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalService -p
+DisplayName     : @%systemroot%\system32\webclnt.dll,-100
+DependOnService : MRxDAV
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : webthreatdefsvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k WebThreatDefense -p
+DisplayName     : @%systemroot%\system32\webthreatdefsvc.dll,-100
+DependOnService : RpcSs, wtd
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : webthreatdefusersvc
+Start           : 2
+Type            : 96
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%systemroot%\system32\webthreatdefusersvc.dll,-100
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Wecsvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k NetworkService -p
+DisplayName     : @%SystemRoot%\system32\wecsvc.dll,-200
+DependOnService : HTTP, Eventlog
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WEPHOSTSVC
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k WepHostSvcGroup
+DisplayName     : @%systemroot%\system32\wephostsvc.dll,-100
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : wercplsupport
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k netsvcs -p
+DisplayName     : @%SystemRoot%\System32\wercplsupport.dll,-101
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WerSvc
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k WerSvcGroup
+DisplayName     : @%SystemRoot%\System32\wersvc.dll,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : WFDSConMgrSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalServiceNetworkRestricted -p
+DisplayName     : @%SystemRoot%\System32\wfdsconmgrsvc.dll,-9000
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WFPLWFS
+Start           : 0
+Type            : 1
+Group           : PNP_TDI
+ImagePath       : System32\drivers\wfplwfs.sys
+DisplayName     : @%SystemRoot%\System32\drivers\wfplwfs.sys,-6000
+DependOnService : ndis
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WiaRpc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\wiarpc.dll,-2
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WifiCx
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : system32\drivers\WifiCx.sys
+DisplayName     : Wifi Network Adapter Class Extension
+DependOnService : NetAdapterCx
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WIMMount
+Start           : 3
+Type            : 2
+Group           : FSFilter Infrastructure
+ImagePath       : system32\drivers\wimmount.sys
+DisplayName     : @%SystemRoot%\system32\drivers\wimmount.sys,-101
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 1
+
+Servicio        : WinDefend
+Start           : 2
+Type            : 16
+Group           : 
+ImagePath       : "C:\Program Files\Windows Defender\MsMpEng.exe"
+DisplayName     : @%ProgramFiles%\Windows Defender\MpAsDesc.dll,-310
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Windows Workflow Foundation 4.0.0.0
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : WindowsTrustedRT
+Start           : 4
+Type            : 1
+Group           : Core Security Extensions
+ImagePath       : system32\drivers\WindowsTrustedRT.sys
+DisplayName     : Windows Trusted Execution Environment Class Extension
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 3
+Tag             : 1
+
+Servicio        : WindowsTrustedRTProxy
+Start           : 4
+Type            : 1
+Group           : Core Security Extensions
+ImagePath       : System32\drivers\WindowsTrustedRTProxy.sys
+DisplayName     : @WindowsTrustedRTProxy.inf,%WindowsTrustedRTProxy.SVCDESC%;Microsoft Windows Trusted Runtime Secure Service
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 2
+
+Servicio        : WinHttpAutoProxySvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalServiceNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\winhttp.dll,-100
+DependOnService : Dhcp
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : winmgmt
+Start           : 2
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%Systemroot%\system32\wbem\wmisvc.dll,-205
+DependOnService : RPCSS
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : WinNat
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : system32\drivers\winnat.sys
+DisplayName     : @%SystemRoot%\system32\drivers\winnat.sys,-10001
+DependOnService : Tcpip
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WinRM
+Start           : 4
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k NetworkService -p
+DisplayName     : @%Systemroot%\system32\wsmsvc.dll,-101
+DependOnService : RPCSS, HTTP, NSI
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Winsock
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : WinSock2
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : WINUSB
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\System32\drivers\WinUSB.SYS
+DisplayName     : @winusb.inf,%WINUSB_SvcName%;WinUsb Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : wisvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%SystemRoot%\system32\flightsettings.dll,-103
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WlanSvc
+Start           : 3
+Type            : 16
+Group           : TDI
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%SystemRoot%\System32\wlansvc.dll,-257
+DependOnService : nativewifip, RpcSs, Ndisuio, wcmsvc
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : wlidsvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%SystemRoot%\system32\wlidsvc.dll,-100
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : wlpasvc
+Start           : 3
+Type            : 32
+Group           : TDI
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalServiceNetworkRestricted -p
+DisplayName     : @%SystemRoot%\system32\lpasvc.dll,-1000
+DependOnService : WwanSvc, RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WManSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%systemroot%\system32\Windows.Management.Service.dll,-100
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WmiAcpi
+Start           : 3
+Type            : 1
+Group           : Extended Base
+ImagePath       : \SystemRoot\System32\drivers\wmiacpi.sys
+DisplayName     : @wmiacpi.inf,%WMIMAP.SvcDesc%;Microsoft Windows Management Interface for ACPI
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 20
+
+Servicio        : WmiApRpl
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : wmiApSrv
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\system32\wbem\WmiApSrv.exe
+DisplayName     : @%Systemroot%\system32\wbem\wmiapsrv.exe,-110
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WMPNetworkSvc
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : "C:\Program Files\Windows Media Player\wmpnetwk.exe"
+DisplayName     : @%PROGRAMFILES%\Windows Media Player\wmpnetwk.exe,-101
+DependOnService : http, WSearch
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : Wof
+Start           : 0
+Type            : 2
+Group           : FSFilter Compression
+ImagePath       : 
+DisplayName     : Windows Overlay File System Filter Driver
+DependOnService : FltMgr
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : workerdd
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : workfolderssvc
+Start           : 3
+Type            : 32
+Group           : LocalService
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalService -p
+DisplayName     : @%systemroot%\system32\workfolderssvc.dll,-102
+DependOnService : RpcSs, wsearch
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WpcMonSvc
+Start           : 3
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalService
+DisplayName     : @%systemroot%\system32\WpcRefreshTask.dll,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WPDBusEnum
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalSystemNetworkRestricted
+DisplayName     : @%SystemRoot%\system32\wpdbusenum.dll,-100
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WpdUpFltr
+Start           : 3
+Type            : 1
+Group           : PnP Filter
+ImagePath       : System32\drivers\WpdUpFltr.sys
+DisplayName     : @%systemroot%\System32\drivers\WpdUpFltr.sys,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WpnService
+Start           : 2
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%SystemRoot%\system32\wpnservice.dll,-1
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WpnUserService
+Start           : 2
+Type            : 96
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k UnistackSvcGroup
+DisplayName     : @%SystemRoot%\system32\WpnUserService.dll,-1
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 0
+Tag             : 
+
+Servicio        : ws2ifsl
+Start           : 4
+Type            : 1
+Group           : PNP_TDI
+ImagePath       : \SystemRoot\system32\drivers\ws2ifsl.sys
+DisplayName     : @%systemroot%\System32\drivers\ws2ifsl.sys,-1000
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : wscsvc
+Start           : 2
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\System32\svchost.exe -k LocalServiceNetworkRestricted -p
+DisplayName     : @%SystemRoot%\System32\wscsvc.dll,-200
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WSearch
+Start           : 2
+Type            : 16
+Group           : 
+ImagePath       : C:\WINDOWS\system32\SearchIndexer.exe /Embedding
+DisplayName     : @%systemroot%\system32\SearchIndexer.exe,-103
+DependOnService : RPCSS, BrokerInfrastructure
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WSearchIdxPi
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : wtd
+Start           : 2
+Type            : 1
+Group           : network
+ImagePath       : System32\drivers\wtd.sys
+DisplayName     : @%SystemRoot%\system32\drivers\wtd.sys,-1000
+DependOnService : tcpip, bfe, FltMgr
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : wuauserv
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%systemroot%\system32\wuauserv.dll,-105
+DependOnService : rpcss
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WudfPf
+Start           : 3
+Type            : 1
+Group           : base
+ImagePath       : system32\drivers\WudfPf.sys
+DisplayName     : @%SystemRoot%\system32\drivers\Wudfpf.sys,-1000
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WUDFRd
+Start           : 3
+Type            : 1
+Group           : base
+ImagePath       : system32\drivers\WudfRd.sys
+DisplayName     : @%SystemRoot%\system32\drivers\WudfRd.sys,-1000
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 2
+
+Servicio        : WUDFWpdFs
+Start           : 3
+Type            : 1
+Group           : 
+ImagePath       : \SystemRoot\system32\DRIVERS\WUDFRd.sys
+DisplayName     : @wpdfs.inf,%WPDFS_SvcName%;Controlador de sistema de archivos WPD
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : WwanSvc
+Start           : 3
+Type            : 32
+Group           : TDI
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k LocalSystemNetworkRestricted -p
+DisplayName     : @%SystemRoot%\System32\wwansvc.dll,-257
+DependOnService : RpcSs, NdisUio
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : XblAuthManager
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%systemroot%\system32\XblAuthManager.dll,-100
+DependOnService : RpcSs
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : XblGameSave
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%systemroot%\system32\XblGameSave.dll,-100
+DependOnService : UserManager, XblAuthManager
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : xboxgip
+Start           : 3
+Type            : 1
+Group           : NDIS
+ImagePath       : \SystemRoot\System32\drivers\xboxgip.sys
+DisplayName     : @xboxgip.inf,%XBOXGIP_Desc%;Xbox Game Input Protocol Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 1
+
+Servicio        : XboxGipSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%systemroot%\system32\xboxgipsvc.dll,-100
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : XboxNetApiSvc
+Start           : 3
+Type            : 32
+Group           : 
+ImagePath       : C:\WINDOWS\system32\svchost.exe -k netsvcs -p
+DisplayName     : @%systemroot%\system32\XboxNetApiSvc.dll,-100
+DependOnService : BFE, mpssvc, IKEEXT, KeyIso
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+Servicio        : xinputhid
+Start           : 3
+Type            : 1
+Group           : Base
+ImagePath       : \SystemRoot\System32\drivers\xinputhid.sys
+DisplayName     : @xinputhid.inf,%xinputhid.SvcDesc%;XINPUT HID Filter Driver
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 1
+
+Servicio        : xmlprov
+Start           : 
+Type            : 
+Group           : 
+ImagePath       : 
+DisplayName     : 
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 
+Tag             : 
+
+Servicio        : XtaCache
+Start           : 2
+Type            : 16
+Group           : Event Log
+ImagePath       : C:\WINDOWS\system32\XtaCache.exe
+DisplayName     : @%SystemRoot%\system32\XtaCache.exe,-1000
+DependOnService : 
+DependOnGroup   : 
+ErrorControl    : 1
+Tag             : 
+
+
+
