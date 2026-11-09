@@ -47,6 +47,9 @@ static NTSTATUS PickDfsLevel(PDEVICE_CONTEXT Ctx, PULONG SeClkHz, PULONG ClkSel)
 
 NTSTATUS ClocksEnableQup0Se0(PDEVICE_CONTEXT Ctx, PULONG SeClkHz, PULONG ClkSel)
 {
+    if (!Ctx || !Ctx->Gcc || !SeClkHz || !ClkSel)
+        return STATUS_INVALID_PARAMETER;
+
     NTSTATUS status;
     ULONG vote = GccRead(Ctx, GCC_APCS_CLOCK_BRANCH_ENA_VOTE);
 
@@ -77,9 +80,17 @@ NTSTATUS ClocksEnableQup0Se0(PDEVICE_CONTEXT Ctx, PULONG SeClkHz, PULONG ClkSel)
         GccWrite(Ctx, GCC_QUPV3_WRAP0_S0_CMD_RCGR + RCG_CFG, (0u << 8) | 1u);
         GccWrite(Ctx, GCC_QUPV3_WRAP0_S0_CMD_RCGR,
                  GccRead(Ctx, GCC_QUPV3_WRAP0_S0_CMD_RCGR) | RCG_CMD_UPDATE);
+        BOOLEAN updateDone = FALSE;
         for (ULONG i = 0; i < 500; i++) {
-            if ((GccRead(Ctx, GCC_QUPV3_WRAP0_S0_CMD_RCGR) & RCG_CMD_UPDATE) == 0) break;
+            if ((GccRead(Ctx, GCC_QUPV3_WRAP0_S0_CMD_RCGR) & RCG_CMD_UPDATE) == 0) {
+                updateDone = TRUE;
+                break;
+            }
             KeStallExecutionProcessor(1);
+        }
+        if (!updateDone) {
+            HxLog("timeout esperando GCC RCG_CMD_UPDATE del SE0");
+            return STATUS_IO_TIMEOUT;
         }
         *SeClkHz = TCXO_HZ;
         *ClkSel = 0;
