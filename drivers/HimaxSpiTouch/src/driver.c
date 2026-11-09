@@ -142,14 +142,27 @@ static NTSTATUS EvtD0Entry(WDFDEVICE Device, WDF_POWER_DEVICE_STATE Prev)
 
     KeClearEvent(&c->StopEvent);
 
-    HANDLE h;
+    HANDLE h = NULL;
     OBJECT_ATTRIBUTES oa;
+    PETHREAD thread = NULL;
     InitializeObjectAttributes(&oa, NULL, OBJ_KERNEL_HANDLE, NULL, NULL);
+
+    c->WorkerThread = NULL;
     NTSTATUS s = PsCreateSystemThread(&h, THREAD_ALL_ACCESS, &oa, NULL, NULL,
                                       WorkerThread, c);
     if (!NT_SUCCESS(s)) return s;
-    ObReferenceObjectByHandle(h, THREAD_ALL_ACCESS, *PsThreadType, KernelMode,
-                              (PVOID *)&c->WorkerThread, NULL);
+
+    s = ObReferenceObjectByHandle(h, THREAD_ALL_ACCESS, *PsThreadType,
+                                  KernelMode, (PVOID *)&thread, NULL);
+    if (!NT_SUCCESS(s)) {
+        /* No dejar un hilo huérfano si no podemos conservar su objeto. */
+        KeSetEvent(&c->StopEvent, IO_NO_INCREMENT, FALSE);
+        ZwWaitForSingleObject(h, FALSE, NULL);
+        ZwClose(h);
+        return s;
+    }
+
+    c->WorkerThread = thread;
     ZwClose(h);
     return STATUS_SUCCESS;
 }
