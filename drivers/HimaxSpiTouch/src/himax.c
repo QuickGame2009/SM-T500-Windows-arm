@@ -36,7 +36,8 @@ NTSTATUS HimaxRegRead(PDEVICE_CONTEXT Ctx, ULONG Addr, UCHAR *Data, ULONG Len)
     NTSTATUS s;
     UCHAR a[HX_ADDR_LEN], dir = HX_CMD_DIR_READ;
 
-    if (Len > HX_FLASH_RW_MAX_LEN) return STATUS_INVALID_PARAMETER;
+    if (!Data || Len == 0 || Len > HX_FLASH_RW_MAX_LEN)
+        return STATUS_INVALID_PARAMETER;
 
     s = HimaxBurstEnable(Ctx, Len > HX_ADDR_LEN);
     if (!NT_SUCCESS(s)) return s;
@@ -49,7 +50,10 @@ NTSTATUS HimaxRegRead(PDEVICE_CONTEXT Ctx, ULONG Addr, UCHAR *Data, ULONG Len)
     s = HimaxBusRead(Ctx, HX_CMD_AHB_RDATA, Data, Len);
     if (!NT_SUCCESS(s)) return s;
 
-    if (Len > HX_ADDR_LEN) HimaxBurstEnable(Ctx, FALSE);
+    if (Len > HX_ADDR_LEN) {
+        s = HimaxBurstEnable(Ctx, FALSE);
+        if (!NT_SUCCESS(s)) return s;
+    }
     return STATUS_SUCCESS;
 }
 
@@ -58,6 +62,10 @@ NTSTATUS HimaxRegWrite(PDEVICE_CONTEXT Ctx, ULONG Addr, const UCHAR *Data, ULONG
 {
     NTSTATUS s;
     ULONG off = 0;
+
+    if ((!Data && Len != 0) || Len > HX_FLASH_RW_MAX_LEN ||
+        Addr > MAXULONG - Len)
+        return STATUS_INVALID_PARAMETER;
 
     s = HimaxBurstEnable(Ctx, Len > HX_ADDR_LEN);
     if (!NT_SUCCESS(s)) return s;
@@ -97,14 +105,19 @@ NTSTATUS HimaxInterfaceOn(PDEVICE_CONTEXT Ctx)
 {
     UCHAR dummy[HX_ADDR_LEN], rb = 0, conti = HX_DATA_CONTI, incr4 = HX_DATA_INCR4;
 
-    HimaxBusRead(Ctx, HX_CMD_AHB_RDATA, dummy, HX_ADDR_LEN);  /* knock */
+    NTSTATUS s = HimaxBusRead(Ctx, HX_CMD_AHB_RDATA, dummy, HX_ADDR_LEN); /* knock */
+    if (!NT_SUCCESS(s)) return s;
 
     for (ULONG cnt = 0; cnt < 10; cnt++) {
-        HimaxBusWrite(Ctx, HX_CMD_CONTI, &conti, 1);
-        HimaxBusWrite(Ctx, HX_CMD_INCR4, &incr4, 1);
-        HimaxBusRead(Ctx, HX_CMD_CONTI, &rb, 1);
+        s = HimaxBusWrite(Ctx, HX_CMD_CONTI, &conti, 1);
+        if (!NT_SUCCESS(s)) return s;
+        s = HimaxBusWrite(Ctx, HX_CMD_INCR4, &incr4, 1);
+        if (!NT_SUCCESS(s)) return s;
+        s = HimaxBusRead(Ctx, HX_CMD_CONTI, &rb, 1);
+        if (!NT_SUCCESS(s)) return s;
         UCHAR rb2 = 0;
-        HimaxBusRead(Ctx, HX_CMD_INCR4, &rb2, 1);
+        s = HimaxBusRead(Ctx, HX_CMD_INCR4, &rb2, 1);
+        if (!NT_SUCCESS(s)) return s;
         if (rb == conti && rb2 == incr4) return STATUS_SUCCESS;
         HxSleepMs(1);
     }
@@ -114,30 +127,38 @@ NTSTATUS HimaxInterfaceOn(PDEVICE_CONTEXT Ctx)
 /* hx83102e_sense_off */
 NTSTATUS HimaxSenseOff(PDEVICE_CONTEXT Ctx, BOOLEAN CheckEn)
 {
-    UCHAR tmp[HX_ADDR_LEN];
+    UCHAR tmp[HX_ADDR_LEN] = {0};
     UCHAR pw;
+    NTSTATUS s;
 
     for (ULONG cnt = 0; cnt < 10; cnt++) {
-        if (cnt == 0 || (tmp[0] != 0xA5 && tmp[0] != 0x00 && tmp[0] != 0x87))
-            HimaxRegWrite32(Ctx, HX_REG_CTRL_FW, HX_DATA_FW_STOP);
+        if (cnt == 0 || (tmp[0] != 0xA5 && tmp[0] != 0x00 && tmp[0] != 0x87)) {
+            s = HimaxRegWrite32(Ctx, HX_REG_CTRL_FW, HX_DATA_FW_STOP);
+            if (!NT_SUCCESS(s)) return s;
+        }
         HxSleepMs(1);
 
-        HimaxRegRead(Ctx, HX_REG_CENTRAL_STATE, tmp, HX_ADDR_LEN);
+        s = HimaxRegRead(Ctx, HX_REG_CENTRAL_STATE, tmp, HX_ADDR_LEN);
+        if (!NT_SUCCESS(s)) return s;
         if (tmp[0] != 0x05) break;    /* no hay que esperar al FW */
         if (!CheckEn) break;
 
         HxSleepMs(10);
-        HimaxRegRead(Ctx, HX_REG_CTRL_FW, tmp, HX_ADDR_LEN);
+        s = HimaxRegRead(Ctx, HX_REG_CTRL_FW, tmp, HX_ADDR_LEN);
+        if (!NT_SUCCESS(s)) return s;
         if (tmp[0] == 0x87) break;
     }
 
     for (ULONG cnt = 0; cnt < 5; cnt++) {
         pw = HX_PSW_LB;
-        HimaxBusWrite(Ctx, HX_CMD_PSW_LB, &pw, 1);
+        s = HimaxBusWrite(Ctx, HX_CMD_PSW_LB, &pw, 1);
+        if (!NT_SUCCESS(s)) return s;
         pw = HX_PSW_UB;
-        HimaxBusWrite(Ctx, HX_CMD_PSW_UB, &pw, 1);
+        s = HimaxBusWrite(Ctx, HX_CMD_PSW_UB, &pw, 1);
+        if (!NT_SUCCESS(s)) return s;
 
-        HimaxRegRead(Ctx, HX_REG_CENTRAL_STATE, tmp, HX_ADDR_LEN);
+        s = HimaxRegRead(Ctx, HX_REG_CENTRAL_STATE, tmp, HX_ADDR_LEN);
+        if (!NT_SUCCESS(s)) return s;
         HxLog("sense_off: central_state=%02X (0x0C = modo seguro)", tmp[0]);
         if (tmp[0] == 0x0C) {
             HimaxRegWrite32(Ctx, HX_REG_TCON_RST, 0);   /* reset TCON */
