@@ -1,6 +1,7 @@
 /*
  * driver.c — entrada del driver, ciclo PnP/energía y arranque del táctil.
  */
+#include <ntifs.h> /* ZwWaitForSingleObject: prototipo WDK */
 #include "device.h"
 #include "clocks.h"
 #include "geni_spi.h"

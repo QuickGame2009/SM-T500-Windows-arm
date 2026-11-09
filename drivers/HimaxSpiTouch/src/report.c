@@ -20,22 +20,31 @@ NTSTATUS ReportParse(const UCHAR *Buf, TOUCH_DATA *Out)
     if (!ReportChecksumOk(Buf, HX_TOUCH_INFO_SIZE))
         return STATUS_DATA_ERROR;
 
-    UCHAR count = 0;
-    for (ULONG i = 0; i < TOUCH_MAX_CONTACTS; i++) {
-        USHORT x = (USHORT)((Buf[i * 4] << 8) | Buf[i * 4 + 1]);
-        USHORT y = (USHORT)((Buf[i * 4 + 2] << 8) | Buf[i * 4 + 3]);
+    /*
+     * HX_TOUCH_INFO_POINT_CNT está en el byte 52 para 10 contactos.
+     * Los bytes 40..51 son datos de área/anchura, no el contador.
+     * No interpretar coordenadas residuales cuando el firmware informa 0.
+     */
+    UCHAR pointCount = Buf[HX_FINGER_NUM_OFFSET] & 0x0F;
+    if (pointCount > TOUCH_MAX_CONTACTS)
+        return STATUS_DATA_ERROR;
+
+    UCHAR parsed = 0;
+    for (ULONG i = 0; i < pointCount; i++) {
+        USHORT x = (USHORT)(((USHORT)Buf[i * 4] << 8) | Buf[i * 4 + 1]);
+        USHORT y = (USHORT)(((USHORT)Buf[i * 4 + 2] << 8) | Buf[i * 4 + 3]);
         UCHAR  w = Buf[HX_AREA_OFFSET + i];
 
-        if (x <= TOUCH_MAX_X && y <= TOUCH_MAX_Y && !(x == 0xFFFF)) {
+        if (x <= TOUCH_MAX_X && y <= TOUCH_MAX_Y) {
             Out->Contacts[i].Down = TRUE;
             Out->Contacts[i].X = x;
             Out->Contacts[i].Y = y;
             Out->Contacts[i].Width = w;
-            count++;
+            parsed++;
         }
     }
-    /* El firmware también da el conteo en el byte 52; usamos el real. */
-    Out->Count = count;
+
+    Out->Count = parsed;
     return STATUS_SUCCESS;
 }
 
