@@ -36,11 +36,12 @@ HimaxSpiTouch.sys
 AddReg = Touch_HW_AddReg, VHF_LowerFilter
 
 [Touch_HW_AddReg]
-VHF_LowerFilter = 0x00010000,,"vhf"
-
 ; El .bin del firmware NO va en el paquete: se copia a mano a System32\drivers.
 ; Ruta del firmware que lee FwReadFileFromRegistry (clave de hardware).
 HKR,,"FirmwarePath",0x00000000,"\SystemRoot\System32\drivers\Himax_firmware_lide_hsd.bin"
+
+[VHF_LowerFilter]
+HKR,,"LowerFilters",0x00010000,"vhf"
 
 [Touch_Inst.NT.Services]
 AddService = HimaxSpiTouch, 0x00000002, Touch_Service
