@@ -63,8 +63,7 @@ NTSTATUS HimaxRegWrite(PDEVICE_CONTEXT Ctx, ULONG Addr, const UCHAR *Data, ULONG
     NTSTATUS s;
     ULONG off = 0;
 
-    if ((!Data && Len != 0) || Len > HX_FLASH_RW_MAX_LEN ||
-        Addr > MAXULONG - Len)
+    if ((!Data && Len != 0) || Addr > MAXULONG - Len)
         return STATUS_INVALID_PARAMETER;
 
     s = HimaxBurstEnable(Ctx, Len > HX_ADDR_LEN);
