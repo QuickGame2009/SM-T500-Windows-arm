@@ -33,6 +33,8 @@ typedef struct _DEVICE_CONTEXT {
     /* Hilo de trabajo (arranque del táctil + sondeo) */
     PETHREAD    WorkerThread;
     KEVENT      StopEvent;
+    KEVENT      InitEvent;
+    NTSTATUS    InitStatus;
 
     /* Firmware */
     PUCHAR      Firmware;
