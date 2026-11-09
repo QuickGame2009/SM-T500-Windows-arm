@@ -31,9 +31,20 @@ NTSTATUS FwParsePartitions(PDEVICE_CONTEXT Ctx, HX_FW_PART *Parts, ULONG MaxPart
         return STATUS_INVALID_PARAMETER;
 
     ULONG base = HX_FW_CFG_TABLE_OFFSET;
+    if (Ctx->FirmwareSize <= base + HX_FW_PART_COUNT_BYTE)
+        return STATUS_INVALID_PARAMETER;
+
     ULONG n = Ctx->Firmware[base + HX_FW_PART_COUNT_BYTE];
-    if (n < 1 || n > MaxParts) {
+    if (n < 1 || n > MaxParts || n > HX_FW_MAX_PARTS) {
         HxLog("firmware: nº de particiones fuera de rango (%u)", n);
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    /* Validar la tabla completa antes de calcular punteros a sus entradas. */
+    ULONGLONG tableEnd = (ULONGLONG)base + HX_FW_PART_COUNT_BYTE + 1 +
+                         (ULONGLONG)n * HX_FW_PART_ENTRY_SIZE;
+    if (tableEnd > Ctx->FirmwareSize) {
+        HxLog("firmware: tabla de particiones truncada");
         return STATUS_INVALID_PARAMETER;
     }
 
