@@ -40,6 +40,8 @@ static PUCHAR MapResource(WDFCMRESLIST Translated, ULONG Index, SIZE_T *OutLen)
     return NULL;
 }
 
+static VOID UnmapOne(PUCHAR *p, SIZE_T len);
+
 static NTSTATUS EvtPrepareHardware(WDFDEVICE Device, WDFCMRESLIST Raw, WDFCMRESLIST Translated)
 {
     PDEVICE_CONTEXT c = GetDeviceContext(Device);
@@ -51,8 +53,16 @@ static NTSTATUS EvtPrepareHardware(WDFDEVICE Device, WDFCMRESLIST Raw, WDFCMRESL
     c->Gcc      = MapResource(Translated, 3, &c->GccLen);
     c->QupWrap  = MapResource(Translated, 4, &c->QupWrapLen);
 
-    if (!c->GeniSe0 || !c->TlmmWest || !c->TlmmEast || !c->Gcc || !c->QupWrap) {
-        HxLog("faltan recursos de memoria en el SSDT");
+    if (!c->GeniSe0 || !c->TlmmWest || !c->TlmmEast || !c->Gcc || !c->QupWrap ||
+        c->GeniSe0Len < 0x4000 || c->TlmmWestLen < 0x00400000 ||
+        c->TlmmEastLen < 0x00400000 || c->GccLen < 0x001F0000 ||
+        c->QupWrapLen < 0x2000) {
+        HxLog("recursos MMIO ausentes o demasiado pequeños en el SSDT");
+        UnmapOne(&c->GeniSe0, c->GeniSe0Len);
+        UnmapOne(&c->TlmmWest, c->TlmmWestLen);
+        UnmapOne(&c->TlmmEast, c->TlmmEastLen);
+        UnmapOne(&c->Gcc, c->GccLen);
+        UnmapOne(&c->QupWrap, c->QupWrapLen);
         return STATUS_DEVICE_CONFIGURATION_ERROR;
     }
     return STATUS_SUCCESS;
