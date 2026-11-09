@@ -71,7 +71,7 @@ NTSTATUS GeniSpiInit(PDEVICE_CONTEXT Ctx)
     ULONG hwp0 = SE_RD(Ctx, SE_HW_PARAM_0);
     Ctx->TxFifoDepth   = (hwp0 & TX_FIFO_DEPTH_MSK) >> TX_FIFO_DEPTH_SHFT;
     Ctx->FifoWidthBits = (hwp0 & TX_FIFO_WIDTH_MSK) >> TX_FIFO_WIDTH_SHFT;
-    if (Ctx->TxFifoDepth == 0 || Ctx->TxFifoDepth > 256 ||
+    if (Ctx->TxFifoDepth < 2 || Ctx->TxFifoDepth > 256 ||
         Ctx->FifoWidthBits < 8 || Ctx->FifoWidthBits > 32 ||
         (Ctx->FifoWidthBits & 7) != 0) {
         HxLog("parámetros FIFO GENI no válidos: depth=%u width=%u",
@@ -108,7 +108,10 @@ NTSTATUS GeniSpiInit(PDEVICE_CONTEXT Ctx)
     SE_WR(Ctx, SE_GENI_RX_RFR_WATERMARK_REG, Ctx->TxFifoDepth - 2);
 
     /* Habilitar las IRQ comunes (aunque sondeamos, el estado se lee en M_IRQ_STATUS). */
-    SE_WR(Ctx, SE_GENI_M_IRQ_EN, SE_RD(Ctx, SE_GENI_M_IRQ_EN) | M_COMMON_GENI_M_IRQ_EN);
+    SE_WR(Ctx, SE_GENI_M_IRQ_EN,
+          SE_RD(Ctx, SE_GENI_M_IRQ_EN) | M_COMMON_GENI_M_IRQ_EN |
+          M_CMD_DONE_EN | M_TX_FIFO_WATERMARK_EN |
+          M_RX_FIFO_WATERMARK_EN | M_RX_FIFO_LAST_EN);
 
     /* --- parámetros SPI: modo 3 (CPOL=1, CPHA=1), 8 bits, CS0 --- */
     SE_WR(Ctx, SE_SPI_LOOPBACK, 0);
@@ -203,6 +206,7 @@ static NTSTATUS DoTx(PDEVICE_CONTEXT Ctx, const UCHAR *Tx, ULONG TxLen, BOOLEAN 
         if (irq & M_ERROR_MASK) {
             HxLog("TX: error de GENI (M_IRQ=%08X)", irq);
             SE_WR(Ctx, SE_GENI_M_IRQ_CLEAR, irq);
+            SE_WR(Ctx, SE_GENI_TX_WATERMARK_REG, 0);
             AbortCmd(Ctx);
             return STATUS_IO_DEVICE_ERROR;
         }
@@ -245,6 +249,7 @@ static NTSTATUS DoRx(PDEVICE_CONTEXT Ctx, UCHAR *Rx, ULONG RxLen)
         if (irq & M_ERROR_MASK) {
             HxLog("RX: error de GENI (M_IRQ=%08X)", irq);
             SE_WR(Ctx, SE_GENI_M_IRQ_CLEAR, irq);
+            SE_WR(Ctx, SE_GENI_RX_WATERMARK_REG, 0);
             AbortCmd(Ctx);
             return STATUS_IO_DEVICE_ERROR;
         }
