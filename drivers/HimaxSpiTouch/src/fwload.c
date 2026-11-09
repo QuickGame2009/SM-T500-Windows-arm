@@ -68,7 +68,13 @@ NTSTATUS FwParsePartitions(PDEVICE_CONTEXT Ctx, HX_FW_PART *Parts, ULONG MaxPart
 static NTSTATUS FwWritePartCrc(PDEVICE_CONTEXT Ctx, const HX_FW_PART *p)
 {
     for (ULONG retry = 0; retry < 3; retry++) {
-        HimaxRegWrite(Ctx, p->SramAddr, Ctx->Firmware + p->FileOffset, p->Size);
+        NTSTATUS status = HimaxRegWrite(Ctx, p->SramAddr,
+                                        Ctx->Firmware + p->FileOffset, p->Size);
+        if (!NT_SUCCESS(status)) {
+            HxLog("fallo escribiendo partición SRAM %08X: %08X",
+                  p->SramAddr, status);
+            return status;
+        }
         ULONG crc = HimaxCheckCrcHw(Ctx, p->SramAddr, p->Size);
         if (crc == 0) return STATUS_SUCCESS;
         HxLog("CRC de sram=%08X ha fallado (%08X), reintento %u", p->SramAddr, crc, retry + 1);
@@ -85,7 +91,8 @@ NTSTATUS FwDownload(PDEVICE_CONTEXT Ctx)
     s = FwParsePartitions(Ctx, parts, HX_FW_MAX_PARTS, &count);
     if (!NT_SUCCESS(s)) return s;
 
-    HimaxRegWrite32(Ctx, HX_REG_SYSTEM_RESET, HX_DATA_SYSTEM_RESET);
+    s = HimaxRegWrite32(Ctx, HX_REG_SYSTEM_RESET, HX_DATA_SYSTEM_RESET);
+    if (!NT_SUCCESS(s)) return s;
     s = HimaxSenseOff(Ctx, FALSE);
     if (!NT_SUCCESS(s)) return s;
 
@@ -99,8 +106,10 @@ NTSTATUS FwDownload(PDEVICE_CONTEXT Ctx)
         if (!NT_SUCCESS(s)) return s;
     }
 
-    HimaxRegWrite32(Ctx, HX_REG_SET_FRAME, 0x00000001);          /* n frame = 1 */
-    HimaxRegWrite32(Ctx, HX_REG_FLASH_RELOAD, HX_DATA_DIS_RELOAD); /* hx_dis_rload_0f */
+    s = HimaxRegWrite32(Ctx, HX_REG_SET_FRAME, 0x00000001); /* n frame = 1 */
+    if (!NT_SUCCESS(s)) return s;
+    s = HimaxRegWrite32(Ctx, HX_REG_FLASH_RELOAD, HX_DATA_DIS_RELOAD);
+    if (!NT_SUCCESS(s)) return s;
 
     Ctx->FirmwareLoaded = TRUE;
     HxLog("firmware cargado (%u particiones)", count);
