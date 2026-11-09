@@ -38,8 +38,14 @@ NTSTATUS FwReadFileFromRegistry(PDEVICE_CONTEXT Ctx)
     status = ZwQueryInformationFile(h, &iosb, &fi, sizeof(fi), FileStandardInformation);
     if (!NT_SUCCESS(status)) { ZwClose(h); goto done; }
 
+    /* Validar el tamaño de 64 bits antes de convertirlo a ULONG. */
+    if (fi.EndOfFile.QuadPart <= 0 || fi.EndOfFile.QuadPart > (1LL << 20) ||
+        fi.EndOfFile.QuadPart > MAXULONG) {
+        status = STATUS_FILE_INVALID;
+        ZwClose(h);
+        goto done;
+    }
     ULONG size = (ULONG)fi.EndOfFile.QuadPart;
-    if (size == 0 || size > (1u << 20)) { status = STATUS_FILE_INVALID; ZwClose(h); goto done; }
 
     PUCHAR buf = (PUCHAR)ExAllocatePool2(POOL_FLAG_NON_PAGED, size, 'xmiH');
     if (!buf) { status = STATUS_INSUFFICIENT_RESOURCES; ZwClose(h); goto done; }
