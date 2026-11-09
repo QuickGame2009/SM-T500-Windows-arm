@@ -9,9 +9,8 @@
  *   INTR_CFG  +0x8  enable bit 0, polaridad bit 1, detección [3:2], raw status bit 4, destino [7:5]
  *   INTR_STAT +0xC  bit 0 = evento pendiente (se borra escribiendo 0)
  */
-#define TLMM_WEST_PHYS   0x00500000
-#define TLMM_EAST_PHYS   0x00D00000
-#define TLMM_TILE_LEN    0x00400000
+#define TLMM_PHYS_BASE   0x00500000
+#define TLMM_REGION_LEN  0x00300000
 
 #define TLMM_CTL(n)         (0x1000u * (n))
 #define TLMM_IO(n)          (0x1000u * (n) + 0x4)
@@ -36,8 +35,8 @@
 #define TLMM_INTR_DET_FALLING   (0x2u << 2)
 #define TLMM_INTR_RAW_STATUS    (1u << 4)
 
-#define GPIO_TOUCH_IRQ   80   /* WEST, flanco de bajada */
-#define GPIO_TOUCH_RST   31   /* EAST */
+#define GPIO_TOUCH_IRQ   80   /* pmx_ts_int_active en scuba.dts */
+#define GPIO_TOUCH_RST   71   /* pmx_ts_reset_active en scuba.dts */
 
 NTSTATUS TlmmConfigure(PDEVICE_CONTEXT Ctx);
 ULONG    TlmmReadInput(PDEVICE_CONTEXT Ctx, ULONG Gpio);

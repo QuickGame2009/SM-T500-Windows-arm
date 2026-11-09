@@ -4,7 +4,7 @@
  * para SM6115. El driver propio recibe solo regiones de memoria y las maneja.
  *
  * El orden de las regiones debe coincidir con MapResource() de driver.c:
- *   0 SE0, 1 TLMM west, 2 TLMM east, 3 GCC, 4 wrapper QUP0.
+ *   0 SE0, 1 TLMM único, 2 GCC, 3 wrapper QUP0.
  */
 DefinitionBlock ("", "SSDT", 2, "SMT500", "HMXTOUCH", 1)
 {
@@ -28,10 +28,9 @@ DefinitionBlock ("", "SSDT", 2, "SMT500", "HMXTOUCH", 1)
                 Return (ResourceTemplate ()
                 {
                     Memory32Fixed (ReadWrite, 0x04A80000, 0x00004000)   // 0: QUP0 SE0 (SPI)
-                    Memory32Fixed (ReadWrite, 0x00500000, 0x00400000)   // 1: TLMM west (GPIO 80, SPI 0-3)
-                    Memory32Fixed (ReadWrite, 0x00D00000, 0x00400000)   // 2: TLMM east (GPIO 31)
-                    Memory32Fixed (ReadWrite, 0x01400000, 0x001F0000)   // 3: GCC
-                    Memory32Fixed (ReadWrite, 0x04AC0000, 0x00002000)   // 4: wrapper QUP0
+                    Memory32Fixed (ReadWrite, 0x00500000, 0x00300000)   // 1: TLMM único (GPIO0..126)
+                    Memory32Fixed (ReadWrite, 0x01400000, 0x001F0000)   // 2: GCC
+                    Memory32Fixed (ReadWrite, 0x04AC0000, 0x00002000)   // 3: wrapper QUP0
                     // Más adelante, al pasar de sondeo a interrupción:
                     // Interrupt (ResourceConsumer, Edge, ActiveLow, Exclusive) { 0x103 } // TLMM GIC SPI 227
                 })

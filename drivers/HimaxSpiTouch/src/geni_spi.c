@@ -2,13 +2,9 @@
 #include "util.h"
 
 /*
- * Controlador SPI QUPv3 GENI (SE0) en modo FIFO, por sondeo. Versión defensiva:
- *  - Empaquetado de 1 byte por palabra de FIFO (sin manejo de bits; menos errores).
- *  - Todos los bucles de espera están acotados por tiempo.
- *  - Si una orden no termina, se aborta antes de devolver el error.
- *  - Medio dúplex: TX y luego RX, que es justo lo que pide el Himax
- *    (F3 cmd 00, después lectura), con el CS mantenido entre fases.
- * Port de linux drivers/spi/spi-geni-qcom.c y drivers/soc/qcom/qcom-geni-se.c.
+ * QUPv3 GENI SE0 FIFO SPI. El empaquetado sigue spi-geni-qcom.c:
+ * cada palabra FIFO transporta FifoWidthBits/8 bytes, en orden little-endian.
+ * TX/RX son fases separadas y la fragmentación mantiene CS entre ambas.
  */
 
 #define SE_RD(c, o)     READ_REGISTER_ULONG((volatile ULONG *)((c)->GeniSe0 + (o)))
@@ -19,17 +15,26 @@
 /* Tope de un lote de FIFO sin progreso. */
 #define GENI_FIFO_SPINS  100000u
 
-/* Empaquetado de 1 palabra SPI de 8 bits por palabra de FIFO, MSB primero.
- * (geni_se_config_packing con pack_words = 1.) */
-static VOID ConfigPacking1Byte(PDEVICE_CONTEXT Ctx)
+/* Replica geni_se_config_packing(bpw=8, pack_words=FIFO_width/8, MSB first). */
+static NTSTATUS ConfigPacking(PDEVICE_CONTEXT Ctx)
 {
-    /* Un solo vector: inicio bit 7, dirección MSB, longitud 8 bits, bit de parada. */
-    ULONG cfg0 = (7u << 5) | (1u << 4) | (7u << 1) | 1u;
+    ULONG bytesPerWord = Ctx->FifoWidthBits / 8;
+    ULONG vectors[4] = {0, 0, 0, 0};
+    ULONG cfg0, cfg1;
+    if (bytesPerWord == 0 || bytesPerWord > RTL_NUMBER_OF(vectors))
+        return STATUS_DEVICE_CONFIGURATION_ERROR;
+    for (ULONG i = 0; i < bytesPerWord; i++) {
+        ULONG startBit = (i * 8) + 7;
+        vectors[i] = (startBit << 5) | (1u << 4) | (7u << 1);
+    }
+    vectors[bytesPerWord - 1] |= 1u;
+    cfg0 = vectors[0] | (vectors[1] << 10);
+    cfg1 = vectors[2] | (vectors[3] << 10);
     SE_WR(Ctx, SE_GENI_TX_PACKING_CFG0, cfg0);
-    SE_WR(Ctx, SE_GENI_TX_PACKING_CFG1, 0);
+    SE_WR(Ctx, SE_GENI_TX_PACKING_CFG1, cfg1);
     SE_WR(Ctx, SE_GENI_RX_PACKING_CFG0, cfg0);
-    SE_WR(Ctx, SE_GENI_RX_PACKING_CFG1, 0);
-    SE_WR(Ctx, SE_GENI_BYTE_GRAN, 0);   /* 8/16 = 0 */
+    SE_WR(Ctx, SE_GENI_RX_PACKING_CFG1, cfg1);
+    return STATUS_SUCCESS;
 }
 
 /* Aborta la orden actual y espera (acotado) a que el hardware lo confirme. */
@@ -66,9 +71,12 @@ NTSTATUS GeniSpiInit(PDEVICE_CONTEXT Ctx)
     ULONG hwp0 = SE_RD(Ctx, SE_HW_PARAM_0);
     Ctx->TxFifoDepth   = (hwp0 & TX_FIFO_DEPTH_MSK) >> TX_FIFO_DEPTH_SHFT;
     Ctx->FifoWidthBits = (hwp0 & TX_FIFO_WIDTH_MSK) >> TX_FIFO_WIDTH_SHFT;
-    if (Ctx->TxFifoDepth == 0 || Ctx->TxFifoDepth > 256) {
-        HxLog("profundidad de FIFO sospechosa (%u); uso 16", Ctx->TxFifoDepth);
-        Ctx->TxFifoDepth = 16;
+    if (Ctx->TxFifoDepth == 0 || Ctx->TxFifoDepth > 256 ||
+        Ctx->FifoWidthBits < 8 || Ctx->FifoWidthBits > 32 ||
+        (Ctx->FifoWidthBits & 7) != 0) {
+        HxLog("parámetros FIFO GENI no válidos: depth=%u width=%u",
+              Ctx->TxFifoDepth, Ctx->FifoWidthBits);
+        return STATUS_DEVICE_CONFIGURATION_ERROR;
     }
     HxLog("GENI ver=%u.%u ovs=%u fifo_depth=%u width=%u",
           major, minor, Ctx->Oversampling, Ctx->TxFifoDepth, Ctx->FifoWidthBits);
@@ -110,7 +118,10 @@ NTSTATUS GeniSpiInit(PDEVICE_CONTEXT Ctx)
     SE_WR(Ctx, SE_SPI_CPOL, HIMAX_SPI_CPOL ? SPI_CPOL_BIT : 0);
     SE_WR(Ctx, SE_SPI_WORD_LEN, SPI_WORD_LEN_8BIT);
     SE_WR(Ctx, SE_SPI_TRANS_CFG, SE_RD(Ctx, SE_SPI_TRANS_CFG) & ~SPI_CS_TOGGLE);
-    ConfigPacking1Byte(Ctx);
+    {
+        NTSTATUS packStatus = ConfigPacking(Ctx);
+        if (!NT_SUCCESS(packStatus)) return packStatus;
+    }
 
     /* --- reloj: ~10 MHz máximo --- */
     ULONG div = (Ctx->SeClkHz + (Ctx->Oversampling * HIMAX_SPI_HZ) - 1) /
@@ -124,28 +135,51 @@ NTSTATUS GeniSpiInit(PDEVICE_CONTEXT Ctx)
     return STATUS_SUCCESS;
 }
 
-/* Rellena la FIFO de TX con hasta (profundidad) bytes sueltos. Devuelve bytes escritos. */
+/* Llena FIFO agrupando bytes en palabras del ancho real del hardware. */
 static ULONG FillTxFifo(PDEVICE_CONTEXT Ctx, const UCHAR *Buf, ULONG Remaining)
 {
-    /* 1 byte por palabra de FIFO; se deja un hueco para no desbordar. */
-    ULONG space = (Ctx->TxFifoDepth > 1) ? (Ctx->TxFifoDepth - 1) : 1;
-    ULONG n = min(space, Remaining);
-    for (ULONG i = 0; i < n; i++)
-        SE_WR(Ctx, SE_GENI_TX_FIFOn, Buf[i]);
-    return n;
+    ULONG bytesPerWord = Ctx->FifoWidthBits / 8;
+    ULONG words = (Ctx->TxFifoDepth > 1) ? (Ctx->TxFifoDepth - 1) : 1;
+    ULONG limit = min(Remaining, words * bytesPerWord);
+    ULONG off = 0;
+    while (off < limit) {
+        ULONG word = 0;
+        ULONG n = min(bytesPerWord, limit - off);
+        for (ULONG j = 0; j < n; j++)
+            word |= ((ULONG)Buf[off + j]) << (j * 8);
+        SE_WR(Ctx, SE_GENI_TX_FIFOn, word);
+        off += n;
+    }
+    return off;
 }
 
-/* Vacía lo que haya en la FIFO de RX hacia Buf (tope Remaining). Devuelve bytes leídos. */
+/* Vacía FIFO RX, respetando RX_LAST y RX_LAST_BYTE_VALID como el kernel Qualcomm. */
 static ULONG DrainRxFifo(PDEVICE_CONTEXT Ctx, UCHAR *Buf, ULONG Remaining)
 {
-    ULONG wc = SE_RD(Ctx, SE_GENI_RX_FIFO_STATUS) & RX_FIFO_WC_MSK;
-    ULONG n = min(wc, Remaining);
-    for (ULONG i = 0; i < n; i++)
-        Buf[i] = (UCHAR)(SE_RD(Ctx, SE_GENI_RX_FIFOn) & 0xFF);
-    /* Descarta palabras sobrantes (no debería haber con medio dúplex). */
-    for (ULONG i = n; i < wc; i++)
-        (void)SE_RD(Ctx, SE_GENI_RX_FIFOn);
-    return n;
+    ULONG status = SE_RD(Ctx, SE_GENI_RX_FIFO_STATUS);
+    ULONG words = status & RX_FIFO_WC_MSK;
+    ULONG bytesPerWord = Ctx->FifoWidthBits / 8;
+    ULONG tailBytes = 0;
+    if ((status & RX_LAST) != 0) {
+        ULONG valid = (status & RX_LAST_BYTE_VALID_MSK) >> RX_LAST_BYTE_VALID_SHFT;
+        if (valid != 0 && valid < bytesPerWord) {
+            if (words == 0) return 0;
+            words--;
+            tailBytes = valid;
+        }
+    }
+    ULONG available = words * bytesPerWord + tailBytes;
+    ULONG copied = min(available, Remaining);
+    ULONG wordsToRead = (copied + bytesPerWord - 1) / bytesPerWord;
+    ULONG off = 0;
+    for (ULONG i = 0; i < wordsToRead; i++) {
+        ULONG word = SE_RD(Ctx, SE_GENI_RX_FIFOn);
+        ULONG n = min(bytesPerWord, copied - off);
+        for (ULONG j = 0; j < n; j++)
+            Buf[off + j] = (UCHAR)(word >> (j * 8));
+        off += n;
+    }
+    return copied;
 }
 
 /* Fase de transmisión de TxLen bytes. KeepCs = mantener CS al terminar. */
@@ -178,7 +212,14 @@ static NTSTATUS DoTx(PDEVICE_CONTEXT Ctx, const UCHAR *Tx, ULONG TxLen, BOOLEAN 
             if (rem == 0) SE_WR(Ctx, SE_GENI_TX_WATERMARK_REG, 0);
         }
         SE_WR(Ctx, SE_GENI_M_IRQ_CLEAR, irq);
-        if (irq & M_CMD_DONE_EN) return STATUS_SUCCESS;
+        if (irq & M_CMD_DONE_EN) {
+            SE_WR(Ctx, SE_GENI_TX_WATERMARK_REG, 0);
+            if (rem != 0) {
+                HxLog("TX: CMD_DONE prematuro, faltan %u bytes", rem);
+                return STATUS_IO_DEVICE_ERROR;
+            }
+            return STATUS_SUCCESS;
+        }
         KeStallExecutionProcessor(1);
     }
 

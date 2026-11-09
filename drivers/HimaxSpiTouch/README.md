@@ -12,7 +12,7 @@ SPI (SE0), los GPIO (TLMM) y los relojes (GCC).
 |---|---|---|
 | `driver.c` | hecho | PnP/energía, mapea MMIO, hilo que arranca el táctil y sondea |
 | `clocks.c` | hecho | enciende los relojes del QUP0/SE0 en el GCC (votación + tabla DFS) |
-| `tlmm.c` | hecho | GPIO 80 (IRQ) y 31 (reset) por acceso directo |
+| `tlmm.c` | hecho | GPIO 80 (IRQ) y 71 (reset) por acceso directo |
 | `himax.c` | hecho | protocolo HX83102E: bus SPI, registros AHB, sense_off/on, ID, CRC |
 | `fwload.c` | hecho | carga del firmware sin flash (tabla de particiones + CRC) |
 | `fileio.c` | hecho | lee el .bin del firmware (ruta en el registro) |
@@ -22,11 +22,11 @@ SPI (SE0), los GPIO (TLMM) y los relojes (GCC).
 | `geni_spi.c` | hecho | controlador SPI GENI en modo FIFO por sondeo (versión defensiva) |
 
 `geni_spi.c` está implementado de forma conservadora: modo FIFO por sondeo
-(sin DMA ni interrupciones), 1 byte por palabra de FIFO (sin manipular bits),
+(sin DMA ni interrupciones), empaquetado FIFO según el ancho real (1–4 bytes por palabra),
 esperas acotadas por tiempo en cada bucle y aborto de la orden si algo se cuelga.
 Es medio dúplex (TX y luego RX con el CS mantenido), que es lo que pide el Himax.
 Compromiso: cargar el firmware (128 KiB) por FIFO byte a byte es lento; cuando
-funcione, pasar esas escrituras grandes a DMA. Sigue SIN compilar ni probar.
+funcione, pasar esas escrituras grandes a DMA. La compilación CI no sustituye la prueba en el SM-T500.
 
 ## Flujo de arranque (driver.c, hilo de trabajo)
 
@@ -56,8 +56,7 @@ funcione, pasar esas escrituras grandes a DMA. Sigue SIN compilar ni probar.
 - `ClkSel` / divisor de reloj son aproximados (TCXO 19,2 MHz, objetivo ~10 MHz).
 - El modo SPI del DT decía 1, pero el driver Android fuerza modo 3 → probar modo 3.
 - Sondeo en vez de interrupción: sencillo pero gasta CPU; luego pasar a la IRQ del TLMM.
-- La carga de config va partición por partición, no en bloque contiguo como Android;
-  si el CRC de alguna parte falla, cambiar a bloque contiguo (nota en `fwload.c`).
+- La entidad principal se carga aparte y las particiones de configuración se agrupan en un bloque DSRAM contiguo con CRC software/hardware, como el kernel.
 - Detección de flanco del GPIO por "raw status": sin probar; hay respaldo por nivel.
 
 Datos de referencia: documentos del proyecto `protocolo-himax-hx83102e.md` e

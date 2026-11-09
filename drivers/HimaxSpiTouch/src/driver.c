@@ -48,20 +48,17 @@ static NTSTATUS EvtPrepareHardware(WDFDEVICE Device, WDFCMRESLIST Raw, WDFCMRESL
     PDEVICE_CONTEXT c = GetDeviceContext(Device);
     UNREFERENCED_PARAMETER(Raw);
 
-    c->GeniSe0  = MapResource(Translated, 0, &c->GeniSe0Len);
-    c->TlmmWest = MapResource(Translated, 1, &c->TlmmWestLen);
-    c->TlmmEast = MapResource(Translated, 2, &c->TlmmEastLen);
-    c->Gcc      = MapResource(Translated, 3, &c->GccLen);
-    c->QupWrap  = MapResource(Translated, 4, &c->QupWrapLen);
+    c->GeniSe0 = MapResource(Translated, 0, &c->GeniSe0Len);
+    c->Tlmm    = MapResource(Translated, 1, &c->TlmmLen);
+    c->Gcc     = MapResource(Translated, 2, &c->GccLen);
+    c->QupWrap = MapResource(Translated, 3, &c->QupWrapLen);
 
-    if (!c->GeniSe0 || !c->TlmmWest || !c->TlmmEast || !c->Gcc || !c->QupWrap ||
-        c->GeniSe0Len < 0x4000 || c->TlmmWestLen < 0x00400000 ||
-        c->TlmmEastLen < 0x00400000 || c->GccLen < 0x001F0000 ||
-        c->QupWrapLen < 0x2000) {
+    if (!c->GeniSe0 || !c->Tlmm || !c->Gcc || !c->QupWrap ||
+        c->GeniSe0Len < 0x4000 || c->TlmmLen < 0x00300000 ||
+        c->GccLen < 0x001F0000 || c->QupWrapLen < 0x2000) {
         HxLog("recursos MMIO ausentes o demasiado pequeños en el SSDT");
         UnmapOne(&c->GeniSe0, c->GeniSe0Len);
-        UnmapOne(&c->TlmmWest, c->TlmmWestLen);
-        UnmapOne(&c->TlmmEast, c->TlmmEastLen);
+        UnmapOne(&c->Tlmm, c->TlmmLen);
         UnmapOne(&c->Gcc, c->GccLen);
         UnmapOne(&c->QupWrap, c->QupWrapLen);
         return STATUS_DEVICE_CONFIGURATION_ERROR;
@@ -79,8 +76,7 @@ static NTSTATUS EvtReleaseHardware(WDFDEVICE Device, WDFCMRESLIST Translated)
     PDEVICE_CONTEXT c = GetDeviceContext(Device);
     UNREFERENCED_PARAMETER(Translated);
     UnmapOne(&c->GeniSe0, c->GeniSe0Len);
-    UnmapOne(&c->TlmmWest, c->TlmmWestLen);
-    UnmapOne(&c->TlmmEast, c->TlmmEastLen);
+    UnmapOne(&c->Tlmm, c->TlmmLen);
     UnmapOne(&c->Gcc, c->GccLen);
     UnmapOne(&c->QupWrap, c->QupWrapLen);
     return STATUS_SUCCESS;
@@ -116,6 +112,8 @@ static VOID WorkerThread(PVOID Context)
     HID_TOUCH_REPORT rep;
 
     NTSTATUS s = BringUpTouch(c);
+    c->InitStatus = s;
+    KeSetEvent(&c->InitEvent, IO_NO_INCREMENT, FALSE);
     if (!NT_SUCCESS(s)) {
         HxLog("arranque del táctil fallido: %08X; el hilo termina", s);
         PsTerminateSystemThread(s);
@@ -152,6 +150,8 @@ static NTSTATUS EvtD0Entry(WDFDEVICE Device, WDF_POWER_DEVICE_STATE Prev)
     UNREFERENCED_PARAMETER(Prev);
 
     KeClearEvent(&c->StopEvent);
+    KeClearEvent(&c->InitEvent);
+    c->InitStatus = STATUS_PENDING;
 
     HANDLE h = NULL;
     OBJECT_ATTRIBUTES oa;
@@ -175,6 +175,20 @@ static NTSTATUS EvtD0Entry(WDFDEVICE Device, WDF_POWER_DEVICE_STATE Prev)
 
     c->WorkerThread = thread;
     ZwClose(h);
+
+    /* No marcar D0 iniciado hasta completar la inicialización del controlador. */
+    KeWaitForSingleObject(&c->InitEvent, Executive, KernelMode, FALSE, NULL);
+    s = c->InitStatus;
+    if (!NT_SUCCESS(s)) {
+        KeSetEvent(&c->StopEvent, IO_NO_INCREMENT, FALSE);
+        KeWaitForSingleObject(c->WorkerThread, Executive, KernelMode, FALSE, NULL);
+        ObDereferenceObject(c->WorkerThread);
+        c->WorkerThread = NULL;
+        if (c->ChipDetected) (VOID)HimaxSenseOff(c, FALSE);
+        TlmmWriteOutput(c, GPIO_TOUCH_RST, 0);
+        FwFreeFile(c);
+        return s;
+    }
     return STATUS_SUCCESS;
 }
 
@@ -227,6 +241,8 @@ static NTSTATUS EvtDeviceAdd(WDFDRIVER Driver, PWDFDEVICE_INIT DeviceInit)
     c->Device = device;
     KeInitializeMutex(&c->SpiLock, 0);
     KeInitializeEvent(&c->StopEvent, NotificationEvent, FALSE);
+    KeInitializeEvent(&c->InitEvent, NotificationEvent, FALSE);
+    c->InitStatus = STATUS_PENDING;
     KeQueryPerformanceCounter(&c->QpcFreq);
 
     c->TxBuffer = (PUCHAR)ExAllocatePool2(POOL_FLAG_NON_PAGED, HX_TX_BUFFER_SIZE, 'xmiH');

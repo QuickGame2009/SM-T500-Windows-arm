@@ -1,14 +1,10 @@
 #include "tlmm.h"
 #include "util.h"
 
-/* Solo hacen falta dos GPIO: 80 (WEST) y 31 (EAST). */
+/* El SM6115 tiene un único bloque TLMM en 0x00500000 para GPIO0..126. */
 static PUCHAR TileFor(PDEVICE_CONTEXT Ctx, ULONG Gpio)
 {
-    switch (Gpio) {
-    case GPIO_TOUCH_IRQ: return Ctx->TlmmWest;
-    case GPIO_TOUCH_RST: return Ctx->TlmmEast;
-    default:             return NULL;
-    }
+    return (Gpio <= 126) ? Ctx->Tlmm : NULL;
 }
 
 static ULONG TlmmRd(PDEVICE_CONTEXT Ctx, ULONG Gpio, ULONG Off)
@@ -35,10 +31,20 @@ NTSTATUS TlmmConfigure(PDEVICE_CONTEXT Ctx)
           TlmmRd(Ctx, GPIO_TOUCH_RST, TLMM_CTL(GPIO_TOUCH_RST)),
           TlmmRd(Ctx, GPIO_TOUCH_RST, TLMM_IO(GPIO_TOUCH_RST)));
 
-    /* GPIO 80: función 0 (GPIO), entrada, pull-up */
+    /* QUP0 SE0: GPIO0..3, función qup0=1, drive 6 mA, sin pull (scuba.dts). */
+    for (ULONG g = 0; g < 4; g++) {
+        ctl = TlmmRd(Ctx, g, TLMM_CTL(g));
+        ctl &= ~(TLMM_CTL_FUNC_MASK | TLMM_CTL_OE |
+                 TLMM_CTL_PULL_MASK | TLMM_CTL_DRV_MASK);
+        ctl |= (1u << TLMM_CTL_FUNC_SHIFT) | (2u << TLMM_CTL_DRV_SHIFT);
+        TlmmWr(Ctx, g, TLMM_CTL(g), ctl);
+    }
+
+    /* GPIO80: IRQ táctil, GPIO input, pull-up y drive-strength 8 mA. */
     ctl = TlmmRd(Ctx, GPIO_TOUCH_IRQ, TLMM_CTL(GPIO_TOUCH_IRQ));
-    ctl &= ~(TLMM_CTL_FUNC_MASK | TLMM_CTL_OE | TLMM_CTL_PULL_MASK);
-    ctl |= TLMM_CTL_PULL_UP;
+    ctl &= ~(TLMM_CTL_FUNC_MASK | TLMM_CTL_OE |
+             TLMM_CTL_PULL_MASK | TLMM_CTL_DRV_MASK);
+    ctl |= TLMM_CTL_PULL_UP | (3u << TLMM_CTL_DRV_SHIFT);
     TlmmWr(Ctx, GPIO_TOUCH_IRQ, TLMM_CTL(GPIO_TOUCH_IRQ), ctl);
 
     /* Detección de flanco de bajada con "raw status": el TLMM guarda el evento
@@ -51,19 +57,16 @@ NTSTATUS TlmmConfigure(PDEVICE_CONTEXT Ctx)
     TlmmWr(Ctx, GPIO_TOUCH_IRQ, TLMM_INTR_CFG(GPIO_TOUCH_IRQ), icfg);
     TlmmWr(Ctx, GPIO_TOUCH_IRQ, TLMM_INTR_STATUS(GPIO_TOUCH_IRQ), 0);
 
-    /* GPIO 31: función 0, salida a 1 (reset inactivo), fuerza 2 mA */
+    /* GPIO71: reset táctil según pmx_ts_reset_active de scuba.dts.
+     * Salida alta, pull-up y drive-strength de 8 mA. */
     TlmmWr(Ctx, GPIO_TOUCH_RST, TLMM_IO(GPIO_TOUCH_RST), TLMM_IO_OUT);
     ctl = TlmmRd(Ctx, GPIO_TOUCH_RST, TLMM_CTL(GPIO_TOUCH_RST));
     ctl &= ~(TLMM_CTL_FUNC_MASK | TLMM_CTL_PULL_MASK | TLMM_CTL_DRV_MASK);
-    ctl |= TLMM_CTL_OE;
+    ctl |= TLMM_CTL_OE | TLMM_CTL_PULL_UP | (3u << TLMM_CTL_DRV_SHIFT);
     TlmmWr(Ctx, GPIO_TOUCH_RST, TLMM_CTL(GPIO_TOUCH_RST), ctl);
 
-    /* Las líneas SPI (GPIO 0-3, función qup0 = 1) las deja la UEFI/bootloader.
-     * TODO: si el SPI no responde, comprobar su CTL (función 1) en TlmmWest. */
-    for (ULONG g = 0; g < 4; g++) {
-        HxLog("GPIO%u (SPI) CTL=%08X", g,
-              READ_REGISTER_ULONG((volatile ULONG *)(Ctx->TlmmWest + TLMM_CTL(g))));
-    }
+    for (ULONG g = 0; g < 4; g++)
+        HxLog("GPIO%u (QUP0 SPI) CTL=%08X", g, TlmmRd(Ctx, g, TLMM_CTL(g)));
     return STATUS_SUCCESS;
 }
 

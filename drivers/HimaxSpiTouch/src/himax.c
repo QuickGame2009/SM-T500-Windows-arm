@@ -46,17 +46,20 @@ NTSTATUS HimaxRegRead(PDEVICE_CONTEXT Ctx, ULONG Addr, UCHAR *Data, ULONG Len)
 
     HxPutLe32(a, Addr);
     s = HimaxBusWrite(Ctx, HX_CMD_AHB_ADDR, a, HX_ADDR_LEN);
-    if (!NT_SUCCESS(s)) return s;
+    if (!NT_SUCCESS(s)) goto restore;
     s = HimaxBusWrite(Ctx, HX_CMD_AHB_DIR, &dir, 1);
-    if (!NT_SUCCESS(s)) return s;
+    if (!NT_SUCCESS(s)) goto restore;
     s = HimaxBusRead(Ctx, HX_CMD_AHB_RDATA, Data, Len);
-    if (!NT_SUCCESS(s)) return s;
+    if (!NT_SUCCESS(s)) goto restore;
 
     if (Len > HX_ADDR_LEN) {
         s = HimaxBurstEnable(Ctx, FALSE);
         if (!NT_SUCCESS(s)) return s;
     }
     return STATUS_SUCCESS;
+restore:
+    if (Len > HX_ADDR_LEN) (VOID)HimaxBurstEnable(Ctx, FALSE);
+    return s;
 }
 
 /* himax_mcu_register_write / flash_write_burst_lenth, troceado a HX_MAX_WRITE_CHUNK */
@@ -79,8 +82,15 @@ NTSTATUS HimaxRegWrite(PDEVICE_CONTEXT Ctx, ULONG Addr, const UCHAR *Data, ULONG
         HxPutLe32(Ctx->TxBuffer + 2, Addr + off);
         RtlCopyMemory(Ctx->TxBuffer + 6, Data + off, chunk);
         s = GeniSpiTransfer(Ctx, Ctx->TxBuffer, chunk + 6, NULL, 0);
-        if (!NT_SUCCESS(s)) return s;
+        if (!NT_SUCCESS(s)) {
+            if (Len > HX_ADDR_LEN) (VOID)HimaxBurstEnable(Ctx, FALSE);
+            return s;
+        }
         off += chunk;
+    }
+    if (Len > HX_ADDR_LEN) {
+        s = HimaxBurstEnable(Ctx, FALSE);
+        if (!NT_SUCCESS(s)) return s;
     }
     return STATUS_SUCCESS;
 }

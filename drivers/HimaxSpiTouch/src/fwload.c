@@ -65,22 +65,80 @@ NTSTATUS FwParsePartitions(PDEVICE_CONTEXT Ctx, HX_FW_PART *Parts, ULONG MaxPart
     return STATUS_SUCCESS;
 }
 
-/* Escribe una partición en SRAM y comprueba el CRC por hardware (3 intentos). */
-static NTSTATUS FwWritePartCrc(PDEVICE_CONTEXT Ctx, const HX_FW_PART *p)
+/* La entidad principal del firmware se valida con CRC hardware == 0 (kernel Himax). */
+static NTSTATUS FwWriteMainPart(PDEVICE_CONTEXT Ctx, const HX_FW_PART *p)
 {
     for (ULONG retry = 0; retry < 3; retry++) {
         NTSTATUS status = HimaxRegWrite(Ctx, p->SramAddr,
                                         Ctx->Firmware + p->FileOffset, p->Size);
-        if (!NT_SUCCESS(status)) {
-            HxLog("fallo escribiendo partición SRAM %08X: %08X",
-                  p->SramAddr, status);
-            return status;
-        }
+        if (!NT_SUCCESS(status)) return status;
         ULONG crc = HimaxCheckCrcHw(Ctx, p->SramAddr, p->Size);
         if (crc == 0) return STATUS_SUCCESS;
-        HxLog("CRC de sram=%08X ha fallado (%08X), reintento %u", p->SramAddr, crc, retry + 1);
+        HxLog("CRC de entidad principal no es cero (%08X), intento %u", crc, retry + 1);
     }
     return STATUS_CRC_ERROR;
+}
+
+/* Configuración DSRAM agrupada como himax_zf_part_info(); HX_CODE_OVERLAY
+ * está desactivado en himax_common.h para este kernel. */
+static NTSTATUS FwWriteConfigBlock(PDEVICE_CONTEXT Ctx,
+                                   const HX_FW_PART *Parts, ULONG Count)
+{
+    ULONG base = MAXULONG;
+    ULONGLONG end = 0;
+    PUCHAR image = NULL;
+    ULONG length, expected, actual;
+    NTSTATUS status = STATUS_SUCCESS;
+
+    if (Count <= 1) return STATUS_SUCCESS;
+
+    for (ULONG i = 1; i < Count; i++) {
+        ULONG addr = Parts[i].SramAddr & ~3u;
+        ULONGLONG partEnd = (ULONGLONG)addr + Parts[i].Size;
+        if (Parts[i].Size == 0 || partEnd > 0x100000000ull)
+            return STATUS_INVALID_PARAMETER;
+        if (addr < base) base = addr;
+        if (partEnd > end) end = partEnd;
+    }
+    if (base == MAXULONG || end <= base) return STATUS_INVALID_PARAMETER;
+
+    ULONGLONG span = (end - base + 15u) & ~15ull;
+    if (span == 0 || span > HX_DSRAM_SIZE || span > MAXULONG)
+        return STATUS_INVALID_BUFFER_SIZE;
+    length = (ULONG)span;
+
+    image = (PUCHAR)ExAllocatePool2(POOL_FLAG_NON_PAGED, length, 'xmiH');
+    if (!image) return STATUS_INSUFFICIENT_RESOURCES;
+    RtlZeroMemory(image, length);
+
+    for (ULONG i = 1; i < Count; i++) {
+        ULONG addr = Parts[i].SramAddr & ~3u;
+        ULONG offset = addr - base;
+        if ((ULONGLONG)offset + Parts[i].Size > length) {
+            status = STATUS_INVALID_PARAMETER;
+            goto done;
+        }
+        RtlCopyMemory(image + offset, Ctx->Firmware + Parts[i].FileOffset,
+                      Parts[i].Size);
+    }
+
+    expected = FwCrc32(image, length);
+    for (ULONG retry = 0; retry < 4; retry++) {
+        status = HimaxRegWrite(Ctx, base, image, length);
+        if (!NT_SUCCESS(status)) goto done;
+        actual = HimaxCheckCrcHw(Ctx, base, length);
+        if (actual == expected) {
+            HxLog("CRC de configuración correcto: %08X (%u bytes)", actual, length);
+            status = STATUS_SUCCESS;
+            goto done;
+        }
+        HxLog("CRC de configuración distinto: HW=%08X SW=%08X, intento %u",
+              actual, expected, retry + 1);
+    }
+    status = STATUS_CRC_ERROR;
+done:
+    ExFreePoolWithTag(image, 'xmiH');
+    return status;
 }
 
 NTSTATUS FwDownload(PDEVICE_CONTEXT Ctx)
@@ -97,15 +155,11 @@ NTSTATUS FwDownload(PDEVICE_CONTEXT Ctx)
     s = HimaxSenseOff(Ctx, FALSE);
     if (!NT_SUCCESS(s)) return s;
 
-    /* La partición 0 es la entidad de FW; el resto, configuración/ADC/tabla.
-     * El driver Android junta las de configuración en un bloque contiguo; aquí
-     * se escribe partición por partición, que es funcionalmente equivalente y
-     * más simple. TODO: si el CRC de alguna parte de config falla, pasar al
-     * esquema de bloque contiguo de himax_zf_part_info (ordenar por cfg_addr). */
-    for (ULONG i = 0; i < count; i++) {
-        s = FwWritePartCrc(Ctx, &parts[i]);
-        if (!NT_SUCCESS(s)) return s;
-    }
+    /* Partición 0 = entidad principal; el resto = bloque de configuración. */
+    s = FwWriteMainPart(Ctx, &parts[0]);
+    if (!NT_SUCCESS(s)) return s;
+    s = FwWriteConfigBlock(Ctx, parts, count);
+    if (!NT_SUCCESS(s)) return s;
 
     s = HimaxRegWrite32(Ctx, HX_REG_SET_FRAME, 0x00000001); /* n frame = 1 */
     if (!NT_SUCCESS(s)) return s;

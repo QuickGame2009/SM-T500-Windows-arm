@@ -92,6 +92,9 @@
                                      M_TX_FIFO_RD_ERR_EN | M_TX_FIFO_WR_ERR_EN)
 
 #define TX_FIFO_WC_MSK              0x0FFFFFFFu
+#define RX_LAST                     (1u << 31)
+#define RX_LAST_BYTE_VALID_MSK      (7u << 28)
+#define RX_LAST_BYTE_VALID_SHFT     28
 #define RX_FIFO_WC_MSK              0x01FFFFFFu
 
 /* Bits extra para la inicialización (qcom-geni-se.c) */
