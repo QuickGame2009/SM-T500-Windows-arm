@@ -6,7 +6,7 @@
  * hasta dónde llegó el driver. Solo escribe a PASSIVE_LEVEL; en otro nivel
  * queda únicamente la salida por DbgPrintEx.
  */
-#include <ntddk.h>
+#include <ntifs.h>
 #include <ntstrsafe.h>
 #include "util.h"
 
