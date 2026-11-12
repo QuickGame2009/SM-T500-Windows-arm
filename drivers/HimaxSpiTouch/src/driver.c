@@ -78,6 +78,7 @@ static NTSTATUS EvtReleaseHardware(WDFDEVICE Device, WDFCMRESLIST Translated)
 {
     PDEVICE_CONTEXT c = GetDeviceContext(Device);
     UNREFERENCED_PARAMETER(Translated);
+    if (c->Orphaned) { HxLog("ReleaseHardware: mapeos conservados (hilo abandonado)"); return STATUS_SUCCESS; }
     UnmapOne(&c->GeniSe0, c->GeniSe0Len);
     UnmapOne(&c->Tlmm, c->TlmmLen);
     UnmapOne(&c->Gcc, c->GccLen);
@@ -162,6 +163,11 @@ static VOID WorkerThread(PVOID Context)
     NTSTATUS s = BringUpTouch(c);
     c->InitStatus = s;
     KeSetEvent(&c->InitEvent, IO_NO_INCREMENT, FALSE);
+    if (c->Orphaned) {
+        HxLog("el hilo terminó tras ser abandonado (%08X)", s);
+        PsTerminateSystemThread(s);
+        return;
+    }
     if (!NT_SUCCESS(s)) {
         HxLog("arranque del táctil fallido: %08X; el hilo termina", s);
         PsTerminateSystemThread(s);
@@ -233,7 +239,20 @@ static NTSTATUS EvtD0Entry(WDFDEVICE Device, WDF_POWER_DEVICE_STATE Prev)
     ZwClose(h);
 
     /* No marcar D0 iniciado hasta completar la inicialización del controlador. */
-    KeWaitForSingleObject(&c->InitEvent, Executive, KernelMode, FALSE, NULL);
+    {
+        LARGE_INTEGER limit; limit.QuadPart = -(LONGLONG)15000 * 10000;   /* 15 s */
+        if (KeWaitForSingleObject(&c->InitEvent, Executive, KernelMode, FALSE, &limit)
+            == STATUS_TIMEOUT) {
+            /* El hilo sigue ocupado (hardware sin respuesta). No bloquear a PnP:
+             * se abandona el hilo, se mantienen vivos contexto y mapeos MMIO
+             * y se falla D0Entry. */
+            HxLog("D0Entry: el arranque no termina en 15 s; se abandona el hilo");
+            InterlockedExchange(&c->Orphaned, 1);
+            WdfObjectReference(c->Device);      /* el contexto no se libera nunca */
+            KeSetEvent(&c->StopEvent, IO_NO_INCREMENT, FALSE);
+            return STATUS_IO_TIMEOUT;
+        }
+    }
     s = c->InitStatus;
     if (!NT_SUCCESS(s)) {
         KeSetEvent(&c->StopEvent, IO_NO_INCREMENT, FALSE);
@@ -255,6 +274,7 @@ static NTSTATUS EvtD0Exit(WDFDEVICE Device, WDF_POWER_DEVICE_STATE Target)
     HxLog("D0Exit");
 
     KeSetEvent(&c->StopEvent, IO_NO_INCREMENT, FALSE);
+    if (c->Orphaned) return STATUS_SUCCESS;     /* hilo abandonado: no tocar hardware */
     if (c->WorkerThread) {
         KeWaitForSingleObject(c->WorkerThread, Executive, KernelMode, FALSE, NULL);
         ObDereferenceObject(c->WorkerThread);

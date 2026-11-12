@@ -51,7 +51,7 @@ VOID HxLogWrite(const char *Fmt, ...)
 
     if (!g_Init || KeGetCurrentIrql() != PASSIVE_LEVEL) return;
 
-    ExAcquireFastMutex(&g_LogLock);
+    if (!ExTryToAcquireFastMutex(&g_LogLock)) return;   /* nunca bloquear por el log */
     EnsureOpen();
     if (g_LogFile) {
         size_t len = 0;

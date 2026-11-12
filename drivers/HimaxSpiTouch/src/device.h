@@ -46,6 +46,7 @@ typedef struct _DEVICE_CONTEXT {
 
     /* Estado */
     BOOLEAN     ChipDetected;
+    volatile LONG Orphaned;   /* el hilo de arranque no terminó a tiempo */
     ULONG       Stage;        /* Parameters\Stage: hasta qué paso llega el arranque */
     BOOLEAN     FirmwareLoaded;
     BOOLEAN     PrevDown[TOUCH_MAX_CONTACTS];
