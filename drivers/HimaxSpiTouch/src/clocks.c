@@ -51,12 +51,15 @@ NTSTATUS ClocksEnableQup0Se0(PDEVICE_CONTEXT Ctx, PULONG SeClkHz, PULONG ClkSel)
         return STATUS_INVALID_PARAMETER;
 
     NTSTATUS status;
+    HxLog("ANTES: leer GCC voto de ramas (GCC+%08X)", GCC_APCS_CLOCK_BRANCH_ENA_VOTE);
     ULONG vote = GccRead(Ctx, GCC_APCS_CLOCK_BRANCH_ENA_VOTE);
 
     HxLog("GCC voto antes = %08X", vote);
     vote |= VOTE_QUPV3_WRAP_0_M_AHB | VOTE_QUPV3_WRAP_0_S_AHB |
             VOTE_QUPV3_WRAP0_CORE | VOTE_QUPV3_WRAP0_CORE_2X;
+    HxLog("ANTES: escribir voto de ramas = %08X", vote);
     GccWrite(Ctx, GCC_APCS_CLOCK_BRANCH_ENA_VOTE, vote);
+    HxLog("voto escrito; esperando ramas");
 
     status = WaitBranchOn(Ctx, GCC_QUPV3_WRAP_0_M_AHB_CBCR, "m_ahb");
     if (!NT_SUCCESS(status)) return status;
@@ -68,6 +71,7 @@ NTSTATUS ClocksEnableQup0Se0(PDEVICE_CONTEXT Ctx, PULONG SeClkHz, PULONG ClkSel)
     if (!NT_SUCCESS(status)) return status;
 
     /* Frecuencia del SE */
+    HxLog("ramas AHB/core encendidas");
     ULONG dfsr = GccRead(Ctx, GCC_QUPV3_WRAP0_S0_CMD_RCGR + RCG_DFSR);
     if (dfsr & 1) {
         status = PickDfsLevel(Ctx, SeClkHz, ClkSel);
@@ -97,6 +101,7 @@ NTSTATUS ClocksEnableQup0Se0(PDEVICE_CONTEXT Ctx, PULONG SeClkHz, PULONG ClkSel)
     }
 
     /* Rama del SE0 */
+    HxLog("ANTES: votar rama wrap0_s0");
     GccWrite(Ctx, GCC_APCS_CLOCK_BRANCH_ENA_VOTE,
              GccRead(Ctx, GCC_APCS_CLOCK_BRANCH_ENA_VOTE) | VOTE_QUPV3_WRAP0_S0);
     status = WaitBranchOn(Ctx, GCC_QUPV3_WRAP0_S0_CBCR, "wrap0_s0");

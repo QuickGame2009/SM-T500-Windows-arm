@@ -54,6 +54,7 @@ static VOID AbortCmd(PDEVICE_CONTEXT Ctx)
 
 NTSTATUS GeniSpiInit(PDEVICE_CONTEXT Ctx)
 {
+    HxLog("ANTES: leer FW_REVISION del SE0");
     ULONG fwRev = SE_RD(Ctx, GENI_FW_REVISION_RO);
     ULONG proto = (fwRev >> 8) & 0xFF;
     HxLog("SE0 FW_REVISION=%08X protocolo=%u (1 = SPI)", fwRev, proto);
@@ -63,6 +64,7 @@ NTSTATUS GeniSpiInit(PDEVICE_CONTEXT Ctx)
     }
 
     /* Versión del wrapper → sobremuestreo (oversampling). */
+    HxLog("ANTES: leer versión del wrapper QUP");
     ULONG ver = READ_REGISTER_ULONG((volatile ULONG *)(Ctx->QupWrap + QUPV3_HW_VER_REG));
     ULONG major = (ver >> 28) & 0xF, minor = (ver >> 16) & 0xFFF;
     Ctx->Oversampling = (major == 1 && minor == 0) ? 2 : 1;
@@ -82,6 +84,7 @@ NTSTATUS GeniSpiInit(PDEVICE_CONTEXT Ctx)
           major, minor, Ctx->Oversampling, Ctx->TxFifoDepth, Ctx->FifoWidthBits);
 
     /* --- geni_se_irq_clear --- */
+    HxLog("ANTES: escribir registros de IRQ del SE0");
     SE_WR(Ctx, SE_GSI_EVENT_EN, 0);
     SE_WR(Ctx, SE_GENI_M_IRQ_CLEAR, 0xFFFFFFFF);
     SE_WR(Ctx, SE_GENI_S_IRQ_CLEAR, 0xFFFFFFFF);
@@ -126,6 +129,7 @@ NTSTATUS GeniSpiInit(PDEVICE_CONTEXT Ctx)
         if (!NT_SUCCESS(packStatus)) return packStatus;
     }
 
+    HxLog("configuración SPI escrita");
     /* --- reloj: ~10 MHz máximo --- */
     ULONG div = (Ctx->SeClkHz + (Ctx->Oversampling * HIMAX_SPI_HZ) - 1) /
                 (Ctx->Oversampling * HIMAX_SPI_HZ);   /* DIV_ROUND_UP */

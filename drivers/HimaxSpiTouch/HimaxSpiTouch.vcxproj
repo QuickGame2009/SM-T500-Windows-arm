@@ -46,7 +46,7 @@
       <!-- El driver es "HID source" de VHF: necesita vhf.h y VhfKm.lib -->
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(DDK_LIB_PATH)VhfKm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(DDK_LIB_PATH)VhfKm.lib;$(DDK_LIB_PATH)ntstrsafe.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Inf>
       <SpecifyArchitecture>true</SpecifyArchitecture>
@@ -55,6 +55,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\driver.c" />
+    <ClCompile Include="src\log.c" />
     <ClCompile Include="src\clocks.c" />
     <ClCompile Include="src\geni_spi.c" />
     <ClCompile Include="src\tlmm.c" />

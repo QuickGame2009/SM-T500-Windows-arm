@@ -48,6 +48,7 @@ static NTSTATUS EvtPrepareHardware(WDFDEVICE Device, WDFCMRESLIST Raw, WDFCMRESL
     PDEVICE_CONTEXT c = GetDeviceContext(Device);
     UNREFERENCED_PARAMETER(Raw);
 
+    HxLog("PrepareHardware: mapeando MMIO");
     c->GeniSe0 = MapResource(Translated, 0, &c->GeniSe0Len);
     c->Tlmm    = MapResource(Translated, 1, &c->TlmmLen);
     c->Gcc     = MapResource(Translated, 2, &c->GccLen);
@@ -63,6 +64,8 @@ static NTSTATUS EvtPrepareHardware(WDFDEVICE Device, WDFCMRESLIST Raw, WDFCMRESL
         UnmapOne(&c->QupWrap, c->QupWrapLen);
         return STATUS_DEVICE_CONFIGURATION_ERROR;
     }
+    HxLog("PrepareHardware OK: SE0=%p(%llu) TLMM=%p(%llu) GCC=%p(%llu) WRAP=%p(%llu)",
+          c->GeniSe0, (ULONGLONG)c->GeniSe0Len, c->Tlmm, (ULONGLONG)c->TlmmLen, c->Gcc, (ULONGLONG)c->GccLen, c->QupWrap, (ULONGLONG)c->QupWrapLen);
     return STATUS_SUCCESS;
 }
 
@@ -84,24 +87,69 @@ static NTSTATUS EvtReleaseHardware(WDFDEVICE Device, WDFCMRESLIST Translated)
 
 /* ---- arranque del táctil y bucle de sondeo, en un hilo propio ---- */
 
+/*
+ * Etapas de arranque (valor DWORD "Stage" en
+ * HKLM\SYSTEM\CurrentControlSet\Services\HimaxSpiTouch\Parameters).
+ * Por defecto 0: el driver carga pero NO toca el hardware.
+ *   1 = relojes QUP0/SE0 (GCC)      2 = + init GENI SE0
+ *   3 = + configuración TLMM        4 = + detectar el chip Himax
+ *   5 = + firmware, sense on y HID virtual (funcionamiento completo)
+ */
+static ULONG ReadStage(VOID)
+{
+    ULONG stage = 0;
+    WDFKEY key = NULL;
+    DECLARE_CONST_UNICODE_STRING(name, L"Stage");
+    if (NT_SUCCESS(WdfDriverOpenParametersRegistryKey(WdfGetDriver(), KEY_READ,
+                                                      WDF_NO_OBJECT_ATTRIBUTES, &key))) {
+        ULONG v = 0;
+        if (NT_SUCCESS(WdfRegistryQueryULong(key, &name, &v))) stage = v;
+        WdfRegistryClose(key);
+    }
+    return stage;
+}
+
 static NTSTATUS BringUpTouch(PDEVICE_CONTEXT c)
 {
     NTSTATUS s;
     ULONG seHz = 0, clkSel = 0;
 
+    c->Stage = ReadStage();
+    HxLog("=== arranque del táctil, Stage=%u ===", c->Stage);
+    if (c->Stage < 1) { HxLog("Stage 0: no se toca el hardware"); return STATUS_SUCCESS; }
+
+    HxLog("paso 1: relojes");
     s = ClocksEnableQup0Se0(c, &seHz, &clkSel);
     if (!NT_SUCCESS(s)) return s;
     c->SeClkHz = seHz; c->ClkSel = clkSel;
+    HxLog("paso 1 OK");
+    if (c->Stage < 2) return STATUS_SUCCESS;
 
+    HxLog("paso 2: GENI SE0");
     s = GeniSpiInit(c);                 if (!NT_SUCCESS(s)) return s;
-    s = TlmmConfigure(c);               if (!NT_SUCCESS(s)) return s;
-    s = HimaxDetect(c);                 if (!NT_SUCCESS(s)) return s;
+    HxLog("paso 2 OK");
+    if (c->Stage < 3) return STATUS_SUCCESS;
 
+    HxLog("paso 3: TLMM");
+    s = TlmmConfigure(c);               if (!NT_SUCCESS(s)) return s;
+    HxLog("paso 3 OK");
+    if (c->Stage < 4) return STATUS_SUCCESS;
+
+    HxLog("paso 4: detectar Himax");
+    s = HimaxDetect(c);                 if (!NT_SUCCESS(s)) return s;
+    HxLog("paso 4 OK");
+    if (c->Stage < 5) return STATUS_SUCCESS;
+
+    HxLog("paso 5: firmware");
     s = FwReadFileFromRegistry(c);      if (!NT_SUCCESS(s)) return s;
     s = FwDownload(c);                  if (!NT_SUCCESS(s)) return s;
+    HxLog("paso 5: sense on");
     s = HimaxSenseOn(c);                if (!NT_SUCCESS(s)) return s;
 
-    s = VhfDeviceStart(c);              return s;
+    HxLog("paso 5: HID virtual");
+    s = VhfDeviceStart(c);
+    HxLog("paso 5 terminado: %08X", s);
+    return s;
 }
 
 static VOID WorkerThread(PVOID Context)
@@ -117,6 +165,13 @@ static VOID WorkerThread(PVOID Context)
     if (!NT_SUCCESS(s)) {
         HxLog("arranque del táctil fallido: %08X; el hilo termina", s);
         PsTerminateSystemThread(s);
+        return;
+    }
+
+    if (c->Stage < 5) {
+        /* Etapa parcial: esperar a que pare el dispositivo sin sondear. */
+        KeWaitForSingleObject(&c->StopEvent, Executive, KernelMode, FALSE, NULL);
+        PsTerminateSystemThread(STATUS_SUCCESS);
         return;
     }
 
@@ -148,6 +203,7 @@ static NTSTATUS EvtD0Entry(WDFDEVICE Device, WDF_POWER_DEVICE_STATE Prev)
 {
     PDEVICE_CONTEXT c = GetDeviceContext(Device);
     UNREFERENCED_PARAMETER(Prev);
+    HxLog("D0Entry");
 
     KeClearEvent(&c->StopEvent);
     KeClearEvent(&c->InitEvent);
@@ -185,7 +241,7 @@ static NTSTATUS EvtD0Entry(WDFDEVICE Device, WDF_POWER_DEVICE_STATE Prev)
         ObDereferenceObject(c->WorkerThread);
         c->WorkerThread = NULL;
         if (c->ChipDetected) (VOID)HimaxSenseOff(c, FALSE);
-        TlmmWriteOutput(c, GPIO_TOUCH_RST, 0);
+        if (c->Stage >= 3) TlmmWriteOutput(c, GPIO_TOUCH_RST, 0);
         FwFreeFile(c);
         return s;
     }
@@ -196,6 +252,7 @@ static NTSTATUS EvtD0Exit(WDFDEVICE Device, WDF_POWER_DEVICE_STATE Target)
 {
     PDEVICE_CONTEXT c = GetDeviceContext(Device);
     UNREFERENCED_PARAMETER(Target);
+    HxLog("D0Exit");
 
     KeSetEvent(&c->StopEvent, IO_NO_INCREMENT, FALSE);
     if (c->WorkerThread) {
@@ -204,7 +261,7 @@ static NTSTATUS EvtD0Exit(WDFDEVICE Device, WDF_POWER_DEVICE_STATE Target)
         c->WorkerThread = NULL;
     }
     if (c->ChipDetected) HimaxSenseOff(c, FALSE);
-    TlmmWriteOutput(c, GPIO_TOUCH_RST, 0);   /* reset en bajo */
+    if (c->Stage >= 3) TlmmWriteOutput(c, GPIO_TOUCH_RST, 0);   /* reset en bajo */
     FwFreeFile(c);
     return STATUS_SUCCESS;
 }
@@ -256,6 +313,8 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 {
     WDF_DRIVER_CONFIG config;
     WDF_DRIVER_CONFIG_INIT(&config, EvtDeviceAdd);
+    HxLogInit();
+    HxLog("DriverEntry (build con registro a fichero)");
     return WdfDriverCreate(DriverObject, RegistryPath, WDF_NO_OBJECT_ATTRIBUTES,
                            &config, WDF_NO_HANDLE);
 }

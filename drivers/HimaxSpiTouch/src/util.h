@@ -1,9 +1,11 @@
 #pragma once
 #include <ntddk.h>
 
-/* Registro por el depurador (DbgView / WinDbg con filtro IHVDRIVER). */
-#define HxLog(fmt, ...) \
-    DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "HimaxSpiTouch: " fmt "\n", __VA_ARGS__)
+/* Registro: DbgPrintEx + fichero C:\Windows\HimaxSpiTouch.log (volcado en cada línea). */
+VOID HxLogInit(VOID);
+VOID HxLogWrite(const char *Fmt, ...);
+VOID HxLogClose(VOID);
+#define HxLog(fmt, ...) HxLogWrite(fmt, __VA_ARGS__)
 
 /* Espera en milisegundos (PASSIVE_LEVEL). */
 static __forceinline VOID HxSleepMs(ULONG Ms)

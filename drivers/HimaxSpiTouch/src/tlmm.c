@@ -23,6 +23,7 @@ NTSTATUS TlmmConfigure(PDEVICE_CONTEXT Ctx)
 {
     ULONG ctl;
 
+    HxLog("ANTES: leer registros TLMM de GPIO80/31");
     HxLog("GPIO80 antes: CTL=%08X IO=%08X INTR_CFG=%08X",
           TlmmRd(Ctx, GPIO_TOUCH_IRQ, TLMM_CTL(GPIO_TOUCH_IRQ)),
           TlmmRd(Ctx, GPIO_TOUCH_IRQ, TLMM_IO(GPIO_TOUCH_IRQ)),
