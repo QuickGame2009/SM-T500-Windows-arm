@@ -71,7 +71,11 @@ static NTSTATUS FwWriteMainPart(PDEVICE_CONTEXT Ctx, const HX_FW_PART *p)
     for (ULONG retry = 0; retry < 3; retry++) {
         NTSTATUS status = HimaxRegWrite(Ctx, p->SramAddr,
                                         Ctx->Firmware + p->FileOffset, p->Size);
-        if (!NT_SUCCESS(status)) return status;
+        if (!NT_SUCCESS(status)) {
+            HxLog("fallo escribiendo partición SRAM %08X: %08X",
+                  p->SramAddr, status);
+            return status;
+        }
         ULONG crc = HimaxCheckCrcHw(Ctx, p->SramAddr, p->Size);
         if (crc == 0) return STATUS_SUCCESS;
         HxLog("CRC de entidad principal no es cero (%08X), intento %u", crc, retry + 1);
