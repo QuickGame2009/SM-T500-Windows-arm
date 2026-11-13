@@ -11,13 +11,15 @@
 #include "util.h"
 
 static HANDLE    g_LogFile;
-static FAST_MUTEX g_LogLock;
+/* KMUTEX, no FAST_MUTEX: este deja la IRQL en PASSIVE_LEVEL. Con FAST_MUTEX la
+ * E/S de fichero (que necesita APC especiales) se bloquearía para siempre. */
+static KMUTEX    g_LogLock;
 static LONG      g_Seq;
 static BOOLEAN   g_Init;
 
 VOID HxLogInit(VOID)
 {
-    ExInitializeFastMutex(&g_LogLock);
+    KeInitializeMutex(&g_LogLock, 0);
     g_Init = TRUE;
 }
 
@@ -51,7 +53,11 @@ VOID HxLogWrite(const char *Fmt, ...)
 
     if (!g_Init || KeGetCurrentIrql() != PASSIVE_LEVEL) return;
 
-    if (!ExTryToAcquireFastMutex(&g_LogLock)) return;   /* nunca bloquear por el log */
+    {
+        LARGE_INTEGER zero; zero.QuadPart = 0;   /* intento sin esperar: el log nunca bloquea */
+        if (KeWaitForSingleObject(&g_LogLock, Executive, KernelMode, FALSE, &zero) != STATUS_SUCCESS)
+            return;
+    }
     EnsureOpen();
     if (g_LogFile) {
         size_t len = 0;
@@ -66,13 +72,13 @@ VOID HxLogWrite(const char *Fmt, ...)
                 (VOID)ZwFlushBuffersFile(g_LogFile, &iosb);
         }
     }
-    ExReleaseFastMutex(&g_LogLock);
+    KeReleaseMutex(&g_LogLock, FALSE);
 }
 
 VOID HxLogClose(VOID)
 {
     if (!g_Init) return;
-    ExAcquireFastMutex(&g_LogLock);
+    KeWaitForSingleObject(&g_LogLock, Executive, KernelMode, FALSE, NULL);
     if (g_LogFile) { ZwClose(g_LogFile); g_LogFile = NULL; }
-    ExReleaseFastMutex(&g_LogLock);
+    KeReleaseMutex(&g_LogLock, FALSE);
 }
