@@ -25,15 +25,54 @@ ULONG FwCrc32(const UCHAR *Data, ULONG Len)
     return crc;
 }
 
+/*
+ * Posición de la tabla de particiones (TP_CONFIG_TABLE). Réplica de
+ * hx_mcu_bin_desc_get / hx_bin_desc_data_get del driver de Himax:
+ * si el .bin empieza con una tabla de descripción (8 primeros bytes a 0 y byte
+ * 0x0E == 0x87), se recorren entradas de 16 bytes; las que suman 0 (mod 256)
+ * traen [0..3] = código de mapeo y [4..7] = dirección. Código 0x0A00 =
+ * TP_CONFIG_TABLE. Una entrada toda a cero termina la tabla. Si no hay tabla de
+ * descripción o no trae esa entrada, se usa el valor por defecto 0x10000.
+ */
+#define HX_MAP_TP_CONFIG_TABLE  0x00000A00u
+
+static ULONG FwFindCfgTable(PDEVICE_CONTEXT Ctx)
+{
+    const UCHAR *fw = Ctx->Firmware;
+    ULONG size = Ctx->FirmwareSize;
+    ULONG found = HX_FW_CFG_TABLE_OFFSET;
+
+    if (size < 128) return found;
+    for (ULONG i = 0; i < 8; i++) if (fw[i] != 0) return found;
+    if (fw[0x0E] != 0x87) return found;
+
+    for (ULONG off = 0; off + 16 <= size; off += 16) {
+        ULONG orAll = 0, sum = 0;
+        for (ULONG j = 0; j < 16; j++) { orAll |= fw[off + j]; sum += fw[off + j]; }
+        if (orAll == 0) break;                 /* fin de la tabla */
+        if ((sum & 0xFF) != 0) continue;       /* suma de control incorrecta */
+        ULONG code = HxGetLe32(fw + off);
+        ULONG addr = HxGetLe32(fw + off + 4);
+        if (code == HX_MAP_TP_CONFIG_TABLE) {
+            HxLog("tabla de descripción: TP_CONFIG_TABLE en %05X (entrada %05X)", addr, off);
+            found = addr;
+        }
+    }
+    return found;
+}
+
 NTSTATUS FwParsePartitions(PDEVICE_CONTEXT Ctx, HX_FW_PART *Parts, ULONG MaxParts, PULONG Count)
 {
-    if (!Ctx || !Parts || !Count || MaxParts == 0 ||
-        !Ctx->Firmware || Ctx->FirmwareSize < HX_FW_CFG_TABLE_OFFSET + HX_FW_PART_ENTRY_SIZE)
+    if (!Ctx || !Parts || !Count || MaxParts == 0 || !Ctx->Firmware)
         return STATUS_INVALID_PARAMETER;
 
-    ULONG base = HX_FW_CFG_TABLE_OFFSET;
-    if (Ctx->FirmwareSize <= base + HX_FW_PART_COUNT_BYTE)
+    ULONG base = FwFindCfgTable(Ctx);
+    if ((ULONGLONG)base + HX_FW_PART_ENTRY_SIZE > Ctx->FirmwareSize ||
+        Ctx->FirmwareSize <= base + HX_FW_PART_COUNT_BYTE) {
+        HxLog("firmware: la tabla (%05X) se sale del fichero (%u bytes)", base, Ctx->FirmwareSize);
         return STATUS_INVALID_PARAMETER;
+    }
+    HxLog("firmware: tabla de particiones en %05X", base);
 
     ULONG n = Ctx->Firmware[base + HX_FW_PART_COUNT_BYTE];
     if (n < 1 || n > MaxParts || n > HX_FW_MAX_PARTS) {

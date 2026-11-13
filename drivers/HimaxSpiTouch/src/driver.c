@@ -112,7 +112,8 @@ static NTSTATUS EvtReleaseHardware(WDFDEVICE Device, WDFCMRESLIST Translated)
  * Por defecto 0: el driver carga pero NO toca el hardware.
  *   1 = relojes QUP0/SE0 (GCC)      2 = + init GENI SE0
  *   3 = + configuración TLMM        4 = + detectar el chip Himax
- *   5 = + firmware, sense on y HID virtual (funcionamiento completo)
+ *   5 = + leer el firmware y validar su tabla de particiones (SIN escribir al chip)
+ *   6 = + descargar el firmware, sense on y HID virtual (funcionamiento completo)
  */
 static ULONG ReadStage(VOID)
 {
@@ -159,15 +160,25 @@ static NTSTATUS BringUpTouch(PDEVICE_CONTEXT c)
     HxLog("paso 4 OK");
     if (c->Stage < 5) return STATUS_SUCCESS;
 
-    HxLog("paso 5: firmware");
+    HxLog("paso 5: leer firmware y validar tabla");
     s = FwReadFileFromRegistry(c);      if (!NT_SUCCESS(s)) return s;
+    {
+        HX_FW_PART parts[HX_FW_MAX_PARTS];
+        ULONG count = 0;
+        s = FwParsePartitions(c, parts, HX_FW_MAX_PARTS, &count);
+        if (!NT_SUCCESS(s)) return s;
+        HxLog("paso 5 OK: %u particiones válidas (no se escribe al chip)", count);
+    }
+    if (c->Stage < 6) return STATUS_SUCCESS;
+
+    HxLog("paso 6: descargar firmware");
     s = FwDownload(c);                  if (!NT_SUCCESS(s)) return s;
-    HxLog("paso 5: sense on");
+    HxLog("paso 6: sense on");
     s = HimaxSenseOn(c);                if (!NT_SUCCESS(s)) return s;
 
-    HxLog("paso 5: HID virtual");
+    HxLog("paso 6: HID virtual");
     s = VhfDeviceStart(c);
-    HxLog("paso 5 terminado: %08X", s);
+    HxLog("paso 6 terminado: %08X", s);
     return s;
 }
 
@@ -192,7 +203,7 @@ static VOID WorkerThread(PVOID Context)
         return;
     }
 
-    if (c->Stage < 5) {
+    if (c->Stage < 6) {
         /* Etapa parcial: esperar a que pare el dispositivo sin sondear. */
         KeWaitForSingleObject(&c->StopEvent, Executive, KernelMode, FALSE, NULL);
         PsTerminateSystemThread(STATUS_SUCCESS);
