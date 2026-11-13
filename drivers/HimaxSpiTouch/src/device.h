@@ -17,7 +17,7 @@ typedef struct _DEVICE_CONTEXT {
 
     /* MMIO (orden de recursos en el SSDT) */
     PUCHAR      GeniSe0;   SIZE_T GeniSe0Len;     /* 0: 0x04A80000 */
-    PUCHAR      Tlmm;      SIZE_T TlmmLen;        /* 1: 0x00500000, 3 MiB */
+    PUCHAR      Tlmm;      SIZE_T TlmmLen;        /* 0x00500000, mínimo 0x80000 */
     PUCHAR      Gcc;       SIZE_T GccLen;         /* 2: 0x01400000 */
     PUCHAR      QupWrap;   SIZE_T QupWrapLen;     /* 3: 0x04AC0000 */
 

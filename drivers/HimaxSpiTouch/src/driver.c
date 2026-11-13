@@ -23,19 +23,38 @@ static KSTART_ROUTINE                   WorkerThread;
 
 /* ---- mapeo de MMIO ---- */
 
-static PUCHAR MapResource(WDFCMRESLIST Translated, ULONG Index, SIZE_T *OutLen)
+/* Direcciones físicas de cada bloque. Se busca por dirección y no por índice:
+ * el SSDT de la UEFI puede traer 4 o 5 recursos (con TLMM oeste y este por
+ * separado) y el índice cambia según la versión. */
+#define PHYS_SE0      0x04A80000ULL
+#define PHYS_TLMM     0x00500000ULL
+#define PHYS_GCC      0x01400000ULL
+#define PHYS_QUPWRAP  0x04AC0000ULL
+
+static VOID LogResources(WDFCMRESLIST Translated)
 {
-    PCM_PARTIAL_RESOURCE_DESCRIPTOR d;
-    ULONG seen = 0;
+    ULONG n = 0;
     for (ULONG i = 0; i < WdfCmResourceListGetCount(Translated); i++) {
-        d = WdfCmResourceListGetDescriptor(Translated, i);
+        PCM_PARTIAL_RESOURCE_DESCRIPTOR d = WdfCmResourceListGetDescriptor(Translated, i);
         if (d->Type != CmResourceTypeMemory) continue;
-        if (seen == Index) {
-            *OutLen = d->u.Memory.Length;
-            return (PUCHAR)MmMapIoSpaceEx(d->u.Memory.Start, d->u.Memory.Length,
-                                          PAGE_READWRITE | PAGE_NOCACHE);
+        HxLog("recurso MMIO %lu: base=%llX longitud=%lX", n++,
+              (ULONGLONG)d->u.Memory.Start.QuadPart, d->u.Memory.Length);
+    }
+}
+
+static PUCHAR MapByPhys(WDFCMRESLIST Translated, ULONGLONG Phys, SIZE_T MinLen, SIZE_T *OutLen)
+{
+    for (ULONG i = 0; i < WdfCmResourceListGetCount(Translated); i++) {
+        PCM_PARTIAL_RESOURCE_DESCRIPTOR d = WdfCmResourceListGetDescriptor(Translated, i);
+        if (d->Type != CmResourceTypeMemory) continue;
+        if ((ULONGLONG)d->u.Memory.Start.QuadPart != Phys) continue;
+        if (d->u.Memory.Length < MinLen) {
+            HxLog("recurso %llX demasiado pequeño: %lX < %Iu", Phys, d->u.Memory.Length, MinLen);
+            break;
         }
-        seen++;
+        *OutLen = d->u.Memory.Length;
+        return (PUCHAR)MmMapIoSpaceEx(d->u.Memory.Start, d->u.Memory.Length,
+                                      PAGE_READWRITE | PAGE_NOCACHE);
     }
     *OutLen = 0;
     return NULL;
@@ -49,14 +68,13 @@ static NTSTATUS EvtPrepareHardware(WDFDEVICE Device, WDFCMRESLIST Raw, WDFCMRESL
     UNREFERENCED_PARAMETER(Raw);
 
     HxLog("PrepareHardware: mapeando MMIO");
-    c->GeniSe0 = MapResource(Translated, 0, &c->GeniSe0Len);
-    c->Tlmm    = MapResource(Translated, 1, &c->TlmmLen);
-    c->Gcc     = MapResource(Translated, 2, &c->GccLen);
-    c->QupWrap = MapResource(Translated, 3, &c->QupWrapLen);
+    LogResources(Translated);
+    c->GeniSe0 = MapByPhys(Translated, PHYS_SE0,     0x4000,   &c->GeniSe0Len);
+    c->Tlmm    = MapByPhys(Translated, PHYS_TLMM,    0x80000,  &c->TlmmLen);
+    c->Gcc     = MapByPhys(Translated, PHYS_GCC,     0x1F0000, &c->GccLen);
+    c->QupWrap = MapByPhys(Translated, PHYS_QUPWRAP, 0x2000,   &c->QupWrapLen);
 
-    if (!c->GeniSe0 || !c->Tlmm || !c->Gcc || !c->QupWrap ||
-        c->GeniSe0Len < 0x4000 || c->TlmmLen < 0x00300000 ||
-        c->GccLen < 0x001F0000 || c->QupWrapLen < 0x2000) {
+    if (!c->GeniSe0 || !c->Tlmm || !c->Gcc || !c->QupWrap) {
         HxLog("recursos MMIO ausentes o demasiado pequeños en el SSDT");
         UnmapOne(&c->GeniSe0, c->GeniSe0Len);
         UnmapOne(&c->Tlmm, c->TlmmLen);
