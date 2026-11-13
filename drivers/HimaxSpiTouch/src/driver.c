@@ -278,7 +278,7 @@ static NTSTATUS EvtD0Entry(WDFDEVICE Device, WDF_POWER_DEVICE_STATE Prev)
         ObDereferenceObject(c->WorkerThread);
         c->WorkerThread = NULL;
         if (c->ChipDetected) (VOID)HimaxSenseOff(c, FALSE);
-        if (c->Stage >= 3) TlmmWriteOutput(c, GPIO_TOUCH_RST, 0);
+        /* No se fuerza el reset en bajo: en un TDDI apaga también la pantalla. */
         FwFreeFile(c);
         return s;
     }
@@ -299,7 +299,7 @@ static NTSTATUS EvtD0Exit(WDFDEVICE Device, WDF_POWER_DEVICE_STATE Target)
         c->WorkerThread = NULL;
     }
     if (c->ChipDetected) HimaxSenseOff(c, FALSE);
-    if (c->Stage >= 3) TlmmWriteOutput(c, GPIO_TOUCH_RST, 0);   /* reset en bajo */
+    /* No se fuerza el reset en bajo: en un TDDI apaga también la pantalla. */
     FwFreeFile(c);
     return STATUS_SUCCESS;
 }

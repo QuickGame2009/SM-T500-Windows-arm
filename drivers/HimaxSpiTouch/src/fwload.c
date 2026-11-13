@@ -38,6 +38,17 @@ NTSTATUS FwParsePartitions(PDEVICE_CONTEXT Ctx, HX_FW_PART *Parts, ULONG MaxPart
     ULONG n = Ctx->Firmware[base + HX_FW_PART_COUNT_BYTE];
     if (n < 1 || n > MaxParts || n > HX_FW_MAX_PARTS) {
         HxLog("firmware: nº de particiones fuera de rango (%u)", n);
+        /* Volcado para ver el formato real del .bin. */
+        for (ULONG off = 0; off < 0x40 && off + 16 <= Ctx->FirmwareSize; off += 16) {
+            const UCHAR *p = Ctx->Firmware + off;
+            HxLog("fw[%05X]: %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X%02X",
+                  off, p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7],p[8],p[9],p[10],p[11],p[12],p[13],p[14],p[15]);
+        }
+        for (ULONG off = base; off < base + 0x80 && off + 16 <= Ctx->FirmwareSize; off += 16) {
+            const UCHAR *p = Ctx->Firmware + off;
+            HxLog("fw[%05X]: %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X%02X",
+                  off, p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7],p[8],p[9],p[10],p[11],p[12],p[13],p[14],p[15]);
+        }
         return STATUS_INVALID_PARAMETER;
     }
 
