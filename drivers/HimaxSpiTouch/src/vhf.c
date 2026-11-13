@@ -39,6 +39,7 @@ NTSTATUS VhfDeviceCreate(PDEVICE_CONTEXT Ctx)
     cfg.ProductID = 0x83E0;
     cfg.VersionNumber = 0x0001;
 
+    HxLog("VhfCreate: lower=%p desc=%u bytes", cfg.DeviceObject, (ULONG)sizeof(g_TouchReportDescriptor));
     NTSTATUS status = VhfCreate(&cfg, &Ctx->VhfHandle);
     if (!NT_SUCCESS(status))
         HxLog("VhfCreate ha fallado: %08X", status);

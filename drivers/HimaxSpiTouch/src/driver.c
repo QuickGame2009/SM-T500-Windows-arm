@@ -297,6 +297,7 @@ static NTSTATUS EvtDeviceAdd(WDFDRIVER Driver, PWDFDEVICE_INIT DeviceInit)
 {
     UNREFERENCED_PARAMETER(Driver);
     NTSTATUS status;
+    HxLog("EvtDeviceAdd: inicio");
     WDF_PNPPOWER_EVENT_CALLBACKS pnp;
     WDF_PNPPOWER_EVENT_CALLBACKS_INIT(&pnp);
     pnp.EvtDevicePrepareHardware = EvtPrepareHardware;
@@ -310,7 +311,9 @@ static NTSTATUS EvtDeviceAdd(WDFDRIVER Driver, PWDFDEVICE_INIT DeviceInit)
     attr.EvtCleanupCallback = EvtDeviceCleanup;
 
     WDFDEVICE device;
+    HxLog("EvtDeviceAdd: antes de WdfDeviceCreate");
     status = WdfDeviceCreate(&DeviceInit, &attr, &device);
+    HxLog("EvtDeviceAdd: WdfDeviceCreate = %08X", status);
     if (!NT_SUCCESS(status)) return status;
 
     PDEVICE_CONTEXT c = GetDeviceContext(device);
@@ -325,7 +328,9 @@ static NTSTATUS EvtDeviceAdd(WDFDRIVER Driver, PWDFDEVICE_INIT DeviceInit)
     c->TxBuffer = (PUCHAR)ExAllocatePool2(POOL_FLAG_NON_PAGED, HX_TX_BUFFER_SIZE, 'xmiH');
     if (!c->TxBuffer) return STATUS_INSUFFICIENT_RESOURCES;
 
+    HxLog("EvtDeviceAdd: antes de VhfCreate");
     status = VhfDeviceCreate(c);        /* crea el HID virtual (se inicia en D0Entry) */
+    HxLog("EvtDeviceAdd: VhfCreate = %08X", status);
     return status;
 }
 
@@ -335,6 +340,8 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
     WDF_DRIVER_CONFIG_INIT(&config, EvtDeviceAdd);
     HxLogInit();
     HxLog("DriverEntry (build con registro a fichero)");
-    return WdfDriverCreate(DriverObject, RegistryPath, WDF_NO_OBJECT_ATTRIBUTES,
-                           &config, WDF_NO_HANDLE);
+    NTSTATUS st = WdfDriverCreate(DriverObject, RegistryPath, WDF_NO_OBJECT_ATTRIBUTES,
+                                  &config, WDF_NO_HANDLE);
+    HxLog("DriverEntry: WdfDriverCreate = %08X", st);
+    return st;
 }
