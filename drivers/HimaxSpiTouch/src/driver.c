@@ -211,7 +211,22 @@ static VOID WorkerThread(PVOID Context)
     }
 
     HxLog("táctil listo; entrando en el bucle de sondeo");
+    {
+        /* Estado inicial de la línea IRQ y del chip tras sense_on. */
+        HxLog("GPIO80 tras sense_on: CTL=%08X IO=%08X INTR_CFG=%08X INTR_STATUS=%08X",
+              TlmmReadRaw(c, GPIO_TOUCH_IRQ, 0), TlmmReadRaw(c, GPIO_TOUCH_IRQ, 4),
+              TlmmReadRaw(c, GPIO_TOUCH_IRQ, 8), TlmmReadRaw(c, GPIO_TOUCH_IRQ, 0xC));
+    }
+    ULONG iter = 0, edges = 0, lows = 0, reads = 0, readErr = 0, badSum = 0, good = 0;
+    ULONG lastIo = 0xFFFFFFFF;
     for (;;) {
+        iter++;
+        /* Cada ~6 s, un resumen; en las dos primeras lecturas, el paquete en bruto. */
+        if ((iter % 1000) == 0) {
+            HxLog("sondeo: iter=%u flancos=%u nivel_bajo=%u lecturas=%u err=%u badsum=%u ok=%u IO=%08X",
+                  iter, edges, lows, reads, readErr, badSum, good,
+                  TlmmReadRaw(c, GPIO_TOUCH_IRQ, 4));
+        }
         LARGE_INTEGER due; due.QuadPart = -(LONGLONG)6 * 10000;   /* ~6 ms */
         if (KeWaitForSingleObject(&c->StopEvent, Executive, KernelMode, FALSE, &due)
             == STATUS_SUCCESS)
@@ -219,15 +234,35 @@ static VOID WorkerThread(PVOID Context)
 
         /* Flanco pendiente, o nivel bajo = línea de interrupción activa (activo bajo). */
         BOOLEAN pending = TlmmTouchEdgePending(c);
-        if (!pending && TlmmReadInput(c, GPIO_TOUCH_IRQ) != 0)
+        ULONG io = TlmmReadRaw(c, GPIO_TOUCH_IRQ, 4);
+        if (io != lastIo) {
+            if (lastIo != 0xFFFFFFFF) HxLog("GPIO80 IO cambia: %08X -> %08X", lastIo, io);
+            lastIo = io;
+        }
+        if (pending) edges++;
+        BOOLEAN low = (io & TLMM_IO_IN) == 0;
+        if (low) lows++;
+        /* Modo diagnóstico: si no hay evento, leer igualmente 1 de cada 50 veces
+         * para ver qué devuelve el chip aunque la IRQ no funcione. */
+        if (!pending && !low && (iter % 50) != 0)
             continue;
 
         KeWaitForSingleObject(&c->SpiLock, Executive, KernelMode, FALSE, NULL);
         s = HimaxReadEventStack(c, buf, HX_TOUCH_INFO_SIZE);
         KeReleaseMutex(&c->SpiLock, FALSE);
-        if (!NT_SUCCESS(s)) continue;
+        reads++;
+        if (!NT_SUCCESS(s)) { readErr++; if (readErr <= 3) HxLog("event stack: error %08X", s); continue; }
 
-        if (!NT_SUCCESS(ReportParse(buf, &td))) continue;
+        if (reads <= 2 || (pending && good + badSum < 3)) {
+            HxLog("stack[0..15]:  %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X%02X",
+                  buf[0],buf[1],buf[2],buf[3],buf[4],buf[5],buf[6],buf[7],buf[8],buf[9],buf[10],buf[11],buf[12],buf[13],buf[14],buf[15]);
+            HxLog("stack[40..55]: %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X%02X",
+                  buf[40],buf[41],buf[42],buf[43],buf[44],buf[45],buf[46],buf[47],buf[48],buf[49],buf[50],buf[51],buf[52],buf[53],buf[54],buf[55]);
+        }
+        if (!NT_SUCCESS(ReportParse(buf, &td))) { badSum++; continue; }
+        good++;
+        if (good <= 5 || (good % 200) == 0)
+            HxLog("toque: n=%u x0=%u y0=%u", td.Count, td.Contacts[0].X, td.Contacts[0].Y);
         ReportBuildHid(c, &td, &rep);
         VhfDeviceSubmit(c, &rep);
     }

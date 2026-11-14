@@ -71,6 +71,12 @@ NTSTATUS TlmmConfigure(PDEVICE_CONTEXT Ctx)
     return STATUS_SUCCESS;
 }
 
+ULONG TlmmReadRaw(PDEVICE_CONTEXT Ctx, ULONG Gpio, ULONG Off)
+{
+    return TlmmRd(Ctx, Gpio, (Off == 0 ? TLMM_CTL(Gpio) : Off == 4 ? TLMM_IO(Gpio) :
+                              Off == 8 ? TLMM_INTR_CFG(Gpio) : TLMM_INTR_STATUS(Gpio)));
+}
+
 ULONG TlmmReadInput(PDEVICE_CONTEXT Ctx, ULONG Gpio)
 {
     return TlmmRd(Ctx, Gpio, TLMM_IO(Gpio)) & TLMM_IO_IN;
