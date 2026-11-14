@@ -38,7 +38,11 @@
 #define HX_DATA_RELOAD_IN     0x000000EC
 #define HX_REG_SET_FRAME      0x10007294
 #define HX_REG_FLASH_RELOAD   0x10007F00   /* driver_addr_fw_define_flash_reload */
-#define HX_DATA_DIS_RELOAD    0x00009AA9   /* zf_data_dis_flash_reload */
+#define HX_DATA_DIS_RELOAD    0x00009AA9   /* zf_data_dis_flash_reload (no se usa en el arranque) */
+#define HX_DATA_RELOAD_EN     0x00000000   /* driver_data_fw_define_flash_reload_en: reload_disable(0) */
+#define HX_REG_FW_VER         0x10007004   /* fw_addr_fw_ver_addr */
+#define HX_REG_FW_DBG_MSG     0x10007F40   /* fw_addr_fw_dbg_msg_addr */
+#define HX_REG_FW_STATE       0x900000F8   /* fw_addr_fw_state_addr */
 
 /* CRC por hardware (himax_mcu_check_CRC) */
 #define HX_REG_RELOAD_STATUS      0x80050000

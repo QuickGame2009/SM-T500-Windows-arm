@@ -217,8 +217,11 @@ NTSTATUS FwDownload(PDEVICE_CONTEXT Ctx)
 
     s = HimaxRegWrite32(Ctx, HX_REG_SET_FRAME, 0x00000001); /* n frame = 1 */
     if (!NT_SUCCESS(s)) return s;
-    s = HimaxRegWrite32(Ctx, HX_REG_FLASH_RELOAD, HX_DATA_DIS_RELOAD);
+    /* Como himax_mcu_0f_operation: reload_disable(0) = escribir 0 (reload habilitado),
+     * NO 0x9AA9. Con 0x9AA9 el firmware no arrancaba el sensado. */
+    s = HimaxRegWrite32(Ctx, HX_REG_FLASH_RELOAD, HX_DATA_RELOAD_EN);
     if (!NT_SUCCESS(s)) return s;
+    HxLog("reload_disable(0) escrito en %08X", HX_REG_FLASH_RELOAD);
 
     Ctx->FirmwareLoaded = TRUE;
     HxLog("firmware cargado (%u particiones)", count);

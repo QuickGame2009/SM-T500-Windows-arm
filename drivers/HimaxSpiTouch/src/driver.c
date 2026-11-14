@@ -174,7 +174,20 @@ static NTSTATUS BringUpTouch(PDEVICE_CONTEXT c)
     HxLog("paso 6: descargar firmware");
     s = FwDownload(c);                  if (!NT_SUCCESS(s)) return s;
     HxLog("paso 6: sense on");
-    s = HimaxSenseOn(c);                if (!NT_SUCCESS(s)) return s;
+    s = HimaxSenseOn(c);
+    HxLog("sense_on = %08X", s);
+    if (!NT_SUCCESS(s)) return s;
+    {
+        UCHAR d[4];
+        if (NT_SUCCESS(HimaxRegRead(c, HX_REG_FW_VER, d, 4)))
+            HxLog("FW_VER (10007004) = %02X%02X%02X%02X", d[3], d[2], d[1], d[0]);
+        if (NT_SUCCESS(HimaxRegRead(c, HX_REG_FW_STATE, d, 4)))
+            HxLog("FW_STATE (900000F8) = %02X%02X%02X%02X", d[3], d[2], d[1], d[0]);
+        if (NT_SUCCESS(HimaxRegRead(c, HX_REG_FW_DBG_MSG, d, 4)))
+            HxLog("FW_DBG_MSG (10007F40) = %02X%02X%02X%02X", d[3], d[2], d[1], d[0]);
+        if (NT_SUCCESS(HimaxRegRead(c, HX_REG_RELOAD, d, 4)))
+            HxLog("RELOAD (90000048) = %02X%02X%02X%02X", d[3], d[2], d[1], d[0]);
+    }
 
     HxLog("paso 6: HID virtual");
     s = VhfDeviceStart(c);
