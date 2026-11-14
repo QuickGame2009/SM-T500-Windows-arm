@@ -36,7 +36,7 @@
 #define TLMM_INTR_RAW_STATUS    (1u << 4)
 
 #define GPIO_TOUCH_IRQ   80   /* pmx_ts_int_active en scuba.dts */
-#define GPIO_TOUCH_RST   71   /* pmx_ts_reset_active en scuba.dts */
+#define GPIO_TOUCH_RST   74   /* pmx_ts_reset_active en el DTB real de gta4lwifi (el scuba.dtsi genérico dice 71) */
 
 NTSTATUS TlmmConfigure(PDEVICE_CONTEXT Ctx);
 ULONG    TlmmReadRaw(PDEVICE_CONTEXT Ctx, ULONG Gpio, ULONG Off); /* 0=CTL 4=IO 8=INTR_CFG 12=INTR_STATUS */

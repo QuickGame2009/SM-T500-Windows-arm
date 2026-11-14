@@ -106,8 +106,10 @@ NTSTATUS HimaxRegWrite32(PDEVICE_CONTEXT Ctx, ULONG Addr, ULONG Value)
 VOID HimaxPinReset(PDEVICE_CONTEXT Ctx)
 {
     TlmmWriteOutput(Ctx, GPIO_TOUCH_RST, 0);
+    HxLog("pin reset GPIO%u bajo: IO=%08X", GPIO_TOUCH_RST, TlmmReadRaw(Ctx, GPIO_TOUCH_RST, 4));
     HxSleepMs(20);
     TlmmWriteOutput(Ctx, GPIO_TOUCH_RST, 1);
+    HxLog("pin reset GPIO%u alto: IO=%08X", GPIO_TOUCH_RST, TlmmReadRaw(Ctx, GPIO_TOUCH_RST, 4));
     HxSleepMs(50);
 }
 

@@ -28,7 +28,7 @@ NTSTATUS TlmmConfigure(PDEVICE_CONTEXT Ctx)
           TlmmRd(Ctx, GPIO_TOUCH_IRQ, TLMM_CTL(GPIO_TOUCH_IRQ)),
           TlmmRd(Ctx, GPIO_TOUCH_IRQ, TLMM_IO(GPIO_TOUCH_IRQ)),
           TlmmRd(Ctx, GPIO_TOUCH_IRQ, TLMM_INTR_CFG(GPIO_TOUCH_IRQ)));
-    HxLog("GPIO31 antes: CTL=%08X IO=%08X",
+    HxLog("GPIO%u (reset) antes: CTL=%08X IO=%08X", GPIO_TOUCH_RST,
           TlmmRd(Ctx, GPIO_TOUCH_RST, TLMM_CTL(GPIO_TOUCH_RST)),
           TlmmRd(Ctx, GPIO_TOUCH_RST, TLMM_IO(GPIO_TOUCH_RST)));
 
@@ -58,7 +58,7 @@ NTSTATUS TlmmConfigure(PDEVICE_CONTEXT Ctx)
     TlmmWr(Ctx, GPIO_TOUCH_IRQ, TLMM_INTR_CFG(GPIO_TOUCH_IRQ), icfg);
     TlmmWr(Ctx, GPIO_TOUCH_IRQ, TLMM_INTR_STATUS(GPIO_TOUCH_IRQ), 0);
 
-    /* GPIO71: reset táctil según pmx_ts_reset_active de scuba.dts.
+    /* GPIO74: reset táctil según pmx_ts_reset_active del DTB de gta4lwifi.
      * Salida alta, pull-up y drive-strength de 8 mA. */
     TlmmWr(Ctx, GPIO_TOUCH_RST, TLMM_IO(GPIO_TOUCH_RST), TLMM_IO_OUT);
     ctl = TlmmRd(Ctx, GPIO_TOUCH_RST, TLMM_CTL(GPIO_TOUCH_RST));
