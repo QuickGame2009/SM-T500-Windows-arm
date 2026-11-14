@@ -64,6 +64,11 @@
     <ClCompile Include="src\fileio.c" />
     <ClCompile Include="src\report.c" />
     <ClCompile Include="src\vhf.c" />
+    <ClCompile Include="src\accel.c" />
+    <ClCompile Include="src\accel_bus.c" />
+    <ClCompile Include="src\accel_bmi2.c" />
+    <ClCompile Include="src\accel_hid.c" />
+    <ClCompile Include="src\accel_blobs.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\device.h" />
@@ -77,6 +82,9 @@
     <ClInclude Include="src\report.h" />
     <ClInclude Include="src\hid_desc.h" />
     <ClInclude Include="src\vhfdev.h" />
+    <ClInclude Include="src\accel.h" />
+    <ClInclude Include="src\accel_types.h" />
+    <ClInclude Include="src\accel_blobs.h" />
   </ItemGroup>
   <ItemGroup>
     <Inf Include="inf\HimaxSpiTouch.inf" />

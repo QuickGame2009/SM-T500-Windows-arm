@@ -54,8 +54,10 @@ VOID HxLogWrite(const char *Fmt, ...)
     if (!g_Init || KeGetCurrentIrql() != PASSIVE_LEVEL) return;
 
     {
-        LARGE_INTEGER zero; zero.QuadPart = 0;   /* intento sin esperar: el log nunca bloquea */
-        if (KeWaitForSingleObject(&g_LogLock, Executive, KernelMode, FALSE, &zero) != STATUS_SUCCESS)
+        /* Espera corta (100 ms): hay dos hilos (táctil y acelerómetro) y no debe perderse
+         * la línea previa a un acceso a hardware. KMUTEX: se puede esperar a PASSIVE_LEVEL. */
+        LARGE_INTEGER lim; lim.QuadPart = -(LONGLONG)100 * 10000;
+        if (KeWaitForSingleObject(&g_LogLock, Executive, KernelMode, FALSE, &lim) != STATUS_SUCCESS)
             return;
     }
     EnsureOpen();

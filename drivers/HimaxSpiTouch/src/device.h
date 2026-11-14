@@ -2,6 +2,7 @@
 #include <ntddk.h>
 #include <wdf.h>
 #include <vhf.h>
+#include "accel_types.h"
 
 #define TOUCH_MAX_X        1200   /* FIX_HX_X_RES del driver Android */
 #define TOUCH_MAX_Y        2000   /* FIX_HX_Y_RES */
@@ -54,6 +55,9 @@ typedef struct _DEVICE_CONTEXT {
     USHORT      PrevX[TOUCH_MAX_CONTACTS];
     USHORT      PrevY[TOUCH_MAX_CONTACTS];
     LARGE_INTEGER QpcFreq;
+
+    /* Acelerómetro (módulo accel*.c) */
+    ACCEL_STATE Accel;
 } DEVICE_CONTEXT, *PDEVICE_CONTEXT;
 
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(DEVICE_CONTEXT, GetDeviceContext)

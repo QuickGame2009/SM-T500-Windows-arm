@@ -11,6 +11,7 @@
 #include "fileio.h"
 #include "report.h"
 #include "vhfdev.h"
+#include "accel.h"
 #include "util.h"
 
 DRIVER_INITIALIZE DriverEntry;
@@ -394,6 +395,8 @@ static NTSTATUS EvtD0Entry(WDFDEVICE Device, WDF_POWER_DEVICE_STATE Prev)
         FwFreeFile(c);
         return s;
     }
+    /* El acelerómetro va en su propio hilo y nunca hace fallar al táctil. */
+    (VOID)AccelStart(c);
     return STATUS_SUCCESS;
 }
 
@@ -410,6 +413,7 @@ static NTSTATUS EvtD0Exit(WDFDEVICE Device, WDF_POWER_DEVICE_STATE Target)
         ObDereferenceObject(c->WorkerThread);
         c->WorkerThread = NULL;
     }
+    AccelStop(c);
     if (c->ChipDetected) HimaxSenseOff(c, FALSE);
     /* No se fuerza el reset en bajo: en un TDDI apaga también la pantalla. */
     FwFreeFile(c);
