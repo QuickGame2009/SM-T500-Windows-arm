@@ -60,11 +60,22 @@ NTSTATUS TlmmConfigure(PDEVICE_CONTEXT Ctx)
 
     /* GPIO74: reset táctil según pmx_ts_reset_active del DTB de gta4lwifi.
      * Salida alta, pull-up y drive-strength de 8 mA. */
-    TlmmWr(Ctx, GPIO_TOUCH_RST, TLMM_IO(GPIO_TOUCH_RST), TLMM_IO_OUT);
     ctl = TlmmRd(Ctx, GPIO_TOUCH_RST, TLMM_CTL(GPIO_TOUCH_RST));
-    ctl &= ~(TLMM_CTL_FUNC_MASK | TLMM_CTL_PULL_MASK | TLMM_CTL_DRV_MASK);
-    ctl |= TLMM_CTL_OE | TLMM_CTL_PULL_UP | (3u << TLMM_CTL_DRV_SHIFT);
-    TlmmWr(Ctx, GPIO_TOUCH_RST, TLMM_CTL(GPIO_TOUCH_RST), ctl);
+    if ((ctl & TLMM_CTL_FUNC_MASK) == 0 && (ctl & TLMM_CTL_OE)) {
+        /* Ya es GPIO de salida (lo dejó el bootloader): no tocar CTL, solo asegurar nivel alto. */
+        HxLog("GPIO%u ya es salida GPIO (CTL=%08X); se conserva", GPIO_TOUCH_RST, ctl);
+        TlmmWr(Ctx, GPIO_TOUCH_RST, TLMM_IO(GPIO_TOUCH_RST), TLMM_IO_OUT);
+    } else if ((ctl & TLMM_CTL_FUNC_MASK) != 0) {
+        HxLog("GPIO%u está en función %u, no GPIO: no se toca (ResetGpio incorrecto)",
+              GPIO_TOUCH_RST, (ctl & TLMM_CTL_FUNC_MASK) >> 2);
+        return STATUS_DEVICE_CONFIGURATION_ERROR;
+    } else {
+        HxLog("GPIO%u: configurando como salida alta (CTL antes=%08X)", GPIO_TOUCH_RST, ctl);
+        TlmmWr(Ctx, GPIO_TOUCH_RST, TLMM_IO(GPIO_TOUCH_RST), TLMM_IO_OUT);
+        ctl &= ~(TLMM_CTL_FUNC_MASK | TLMM_CTL_PULL_MASK | TLMM_CTL_DRV_MASK);
+        ctl |= TLMM_CTL_OE | TLMM_CTL_PULL_UP | (3u << TLMM_CTL_DRV_SHIFT);
+        TlmmWr(Ctx, GPIO_TOUCH_RST, TLMM_CTL(GPIO_TOUCH_RST), ctl);
+    }
 
     for (ULONG g = 0; g < 4; g++)
         HxLog("GPIO%u (QUP0 SPI) CTL=%08X", g, TlmmRd(Ctx, g, TLMM_CTL(g)));

@@ -36,7 +36,11 @@
 #define TLMM_INTR_RAW_STATUS    (1u << 4)
 
 #define GPIO_TOUCH_IRQ   80   /* pmx_ts_int_active en scuba.dts */
-#define GPIO_TOUCH_RST   74   /* pmx_ts_reset_active en el DTB real de gta4lwifi (el scuba.dtsi genérico dice 71) */
+/* El GPIO de reset se lee del registro (Parameters\ResetGpio); por defecto 31.
+ * Probado: 71 no hace nada (el chip queda en modo seguro); 74 reinicia el SoC.
+ * 31 aparece ya configurado por el bootloader como salida alta con pull-up (CTL=3C3). */
+#define GPIO_TOUCH_RST   (Ctx->ResetGpio)
+#define GPIO_TOUCH_RST_DEFAULT 31
 
 NTSTATUS TlmmConfigure(PDEVICE_CONTEXT Ctx);
 ULONG    TlmmReadRaw(PDEVICE_CONTEXT Ctx, ULONG Gpio, ULONG Off); /* 0=CTL 4=IO 8=INTR_CFG 12=INTR_STATUS */

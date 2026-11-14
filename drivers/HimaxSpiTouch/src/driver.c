@@ -115,19 +115,21 @@ static NTSTATUS EvtReleaseHardware(WDFDEVICE Device, WDFCMRESLIST Translated)
  *   5 = + leer el firmware y validar su tabla de particiones (SIN escribir al chip)
  *   6 = + descargar el firmware, sense on y HID virtual (funcionamiento completo)
  */
-static ULONG ReadStage(VOID)
+static ULONG ReadParam(PCWSTR Name, ULONG Default)
 {
-    ULONG stage = 0;
+    ULONG value = Default;
     WDFKEY key = NULL;
-    DECLARE_CONST_UNICODE_STRING(name, L"Stage");
+    UNICODE_STRING name;
+    RtlInitUnicodeString(&name, Name);
     if (NT_SUCCESS(WdfDriverOpenParametersRegistryKey(WdfGetDriver(), KEY_READ,
                                                       WDF_NO_OBJECT_ATTRIBUTES, &key))) {
         ULONG v = 0;
-        if (NT_SUCCESS(WdfRegistryQueryULong(key, &name, &v))) stage = v;
+        if (NT_SUCCESS(WdfRegistryQueryULong(key, &name, &v))) value = v;
         WdfRegistryClose(key);
     }
-    return stage;
+    return value;
 }
+#define ReadStage() ReadParam(L"Stage", 0)
 
 static NTSTATUS BringUpTouch(PDEVICE_CONTEXT c)
 {
@@ -135,7 +137,9 @@ static NTSTATUS BringUpTouch(PDEVICE_CONTEXT c)
     ULONG seHz = 0, clkSel = 0;
 
     c->Stage = ReadStage();
-    HxLog("=== arranque del táctil, Stage=%u ===", c->Stage);
+    c->ResetGpio = ReadParam(L"ResetGpio", GPIO_TOUCH_RST_DEFAULT);
+    if (c->ResetGpio > 126) c->ResetGpio = GPIO_TOUCH_RST_DEFAULT;
+    HxLog("=== arranque del táctil, Stage=%u ResetGpio=%u ===", c->Stage, c->ResetGpio);
     if (c->Stage < 1) { HxLog("Stage 0: no se toca el hardware"); return STATUS_SUCCESS; }
 
     HxLog("paso 1: relojes");
