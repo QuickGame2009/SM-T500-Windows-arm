@@ -194,6 +194,11 @@ NTSTATUS HimaxDetect(PDEVICE_CONTEXT Ctx)
     HimaxPinReset(Ctx);
     s = HimaxBusRead(Ctx, HX_CMD_CONTI, &dummy, 1);
     if (!NT_SUCCESS(s)) return s;
+    {
+        UCHAR st[HX_ADDR_LEN] = {0};
+        if (NT_SUCCESS(HimaxRegRead(Ctx, HX_REG_CENTRAL_STATE, st, HX_ADDR_LEN)))
+            HxLog("detect: central_state tras reset = %02X (04/01 = FW propio corriendo, 0C = modo seguro)", st[0]);
+    }
 
     s = HimaxSenseOff(Ctx, FALSE);
     if (!NT_SUCCESS(s)) { HxLog("detect: sense_off ha fallado"); return s; }

@@ -114,6 +114,7 @@ static NTSTATUS EvtReleaseHardware(WDFDEVICE Device, WDFCMRESLIST Translated)
  *   3 = + configuración TLMM        4 = + detectar el chip Himax
  *   5 = + leer el firmware y validar su tabla de particiones (SIN escribir al chip)
  *   6 = + descargar el firmware, sense on y HID virtual (funcionamiento completo)
+ *   7 = como el kernel al arrancar: SIN cargar firmware (power_on_init + sense_on + HID)
  */
 static ULONG ReadParam(PCWSTR Name, ULONG Default)
 {
@@ -175,8 +176,12 @@ static NTSTATUS BringUpTouch(PDEVICE_CONTEXT c)
     }
     if (c->Stage < 6) return STATUS_SUCCESS;
 
-    HxLog("paso 6: descargar firmware");
-    s = FwDownload(c);                  if (!NT_SUCCESS(s)) return s;
+    if (c->Stage == 7) {
+        HxLog("paso 6 (Stage 7): se omite la carga del firmware, como el kernel al arrancar");
+    } else {
+        HxLog("paso 6: descargar firmware");
+        s = FwDownload(c);              if (!NT_SUCCESS(s)) return s;
+    }
     /* Como himax_mcu_power_on_init: RawOut select = 0 y sorting mode = clear
      * antes de sense_on. Un firmware en modo raw/sorting no reporta toques. */
     {
