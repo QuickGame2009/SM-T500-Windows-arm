@@ -267,13 +267,14 @@ static VOID WorkerThread(PVOID Context)
               TlmmReadRaw(c, GPIO_TOUCH_IRQ, 8), TlmmReadRaw(c, GPIO_TOUCH_IRQ, 0xC));
     }
     ULONG iter = 0, edges = 0, lows = 0, reads = 0, readErr = 0, badSum = 0, good = 0;
+    ULONG edReloads = 0, excp = 0;
     ULONG lastIo = 0xFFFFFFFF;
     for (;;) {
         iter++;
         /* Cada ~6 s, un resumen; en las dos primeras lecturas, el paquete en bruto. */
         if ((iter % 1000) == 0) {
-            HxLog("sondeo: iter=%u flancos=%u nivel_bajo=%u lecturas=%u err=%u badsum=%u ok=%u IO=%08X",
-                  iter, edges, lows, reads, readErr, badSum, good,
+            HxLog("sondeo: iter=%u flancos=%u nivel_bajo=%u lecturas=%u err=%u badsum=%u ok=%u ED=%u excp=%u IO=%08X",
+                  iter, edges, lows, reads, readErr, badSum, good, edReloads, excp,
                   TlmmReadRaw(c, GPIO_TOUCH_IRQ, 4));
         }
         LARGE_INTEGER due; due.QuadPart = -(LONGLONG)6 * 10000;   /* ~6 ms */
@@ -307,6 +308,27 @@ static VOID WorkerThread(PVOID Context)
                   buf[0],buf[1],buf[2],buf[3],buf[4],buf[5],buf[6],buf[7],buf[8],buf[9],buf[10],buf[11],buf[12],buf[13],buf[14],buf[15]);
             HxLog("stack[40..55]: %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X%02X",
                   buf[40],buf[41],buf[42],buf[43],buf[44],buf[45],buf[46],buf[47],buf[48],buf[49],buf[50],buf[51],buf[52],buf[53],buf[54],buf[55]);
+        }
+        /* himax_err_ctrl: el HX83102E devuelve todo 0xED tras un reset hasta que
+         * se le manda reload_to_active; 0xEB/0xEC/0xEE todo igual = excepción. */
+        {
+            UCHAR first = buf[0]; ULONG same = 1;
+            while (same < HX_TOUCH_INFO_SIZE && buf[same] == first) same++;
+            if (same == HX_TOUCH_INFO_SIZE && first == 0xED) {
+                edReloads++;
+                if (edReloads <= 5 || (edReloads % 100) == 0)
+                    HxLog("event stack todo 0xED (%u): reload_to_active", edReloads);
+                KeWaitForSingleObject(&c->SpiLock, Executive, KernelMode, FALSE, NULL);
+                s = HimaxReloadToActive(c);
+                KeReleaseMutex(&c->SpiLock, FALSE);
+                if (edReloads <= 5) HxLog("reload_to_active -> %08X", s);
+                continue;
+            }
+            if (same == HX_TOUCH_INFO_SIZE && (first == 0xEB || first == 0xEC || first == 0xEE)) {
+                excp++;
+                if (excp <= 3 || (excp % 500) == 0) HxLog("event stack: excepción todo %02X (%u)", first, excp);
+                continue;
+            }
         }
         if (!NT_SUCCESS(ReportParse(buf, &td))) { badSum++; continue; }
         good++;
