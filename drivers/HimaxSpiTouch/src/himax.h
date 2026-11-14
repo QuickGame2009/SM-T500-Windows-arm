@@ -43,6 +43,14 @@
 #define HX_REG_FW_VER         0x10007004   /* fw_addr_fw_ver_addr */
 #define HX_REG_FW_DBG_MSG     0x10007F40   /* fw_addr_fw_dbg_msg_addr */
 #define HX_REG_FW_STATE       0x900000F8   /* fw_addr_fw_state_addr */
+#define HX_REG_CHK_FW_STATUS  0x900000A8   /* fw_addr_chk_fw_status */
+#define HX_REG_FLAG_RESET_EVT 0x900000E4   /* fw_addr_flag_reset_event */
+#define HX_REG_RAW_OUT_SEL    0x800204B4   /* fw_addr_raw_out_sel */
+#define HX_REG_SORTING_MODE   0x10007F04   /* fw_addr_sorting_mode_en */
+#define HX_REG_RXTX_MAXPT     0x100070F4   /* driver_addr_fw_define_rxnum_txnum_maxpt */
+#define HX_REG_XY_RES_ENABLE  0x100070F8   /* driver_addr_fw_define_xy_res_enable */
+#define HX_REG_X_Y_RES        0x100070FC   /* driver_addr_fw_define_x_y_res */
+#define HX_REG_INT_IS_EDGE    0x10007088   /* driver_addr_fw_define_int_is_edge */
 
 /* CRC por hardware (himax_mcu_check_CRC) */
 #define HX_REG_RELOAD_STATUS      0x80050000

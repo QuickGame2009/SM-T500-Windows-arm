@@ -173,6 +173,25 @@ static NTSTATUS BringUpTouch(PDEVICE_CONTEXT c)
 
     HxLog("paso 6: descargar firmware");
     s = FwDownload(c);                  if (!NT_SUCCESS(s)) return s;
+    /* Como himax_mcu_power_on_init: RawOut select = 0 y sorting mode = clear
+     * antes de sense_on. Un firmware en modo raw/sorting no reporta toques. */
+    {
+        UCHAR d[4];
+        s = HimaxRegWrite32(c, HX_REG_RAW_OUT_SEL, 0);
+        HxLog("raw_out_sel=0 -> %08X", s);
+        s = HimaxRegWrite32(c, HX_REG_SORTING_MODE, 0);
+        HxLog("sorting_mode=0 -> %08X", s);
+        /* touch_information: lo que el firmware cree que es el panel */
+        if (NT_SUCCESS(HimaxRegRead(c, HX_REG_RXTX_MAXPT, d, 4)))
+            HxLog("touch_info RX=%u TX=%u MAXPT=%u (100070F4=%02X%02X%02X%02X)", d[2], d[3], d[0], d[3],d[2],d[1],d[0]);
+        if (NT_SUCCESS(HimaxRegRead(c, HX_REG_XY_RES_ENABLE, d, 4)))
+            HxLog("touch_info xy_reverse=%02X (100070F8=%02X%02X%02X%02X)", d[1], d[3],d[2],d[1],d[0]);
+        if (NT_SUCCESS(HimaxRegRead(c, HX_REG_X_Y_RES, d, 4)))
+            HxLog("touch_info Y_RES=%u X_RES=%u (100070FC=%02X%02X%02X%02X)",
+                  (ULONG)d[0] << 8 | d[1], (ULONG)d[2] << 8 | d[3], d[3],d[2],d[1],d[0]);
+        if (NT_SUCCESS(HimaxRegRead(c, HX_REG_INT_IS_EDGE, d, 4)))
+            HxLog("touch_info int_is_edge=%u (10007088=%02X%02X%02X%02X)", d[0] & 1, d[3],d[2],d[1],d[0]);
+    }
     HxLog("paso 6: sense on");
     s = HimaxSenseOn(c);
     HxLog("sense_on = %08X", s);
@@ -187,6 +206,13 @@ static NTSTATUS BringUpTouch(PDEVICE_CONTEXT c)
             HxLog("FW_DBG_MSG (10007F40) = %02X%02X%02X%02X", d[3], d[2], d[1], d[0]);
         if (NT_SUCCESS(HimaxRegRead(c, HX_REG_RELOAD, d, 4)))
             HxLog("RELOAD (90000048) = %02X%02X%02X%02X", d[3], d[2], d[1], d[0]);
+        if (NT_SUCCESS(HimaxRegRead(c, HX_REG_CHK_FW_STATUS, d, 4)))
+            HxLog("CHK_FW_STATUS (900000A8) = %02X%02X%02X%02X", d[3], d[2], d[1], d[0]);
+        if (NT_SUCCESS(HimaxRegRead(c, HX_REG_FLAG_RESET_EVT, d, 4)))
+            HxLog("FLAG_RESET_EVENT (900000E4) = %02X%02X%02X%02X", d[3], d[2], d[1], d[0]);
+        HxSleepMs(200);
+        if (NT_SUCCESS(HimaxRegRead(c, HX_REG_FW_DBG_MSG, d, 4)))
+            HxLog("FW_DBG_MSG +200ms = %02X%02X%02X%02X", d[3], d[2], d[1], d[0]);
     }
 
     HxLog("paso 6: HID virtual");
