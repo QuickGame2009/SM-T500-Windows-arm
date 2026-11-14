@@ -109,7 +109,7 @@ static NTSTATUS EvtReleaseHardware(WDFDEVICE Device, WDFCMRESLIST Translated)
 /*
  * Etapas de arranque (valor DWORD "Stage" en
  * HKLM\SYSTEM\CurrentControlSet\Services\HimaxSpiTouch\Parameters).
- * Por defecto 0: el driver carga pero NO toca el hardware.
+ * Por defecto 6 (funcionamiento completo). 0 = cargar sin tocar el hardware.
  *   1 = relojes QUP0/SE0 (GCC)      2 = + init GENI SE0
  *   3 = + configuración TLMM        4 = + detectar el chip Himax
  *   5 = + leer el firmware y validar su tabla de particiones (SIN escribir al chip)
@@ -130,7 +130,7 @@ static ULONG ReadParam(PCWSTR Name, ULONG Default)
     }
     return value;
 }
-#define ReadStage() ReadParam(L"Stage", 0)
+#define ReadStage() ReadParam(L"Stage", 6)   /* por defecto: funcionamiento completo */
 
 static NTSTATUS BringUpTouch(PDEVICE_CONTEXT c)
 {
@@ -272,7 +272,7 @@ static VOID WorkerThread(PVOID Context)
     for (;;) {
         iter++;
         /* Cada ~6 s, un resumen; en las dos primeras lecturas, el paquete en bruto. */
-        if ((iter % 1000) == 0) {
+        if ((iter % 10000) == 0) {
             HxLog("sondeo: iter=%u flancos=%u nivel_bajo=%u lecturas=%u err=%u badsum=%u ok=%u ED=%u excp=%u IO=%08X",
                   iter, edges, lows, reads, readErr, badSum, good, edReloads, excp,
                   TlmmReadRaw(c, GPIO_TOUCH_IRQ, 4));
@@ -285,16 +285,11 @@ static VOID WorkerThread(PVOID Context)
         /* Flanco pendiente, o nivel bajo = línea de interrupción activa (activo bajo). */
         BOOLEAN pending = TlmmTouchEdgePending(c);
         ULONG io = TlmmReadRaw(c, GPIO_TOUCH_IRQ, 4);
-        if (io != lastIo) {
-            if (lastIo != 0xFFFFFFFF) HxLog("GPIO80 IO cambia: %08X -> %08X", lastIo, io);
-            lastIo = io;
-        }
+        lastIo = io;
         if (pending) edges++;
         BOOLEAN low = (io & TLMM_IO_IN) == 0;
         if (low) lows++;
-        /* Modo diagnóstico: si no hay evento, leer igualmente 1 de cada 50 veces
-         * para ver qué devuelve el chip aunque la IRQ no funcione. */
-        if (!pending && !low && (iter % 50) != 0)
+        if (!pending && !low)
             continue;
 
         KeWaitForSingleObject(&c->SpiLock, Executive, KernelMode, FALSE, NULL);
@@ -303,7 +298,7 @@ static VOID WorkerThread(PVOID Context)
         reads++;
         if (!NT_SUCCESS(s)) { readErr++; if (readErr <= 3) HxLog("event stack: error %08X", s); continue; }
 
-        if (reads <= 2 || (pending && good + badSum < 3)) {
+        if (reads <= 2) {
             HxLog("stack[0..15]:  %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X%02X",
                   buf[0],buf[1],buf[2],buf[3],buf[4],buf[5],buf[6],buf[7],buf[8],buf[9],buf[10],buf[11],buf[12],buf[13],buf[14],buf[15]);
             HxLog("stack[40..55]: %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X%02X",
@@ -332,7 +327,7 @@ static VOID WorkerThread(PVOID Context)
         }
         if (!NT_SUCCESS(ReportParse(buf, &td))) { badSum++; continue; }
         good++;
-        if (good <= 5 || (good % 200) == 0)
+        if (good <= 3)
             HxLog("toque: n=%u x0=%u y0=%u", td.Count, td.Contacts[0].X, td.Contacts[0].Y);
         ReportBuildHid(c, &td, &rep);
         VhfDeviceSubmit(c, &rep);
