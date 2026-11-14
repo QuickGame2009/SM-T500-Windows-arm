@@ -109,6 +109,8 @@ static NTSTATUS TryBus(PDEVICE_CONTEXT c, ULONG Bus)
     Guard(c, 4);
     HxLog("ACC: paso 4: I2C y detección");
     if (!NT_SUCCESS(s = AccelBusInit(c, ParamGet(L"AccelKhz", 400)))) goto fail;
+    AccelBusScan(c);
+    if (!NT_SUCCESS(s = AccelBusInit(c, ParamGet(L"AccelKhz", 400)))) goto fail;
     if (!NT_SUCCESS(s = Bmi2Probe(c))) goto fail;
     HxLog("ACC: paso 4 OK: chip %02X en SE%u, dirección %02X", a->ChipId, Bus, a->Addr);
     if (a->Stage < 5) { s = STATUS_NOT_FOUND; goto fail; }

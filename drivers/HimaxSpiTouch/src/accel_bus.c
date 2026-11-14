@@ -160,9 +160,13 @@ NTSTATUS AccelBusPins(PDEVICE_CONTEXT c, BOOLEAN PullUp)
     return STATUS_SUCCESS;
 }
 
+static ULONG g_Khz = 400;
+
 NTSTATUS AccelBusInit(PDEVICE_CONTEXT c, ULONG Khz)
 {
     ULONG depth = c->Accel.FifoDepth;
+    if (Khz == 0) Khz = g_Khz;
+    g_Khz = Khz;
 
     HxLog("ACC: ANTES de configurar el SE%u como I2C", c->Accel.Bus);
     /* geni_se_irq_clear */
@@ -218,35 +222,69 @@ NTSTATUS AccelBusInit(PDEVICE_CONTEXT c, ULONG Khz)
     return STATUS_SUCCESS;
 }
 
-/* Cancela la orden en curso; si no se confirma, la aborta. */
-static VOID I2cStop(PDEVICE_CONTEXT c)
+/* ---------- transferencias ---------- */
+#define SE_STATUS_M_ACTIVE   (1u << 0)     /* SE_GENI_STATUS: orden del maestro en curso */
+
+typedef struct _I2C_RES {
+    ULONG Seen;      /* todos los bits de M_IRQ vistos durante la orden */
+    ULONG Status;    /* SE_GENI_STATUS al fallar */
+    ULONG Ios;
+    ULONG TxFifo;
+    ULONG RxFifo;
+    const char *Phase;
+} I2C_RES;
+
+/* Cancela la orden en curso; si no se confirma, la aborta. Devuelve 1 = cancelada,
+ * 2 = abortada, 0 = ninguna de las dos se confirmó. */
+static ULONG I2cStop(PDEVICE_CONTEXT c)
 {
+    ULONG how = 0;
     SE_WR(c, SE_GENI_TX_WATERMARK_REG, 0);
     SE_WR(c, SE_GENI_M_CMD_CTRL_REG, M_GENI_CMD_CANCEL);
-    for (ULONG i = 0; i < 5000; i++) {
+    for (ULONG i = 0; i < 5000 && !how; i++) {
         ULONG irq = SE_RD(c, SE_GENI_M_IRQ_STATUS);
-        if (irq & (M_CMD_CANCEL_EN | M_CMD_DONE_EN)) { SE_WR(c, SE_GENI_M_IRQ_CLEAR, irq); goto drain; }
-        KeStallExecutionProcessor(2);
+        if (irq & (M_CMD_CANCEL_EN | M_CMD_DONE_EN)) { SE_WR(c, SE_GENI_M_IRQ_CLEAR, irq); how = 1; }
+        else KeStallExecutionProcessor(2);
     }
-    SE_WR(c, SE_GENI_M_CMD_CTRL_REG, M_GENI_CMD_ABORT);
-    for (ULONG i = 0; i < 5000; i++) {
-        ULONG irq = SE_RD(c, SE_GENI_M_IRQ_STATUS);
-        if (irq & M_CMD_ABORT_EN) { SE_WR(c, SE_GENI_M_IRQ_CLEAR, irq); break; }
-        KeStallExecutionProcessor(2);
+    if (!how) {
+        SE_WR(c, SE_GENI_M_CMD_CTRL_REG, M_GENI_CMD_ABORT);
+        for (ULONG i = 0; i < 5000 && !how; i++) {
+            ULONG irq = SE_RD(c, SE_GENI_M_IRQ_STATUS);
+            if (irq & M_CMD_ABORT_EN) { SE_WR(c, SE_GENI_M_IRQ_CLEAR, irq); how = 2; }
+            else KeStallExecutionProcessor(2);
+        }
     }
-drain:
     /* Vaciar lo que quedara en la FIFO de RX. */
     for (ULONG w = SE_RD(c, SE_GENI_RX_FIFO_STATUS) & RX_FIFO_WC_MSK; w != 0 && w <= 64; w--)
         (VOID)SE_RD(c, SE_GENI_RX_FIFOn);
     SE_WR(c, SE_GENI_M_IRQ_CLEAR, SE_RD(c, SE_GENI_M_IRQ_STATUS));
+    return how;
 }
 
-static NTSTATUS I2cError(PDEVICE_CONTEXT c, ULONG Irq)
+static VOID I2cSnapshot(PDEVICE_CONTEXT c, I2C_RES *r)
 {
-    SE_WR(c, SE_GENI_M_IRQ_CLEAR, Irq);
-    I2cStop(c);
+    r->Status = SE_RD(c, SE_GENI_STATUS);
+    r->Ios    = SE_RD(c, SE_GENI_IOS);
+    r->TxFifo = SE_RD(c, SE_GENI_TX_FIFO_STATUS);
+    r->RxFifo = SE_RD(c, SE_GENI_RX_FIFO_STATUS);
+}
+
+static NTSTATUS I2cFail(PDEVICE_CONTEXT c, I2C_RES *r, BOOLEAN Timeout)
+{
+    I2cSnapshot(c, r);
+    ULONG how = I2cStop(c);
+    if (Timeout) {
+        /* Orden colgada: dejar el SE como recién configurado para la siguiente. */
+        if (how == 0 || (SE_RD(c, SE_GENI_STATUS) & SE_STATUS_M_ACTIVE))
+            HxLog("ACC: la orden colgada no se deja cancelar (STATUS=%08X); se reconfigura el SE",
+                  SE_RD(c, SE_GENI_STATUS));
+        SE_WR(c, GENI_FORCE_DEFAULT_REG, FORCE_DEFAULT);
+        KeStallExecutionProcessor(500);
+        SE_WR(c, SE_GENI_M_IRQ_CLEAR, 0xFFFFFFFF);
+        return STATUS_IO_TIMEOUT;
+    }
     /* NACK = no hay nadie en esa dirección: no es un fallo del bus. */
-    return (Irq & M_GP_IRQ_1) ? STATUS_NO_SUCH_DEVICE : STATUS_IO_DEVICE_ERROR;
+    return (r->Seen & M_GP_IRQ_1) ? STATUS_NO_SUCH_DEVICE : STATUS_IO_DEVICE_ERROR;
 }
 
 static ULONG I2cFill(PDEVICE_CONTEXT c, const UCHAR *Buf, ULONG Remaining)
@@ -262,21 +300,23 @@ static ULONG I2cFill(PDEVICE_CONTEXT c, const UCHAR *Buf, ULONG Remaining)
     return off;
 }
 
-static NTSTATUS I2cWrite(PDEVICE_CONTEXT c, const UCHAR *Tx, ULONG Len, BOOLEAN NoStop, PULONG IrqOut)
+static NTSTATUS I2cWrite(PDEVICE_CONTEXT c, const UCHAR *Tx, ULONG Len, BOOLEAN NoStop, I2C_RES *r)
 {
-    ULONG off, irq = 0;
+    ULONG off;
+    r->Phase = NoStop ? "escritura sin STOP" : "escritura";
     SE_WR(c, SE_GENI_M_IRQ_CLEAR, SE_RD(c, SE_GENI_M_IRQ_STATUS));
     SE_WR(c, SE_I2C_TX_TRANS_LEN, Len);
     SE_WR(c, SE_GENI_M_CMD0, (I2C_OP_WRITE << M_OPCODE_SHFT) |
           ((ULONG)c->Accel.Addr << I2C_SLV_ADDR_SHFT) | (NoStop ? I2C_STOP_STRETCH : 0));
     off = I2cFill(c, Tx, Len);
-    SE_WR(c, SE_GENI_TX_WATERMARK_REG, (off < Len) ? 1 : 0);
+    SE_WR(c, SE_GENI_TX_WATERMARK_REG, 1);
 
     for (ULONG spin = 0; spin < I2C_SPINS; spin++) {
-        irq = SE_RD(c, SE_GENI_M_IRQ_STATUS);
-        if (irq & I2C_ERR_MASK) { *IrqOut = irq; return I2cError(c, irq); }
-        if ((irq & M_TX_FIFO_WATERMARK_EN) && off < Len) {
-            off += I2cFill(c, Tx + off, Len - off);
+        ULONG irq = SE_RD(c, SE_GENI_M_IRQ_STATUS);
+        r->Seen |= irq;
+        if (irq & I2C_ERR_MASK) { SE_WR(c, SE_GENI_M_IRQ_CLEAR, irq); return I2cFail(c, r, FALSE); }
+        if (irq & M_TX_FIFO_WATERMARK_EN) {
+            if (off < Len) off += I2cFill(c, Tx + off, Len - off);
             if (off >= Len) SE_WR(c, SE_GENI_TX_WATERMARK_REG, 0);
         }
         if (irq) SE_WR(c, SE_GENI_M_IRQ_CLEAR, irq);
@@ -286,9 +326,7 @@ static NTSTATUS I2cWrite(PDEVICE_CONTEXT c, const UCHAR *Tx, ULONG Len, BOOLEAN 
         }
         KeStallExecutionProcessor(2);
     }
-    *IrqOut = irq;
-    I2cStop(c);
-    return STATUS_IO_TIMEOUT;
+    return I2cFail(c, r, TRUE);
 }
 
 static ULONG I2cDrain(PDEVICE_CONTEXT c, UCHAR *Rx, ULONG Off, ULONG Len)
@@ -302,58 +340,101 @@ static ULONG I2cDrain(PDEVICE_CONTEXT c, UCHAR *Rx, ULONG Off, ULONG Len)
     return Off;
 }
 
-static NTSTATUS I2cRead(PDEVICE_CONTEXT c, UCHAR *Rx, ULONG Len, PULONG IrqOut)
+static NTSTATUS I2cRead(PDEVICE_CONTEXT c, UCHAR *Rx, ULONG Len, I2C_RES *r)
 {
-    ULONG off = 0, irq = 0;
+    ULONG off = 0;
+    r->Phase = "lectura";
     SE_WR(c, SE_GENI_M_IRQ_CLEAR, SE_RD(c, SE_GENI_M_IRQ_STATUS));
     SE_WR(c, SE_I2C_RX_TRANS_LEN, Len);
     SE_WR(c, SE_GENI_M_CMD0, (I2C_OP_READ << M_OPCODE_SHFT) |
           ((ULONG)c->Accel.Addr << I2C_SLV_ADDR_SHFT));
 
     for (ULONG spin = 0; spin < I2C_SPINS; spin++) {
-        irq = SE_RD(c, SE_GENI_M_IRQ_STATUS);
-        if (irq & I2C_ERR_MASK) { *IrqOut = irq; return I2cError(c, irq); }
+        ULONG irq = SE_RD(c, SE_GENI_M_IRQ_STATUS);
+        r->Seen |= irq;
+        if (irq & I2C_ERR_MASK) { SE_WR(c, SE_GENI_M_IRQ_CLEAR, irq); return I2cFail(c, r, FALSE); }
         off = I2cDrain(c, Rx, off, Len);
         if (irq) SE_WR(c, SE_GENI_M_IRQ_CLEAR, irq);
-        if (irq & M_CMD_DONE_EN) {
+        /* Todos los bytes recibidos y el motor parado: se da por buena aunque no llegue CMD_DONE. */
+        if ((irq & M_CMD_DONE_EN) ||
+            (off == Len && (SE_RD(c, SE_GENI_STATUS) & SE_STATUS_M_ACTIVE) == 0)) {
             off = I2cDrain(c, Rx, off, Len);
             return (off == Len) ? STATUS_SUCCESS : STATUS_IO_DEVICE_ERROR;
         }
         KeStallExecutionProcessor(2);
     }
-    *IrqOut = irq;
-    I2cStop(c);
-    return STATUS_IO_TIMEOUT;
+    if (off == Len) {
+        /* Datos completos pero el motor sigue activo: anotar y aprovecharlos. */
+        (VOID)I2cFail(c, r, TRUE);
+        HxLog("ACC: lectura con datos completos pero sin fin de orden (M_IRQ visto=%08X STATUS=%08X)",
+              r->Seen, r->Status);
+        return STATUS_SUCCESS;
+    }
+    return I2cFail(c, r, TRUE);
 }
 
-/* Los primeros errores se anotan con el M_IRQ; después solo se cuentan. */
 static ULONG g_I2cErrLogged;
-static VOID I2cLogErr(PDEVICE_CONTEXT c, const char *Op, UCHAR Reg, NTSTATUS s, ULONG Irq)
+static VOID I2cLogErr(PDEVICE_CONTEXT c, const char *Op, UCHAR Reg, NTSTATUS s, const I2C_RES *r)
 {
-    if (g_I2cErrLogged < 12) {
+    if (g_I2cErrLogged < 60) {
         g_I2cErrLogged++;
-        HxLog("ACC: I2C %s dir=%02X reg=%02X -> %08X (M_IRQ=%08X IOS=%08X)", Op, c->Accel.Addr, Reg,
-              (ULONG)s, Irq, SE_RD(c, SE_GENI_IOS));
+        HxLog("ACC: I2C %s dir=%02X reg=%02X fase=%s -> %08X (M_IRQ visto=%08X STATUS=%08X IOS=%08X TXF=%08X RXF=%08X)",
+              Op, c->Accel.Addr, Reg, r->Phase ? r->Phase : "?", (ULONG)s, r->Seen, r->Status,
+              r->Ios, r->TxFifo, r->RxFifo);
     }
 }
 
 NTSTATUS AccelRegWrite(PDEVICE_CONTEXT c, UCHAR Reg, const UCHAR *Data, ULONG Len)
 {
     UCHAR tx[61];
-    ULONG irq = 0;
+    I2C_RES r;
+    RtlZeroMemory(&r, sizeof(r));
     if (Len > sizeof(tx) - 1) return STATUS_INVALID_PARAMETER;
     tx[0] = Reg;
     RtlCopyMemory(tx + 1, Data, Len);
-    NTSTATUS s = I2cWrite(c, tx, Len + 1, FALSE, &irq);
-    if (!NT_SUCCESS(s)) I2cLogErr(c, "escribir", Reg, s, irq);
+    NTSTATUS s = I2cWrite(c, tx, Len + 1, FALSE, &r);
+    if (!NT_SUCCESS(s)) I2cLogErr(c, "escribir", Reg, s, &r);
     return s;
 }
 
+/* ReadMode 0: registro sin STOP + inicio repetido + lectura (lo normal).
+ * ReadMode 1: registro con STOP y lectura aparte (el BMI conserva el puntero de registro). */
 NTSTATUS AccelRegRead(PDEVICE_CONTEXT c, UCHAR Reg, UCHAR *Data, ULONG Len)
 {
-    ULONG irq = 0;
-    NTSTATUS s = I2cWrite(c, &Reg, 1, TRUE, &irq);
-    if (NT_SUCCESS(s)) s = I2cRead(c, Data, Len, &irq);
-    if (!NT_SUCCESS(s)) I2cLogErr(c, "leer", Reg, s, irq);
+    I2C_RES r;
+    RtlZeroMemory(&r, sizeof(r));
+    NTSTATUS s = I2cWrite(c, &Reg, 1, c->Accel.ReadMode == 0, &r);
+    if (NT_SUCCESS(s)) s = I2cRead(c, Data, Len, &r);
+    if (!NT_SUCCESS(s)) I2cLogErr(c, "leer", Reg, s, &r);
     return s;
+}
+
+/* Recorre las direcciones 0x08..0x77 con una lectura de 1 byte (no modifica nada) y
+ * anota quién contesta. Sirve para saber qué hay realmente en el bus. */
+VOID AccelBusScan(PDEVICE_CONTEXT c)
+{
+    UCHAR saved = c->Accel.Addr;
+    ULONG found = 0, timeouts = 0;
+    for (UCHAR a = 0x08; a <= 0x77; a++) {
+        I2C_RES r;
+        UCHAR b = 0;
+        RtlZeroMemory(&r, sizeof(r));
+        c->Accel.Addr = a;
+        NTSTATUS s = I2cRead(c, &b, 1, &r);
+        if (NT_SUCCESS(s)) {
+            found++;
+            HxLog("ACC: barrido: %02X CONTESTA (byte=%02X, M_IRQ visto=%08X)", a, b, r.Seen);
+        } else if (s != STATUS_NO_SUCH_DEVICE) {
+            HxLog("ACC: barrido: %02X -> %08X (M_IRQ visto=%08X STATUS=%08X IOS=%08X RXF=%08X)",
+                  a, (ULONG)s, r.Seen, r.Status, r.Ios, r.RxFifo);
+            if (s == STATUS_IO_TIMEOUT && ++timeouts >= 4) {
+                HxLog("ACC: barrido interrumpido: demasiadas órdenes colgadas");
+                break;
+            }
+            /* Tras un cuelgue, reconfigurar el SE entero. */
+            if (s == STATUS_IO_TIMEOUT) (VOID)AccelBusInit(c, g_Khz);
+        }
+    }
+    HxLog("ACC: barrido del SE%u terminado: %u direcciones contestan", c->Accel.Bus, found);
+    c->Accel.Addr = saved;
 }

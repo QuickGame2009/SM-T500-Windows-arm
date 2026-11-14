@@ -32,25 +32,36 @@ NTSTATUS Bmi2Probe(PDEVICE_CONTEXT c)
 {
     static const UCHAR addrs[2] = { 0x68, 0x69 };
     for (ULONG i = 0; i < 2; i++) {
-        UCHAR id = 0;
         c->Accel.Addr = addrs[i];
-        NTSTATUS s = AccelRegRead(c, BMI2_REG_CHIP_ID, &id, 1);
-        if (!NT_SUCCESS(s)) {
-            HxLog("ACC: dirección %02X: sin respuesta (%08X)", addrs[i], (ULONG)s);
-            continue;
-        }
-        HxLog("ACC: dirección %02X: CHIP_ID=%02X (24 = BMI270, 27 = BMI260)", addrs[i], id);
-        if (id == BMI270_CHIP_ID || id == BMI260_CHIP_ID) {
-            c->Accel.ChipId = id;
-            return STATUS_SUCCESS;
-        }
-        /* Otro chip: anotar también el WHO_AM_I de InvenSense (0x75) para identificarlo. */
-        {
-            UCHAR who = 0;
-            if (NT_SUCCESS(AccelRegRead(c, 0x75, &who, 1)))
-                HxLog("ACC: dirección %02X: reg 0x75=%02X (un ICM-4x6xx daría 0x4x/0x6x)", addrs[i], who);
+        /* Se prueban las dos formas de leer un registro; la que funcione se queda. */
+        for (UCHAR mode = 0; mode < 2; mode++) {
+            UCHAR id = 0;
+            c->Accel.ReadMode = mode;
+            NTSTATUS s = AccelRegRead(c, BMI2_REG_CHIP_ID, &id, 1);
+            if (s == STATUS_NO_SUCH_DEVICE) {
+                HxLog("ACC: dirección %02X: nadie contesta", addrs[i]);
+                break;
+            }
+            if (!NT_SUCCESS(s)) {
+                HxLog("ACC: dirección %02X, modo de lectura %u: fallo %08X", addrs[i], mode, (ULONG)s);
+                if (s == STATUS_IO_TIMEOUT) (VOID)AccelBusInit(c, 0);
+                continue;
+            }
+            HxLog("ACC: dirección %02X, modo %u: CHIP_ID=%02X (24 = BMI270, 27 = BMI260)", addrs[i], mode, id);
+            if (id == BMI270_CHIP_ID || id == BMI260_CHIP_ID) {
+                c->Accel.ChipId = id;
+                return STATUS_SUCCESS;
+            }
+            /* Otro chip: anotar también el WHO_AM_I de InvenSense (0x75) para identificarlo. */
+            {
+                UCHAR who = 0;
+                if (NT_SUCCESS(AccelRegRead(c, 0x75, &who, 1)))
+                    HxLog("ACC: dirección %02X: reg 0x75=%02X (un ICM-4x6xx daría 0x4x/0x6x)", addrs[i], who);
+            }
+            break;
         }
     }
+    c->Accel.ReadMode = 0;
     return STATUS_NO_SUCH_DEVICE;
 }
 

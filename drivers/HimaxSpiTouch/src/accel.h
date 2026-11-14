@@ -38,6 +38,7 @@ NTSTATUS AccelBusClocks(PDEVICE_CONTEXT Ctx);
 NTSTATUS AccelBusIdent (PDEVICE_CONTEXT Ctx);                 /* solo lectura */
 NTSTATUS AccelBusPins  (PDEVICE_CONTEXT Ctx, BOOLEAN PullUp);
 NTSTATUS AccelBusInit  (PDEVICE_CONTEXT Ctx, ULONG Khz);
+VOID     AccelBusScan  (PDEVICE_CONTEXT Ctx);                 /* solo lecturas; al log */
 /* Escribe Reg seguido de Len bytes (Len <= 60). */
 NTSTATUS AccelRegWrite(PDEVICE_CONTEXT Ctx, UCHAR Reg, const UCHAR *Data, ULONG Len);
 /* Escribe Reg y, con inicio repetido, lee Len bytes. */

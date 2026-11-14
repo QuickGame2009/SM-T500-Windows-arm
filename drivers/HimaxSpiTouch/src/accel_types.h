@@ -14,6 +14,7 @@ typedef struct _ACCEL_STATE {
     ULONG       FifoDepth;      /* en palabras de 32 bits */
     UCHAR       Addr;           /* dirección I2C (0x68 o 0x69) */
     UCHAR       ChipId;         /* 0x24 = BMI270, 0x27 = BMI260 */
+    UCHAR       ReadMode;       /* 0 = inicio repetido, 1 = STOP entre registro y lectura */
 
     /* Hilo */
     PETHREAD    Thread;
