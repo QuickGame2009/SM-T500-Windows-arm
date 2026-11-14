@@ -103,8 +103,37 @@ NTSTATUS HimaxRegWrite32(PDEVICE_CONTEXT Ctx, ULONG Addr, ULONG Value)
 }
 
 /* hx83102_pin_reset */
+/* himax_mcu_system_reset (variante sin HX_PON_PIN_SUPPORT): reset por software
+ * vía la contraseña de modo seguro, sin usar el pin. Es lo que hace el kernel
+ * cuando no tiene HX_RST_PIN_FUNC. */
+NTSTATUS HimaxSoftReset(PDEVICE_CONTEXT Ctx)
+{
+    UCHAR d[HX_ADDR_LEN] = {0}, v;
+    NTSTATUS s = HimaxInterfaceOn(Ctx);
+    if (!NT_SUCCESS(s)) return s;
+    s = HimaxRegWrite32(Ctx, HX_REG_CTRL_FW, 0);
+    if (!NT_SUCCESS(s)) return s;
+    for (ULONG retry = 0; retry < 6; retry++) {
+        v = HX_PSW_LB; s = HimaxBusWrite(Ctx, HX_CMD_PSW_LB, &v, 1); if (!NT_SUCCESS(s)) return s;
+        v = HX_PSW_UB; s = HimaxBusWrite(Ctx, HX_CMD_PSW_UB, &v, 1); if (!NT_SUCCESS(s)) return s;
+        v = 0x00;      s = HimaxBusWrite(Ctx, HX_CMD_PSW_LB, &v, 1); if (!NT_SUCCESS(s)) return s;
+        HxSleepMs(10);
+        s = HimaxRegRead(Ctx, HX_REG_FLAG_RESET_EVT, d, HX_ADDR_LEN);
+        if (!NT_SUCCESS(s)) return s;
+        HxLog("soft reset: flag_reset_event=%02X%02X (esperado 0200), intento %u", d[1], d[0], retry);
+        if (d[1] == 0x02 && d[0] == 0x00) return STATUS_SUCCESS;
+    }
+    return STATUS_IO_TIMEOUT;
+}
+
 VOID HimaxPinReset(PDEVICE_CONTEXT Ctx)
 {
+    if (GPIO_TOUCH_RST == 0) {
+        /* Sin pin de reset accesible: reset por software. */
+        (VOID)HimaxSoftReset(Ctx);
+        HxSleepMs(50);
+        return;
+    }
     TlmmWriteOutput(Ctx, GPIO_TOUCH_RST, 0);
     HxLog("pin reset GPIO%u bajo: IO=%08X", GPIO_TOUCH_RST, TlmmReadRaw(Ctx, GPIO_TOUCH_RST, 4));
     HxSleepMs(20);

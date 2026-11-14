@@ -40,7 +40,7 @@
  * Probado: 71 no hace nada (el chip queda en modo seguro); 74 reinicia el SoC.
  * 31 aparece ya configurado por el bootloader como salida alta con pull-up (CTL=3C3). */
 #define GPIO_TOUCH_RST   (Ctx->ResetGpio)
-#define GPIO_TOUCH_RST_DEFAULT 31
+#define GPIO_TOUCH_RST_DEFAULT 0   /* 0 = sin pin: reset por software. Escribir el CTL de 31 o 74 reinicia el SoC bajo esta UEFI. */
 
 NTSTATUS TlmmConfigure(PDEVICE_CONTEXT Ctx);
 ULONG    TlmmReadRaw(PDEVICE_CONTEXT Ctx, ULONG Gpio, ULONG Off); /* 0=CTL 4=IO 8=INTR_CFG 12=INTR_STATUS */

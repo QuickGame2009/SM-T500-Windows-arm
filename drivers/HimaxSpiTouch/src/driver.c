@@ -140,6 +140,7 @@ static NTSTATUS BringUpTouch(PDEVICE_CONTEXT c)
     c->Stage = ReadStage();
     c->ResetGpio = ReadParam(L"ResetGpio", GPIO_TOUCH_RST_DEFAULT);
     if (c->ResetGpio > 126) c->ResetGpio = GPIO_TOUCH_RST_DEFAULT;
+    if (c->ResetGpio == 0) HxLog("ResetGpio=0: reset del chip por software (sin pin)");
     HxLog("=== arranque del táctil, Stage=%u ResetGpio=%u ===", c->Stage, c->ResetGpio);
     if (c->Stage < 1) { HxLog("Stage 0: no se toca el hardware"); return STATUS_SUCCESS; }
 

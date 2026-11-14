@@ -28,9 +28,10 @@ NTSTATUS TlmmConfigure(PDEVICE_CONTEXT Ctx)
           TlmmRd(Ctx, GPIO_TOUCH_IRQ, TLMM_CTL(GPIO_TOUCH_IRQ)),
           TlmmRd(Ctx, GPIO_TOUCH_IRQ, TLMM_IO(GPIO_TOUCH_IRQ)),
           TlmmRd(Ctx, GPIO_TOUCH_IRQ, TLMM_INTR_CFG(GPIO_TOUCH_IRQ)));
-    HxLog("GPIO%u (reset) antes: CTL=%08X IO=%08X", GPIO_TOUCH_RST,
-          TlmmRd(Ctx, GPIO_TOUCH_RST, TLMM_CTL(GPIO_TOUCH_RST)),
-          TlmmRd(Ctx, GPIO_TOUCH_RST, TLMM_IO(GPIO_TOUCH_RST)));
+    if (GPIO_TOUCH_RST != 0)
+        HxLog("GPIO%u (reset) antes: CTL=%08X IO=%08X", GPIO_TOUCH_RST,
+              TlmmRd(Ctx, GPIO_TOUCH_RST, TLMM_CTL(GPIO_TOUCH_RST)),
+              TlmmRd(Ctx, GPIO_TOUCH_RST, TLMM_IO(GPIO_TOUCH_RST)));
 
     /* QUP0 SE0: GPIO0..3, función qup0=1, drive 6 mA, sin pull (scuba.dts). */
     for (ULONG g = 0; g < 4; g++) {
@@ -60,8 +61,10 @@ NTSTATUS TlmmConfigure(PDEVICE_CONTEXT Ctx)
 
     /* GPIO74: reset táctil según pmx_ts_reset_active del DTB de gta4lwifi.
      * Salida alta, pull-up y drive-strength de 8 mA. */
-    ctl = TlmmRd(Ctx, GPIO_TOUCH_RST, TLMM_CTL(GPIO_TOUCH_RST));
-    if ((ctl & TLMM_CTL_FUNC_MASK) == 0 && (ctl & TLMM_CTL_OE)) {
+    if (GPIO_TOUCH_RST == 0) {
+        HxLog("sin pin de reset: no se toca ningún GPIO de reset");
+    } else if (((ctl = TlmmRd(Ctx, GPIO_TOUCH_RST, TLMM_CTL(GPIO_TOUCH_RST))) & TLMM_CTL_FUNC_MASK) == 0
+               && (ctl & TLMM_CTL_OE)) {
         /* Ya es GPIO de salida (lo dejó el bootloader): no tocar CTL, solo asegurar nivel alto. */
         HxLog("GPIO%u ya es salida GPIO (CTL=%08X); se conserva", GPIO_TOUCH_RST, ctl);
         TlmmWr(Ctx, GPIO_TOUCH_RST, TLMM_IO(GPIO_TOUCH_RST), TLMM_IO_OUT);
