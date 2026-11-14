@@ -39,6 +39,7 @@
 #define GPIO_TOUCH_RST   71   /* pmx_ts_reset_active en scuba.dts */
 
 NTSTATUS TlmmConfigure(PDEVICE_CONTEXT Ctx);
+ULONG    TlmmReadRaw(PDEVICE_CONTEXT Ctx, ULONG Gpio, ULONG Off); /* 0=CTL 4=IO 8=INTR_CFG 12=INTR_STATUS */
 ULONG    TlmmReadInput(PDEVICE_CONTEXT Ctx, ULONG Gpio);
 VOID     TlmmWriteOutput(PDEVICE_CONTEXT Ctx, ULONG Gpio, ULONG Value);
 
